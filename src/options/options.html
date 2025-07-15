@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BookDrive Options</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 2em;
+        background: #fafafa;
+        color: #222;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 2em;
+        margin-bottom: 0.5em;
+      }
+      .settings-group {
+        margin-bottom: 2em;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.5em;
+        font-weight: 500;
+      }
+      select,
+      input[type='number'],
+      input[type='email'] {
+        font-size: 1em;
+        padding: 0.3em;
+        margin-top: 0.2em;
+        border-radius: 4px;
+        border: 1px solid #bbb;
+        width: 100%;
+        max-width: 250px;
+      }
+      input[type='checkbox'] {
+        margin-right: 0.5em;
+      }
+      .back-link {
+        display: inline-block;
+        margin-top: 2em;
+        color: #1976d2;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .back-link:focus {
+        outline: 2px solid #1976d2;
+        outline-offset: 2px;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #181a1b;
+          color: #eee;
+        }
+        select,
+        input[type='number'],
+        input[type='email'] {
+          background: #222;
+          color: #eee;
+          border: 1px solid #444;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="options-title">BookDrive Options</h1>
+    <form aria-labelledby="options-title" autocomplete="off" role="form">
+      <div class="settings-group">
+        <label for="theme-select">Theme</label>
+        <select id="theme-select" name="theme" aria-describedby="theme-desc">
+          <option value="auto">Auto</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <span id="theme-desc" class="sr-only">Choose light, dark, or auto theme</span>
+      </div>
+      <div class="settings-group">
+        <label for="mode-select">Sync Mode</label>
+        <select id="mode-select" name="mode" aria-describedby="mode-desc">
+          <option value="host">Host-to-Many</option>
+          <option value="global">Global Sync</option>
+        </select>
+        <span id="mode-desc" class="sr-only">Choose how bookmarks are synchronized</span>
+      </div>
+      <div class="settings-group">
+        <label for="auto-sync-toggle"
+          ><input type="checkbox" id="auto-sync-toggle" name="autoSync" /> Enable Auto Sync</label
+        >
+        <label for="sync-interval">Sync Interval (minutes)</label>
+        <input
+          type="number"
+          id="sync-interval"
+          name="syncInterval"
+          min="5"
+          max="30"
+          step="1"
+          style="width: 5em"
+          aria-describedby="interval-desc"
+        />
+        <span id="interval-desc" class="sr-only"
+          >Set the interval in minutes for automatic sync</span
+        >
+      </div>
+      <div class="settings-group">
+        <label for="team-mode-toggle"
+          ><input type="checkbox" id="team-mode-toggle" name="teamMode" /> Enable Team Mode
+          (Multi-User)</label
+        >
+        <label for="user-email">Your Email (for Team Mode)</label>
+        <input
+          type="email"
+          id="user-email"
+          name="userEmail"
+          placeholder="you@example.com"
+          aria-describedby="email-desc"
+        />
+        <span id="email-desc" class="sr-only">Required for team mode</span>
+      </div>
+      <div class="settings-group">
+        <label for="verbose-logs-toggle"
+          ><input type="checkbox" id="verbose-logs-toggle" name="verboseLogs" /> Verbose Logs</label
+        >
+        <label for="perf-logs-toggle"
+          ><input type="checkbox" id="perf-logs-toggle" name="perfLogs" /> Enable Performance
+          Logging</label
+        >
+      </div>
+      <button
+        type="submit"
+        style="
+          padding: 0.5em 1.5em;
+          font-size: 1em;
+          background: #1976d2;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        "
+      >
+        Save Settings
+      </button>
+    </form>
+    <a href="popup.html" class="back-link" tabindex="0">&larr; Back to BookDrive Popup</a>
+    <!-- Toast container for user feedback, ARIA live for screen readers -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true" style="display: none"></div>
+    <script type="module" src="./options.js"></script>
+    <!--
+    Accessibility notes:
+    - All form controls are associated with labels.
+    - ARIA live region for toast ensures screen reader users are notified.
+    - .sr-only class (if defined in CSS) can be used to visually hide descriptions but keep them accessible.
+  --></body>
+</html>

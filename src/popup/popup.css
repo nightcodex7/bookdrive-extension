@@ -1,0 +1,102 @@
+/* popup.css - Styles for Bookmark Sync Drive popup */
+:root {
+  --bg-color: #fff;
+  --text-color: #222;
+  --accent-color: #1976d2;
+}
+[data-theme='dark'] {
+  --bg-color: #181a1b;
+  --text-color: #eee;
+  --accent-color: #90caf9;
+}
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  min-width: 320px;
+  min-height: 400px;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--accent-color);
+}
+.tab {
+  flex: 1;
+  padding: 0.75em;
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.tab.active {
+  background: var(--accent-color);
+  color: #fff;
+}
+.tab-panel {
+  display: block;
+  padding: 1em;
+}
+.tab-panel.hidden {
+  display: none;
+}
+.tab:focus,
+button:focus,
+select:focus,
+input:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+#toast-container {
+  min-width: 200px;
+  max-width: 90vw;
+  text-align: center;
+  pointer-events: none;
+}
+.toast {
+  display: inline-block;
+  color: #fff;
+  padding: 0.75em 1.5em;
+  border-radius: 6px;
+  margin: 0.5em 0;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0.98;
+  pointer-events: auto;
+  transition: opacity 0.2s;
+}
+.toast.success {
+  background: #388e3c;
+}
+.toast.error {
+  background: #d32f2f;
+}
+.toast.info {
+  background: #1976d2;
+}
+
+/* Modal dialog styles (for restore dropdown) */
+#popup-root .modal,
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 2em;
+  border-radius: 10px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+#popup-root .modal:focus,
+.modal:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
