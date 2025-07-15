@@ -12,6 +12,8 @@ import {
   pushGlobalLog,
   fetchGlobalLogs,
 } from '../lib/drive';
+import { getTeamMembers, addTeamMember, removeTeamMember } from '../lib/team-manager';
+import { detectConflicts, resolveConflicts, autoResolveConflicts } from '../lib/conflict-resolver';
 
 /**
  * Sync job interface for queued syncs.
@@ -517,6 +519,81 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse): b
       .catch((e: unknown) =>
         sendResponse({ logs: [], error: e instanceof Error ? e.message : String(e) }),
       );
+    return true;
+  }
+  if (message.action === 'getTeamMembers') {
+    getTeamMembers()
+      .then((members: any) => sendResponse({ members }))
+      .catch((e: unknown) =>
+        sendResponse({ members: [], error: e instanceof Error ? e.message : String(e) }),
+      );
+    return true;
+  }
+  if (message.action === 'addTeamMember') {
+    addTeamMember(message.email, message.role)
+      .then(() => sendResponse({ status: 'ok' }))
+      .catch((e: unknown) =>
+        sendResponse({ status: 'error', error: e instanceof Error ? e.message : String(e) }),
+      );
+    return true;
+  }
+  if (message.action === 'removeTeamMember') {
+    removeTeamMember(message.email)
+      .then(() => sendResponse({ status: 'ok' }))
+      .catch((e: unknown) =>
+        sendResponse({ status: 'error', error: e instanceof Error ? e.message : String(e) }),
+      );
+    return true;
+  }
+  if (message.action === 'updateMemberRole') {
+    chrome.runtime.sendMessage({ 
+      action: 'updateMemberRole', 
+      email: message.email, 
+      role: message.role 
+    })
+      .then(() => sendResponse({ status: 'ok' }))
+      .catch((e: unknown) =>
+        sendResponse({ status: 'error', error: e instanceof Error ? e.message : String(e) }),
+      );
+    return true;
+  }
+  if (message.action === 'applyConflictResolutions') {
+    (async (): Promise<void> => {
+      try {
+        const settings = await getSettings();
+        if (settings.mode !== 'global') {
+          sendResponse({ error: 'Not in Global Sync mode' });
+          return;
+        }
+        
+        const localTree = await exportBookmarksTree();
+        let remoteData: unknown = null;
+        
+        try {
+          remoteData = await downloadBookmarksFile('global');
+          if (remoteData && typeof remoteData === 'object' && '_meta' in remoteData)
+            remoteData = (remoteData as any).tree;
+        } catch {}
+        
+        if (!remoteData) {
+          sendResponse({ error: 'No remote data' });
+          return;
+        }
+        
+        const conflicts = detectConflicts(localTree as any, remoteData as any);
+        const resolvedNodes = resolveConflicts(conflicts, message.resolutions);
+        
+        // Apply resolved bookmarks
+        await importBookmarksTree(resolvedNodes as any, 'replace');
+        
+        sendResponse({ status: 'ok' });
+      } catch (e: unknown) {
+        sendResponse({ 
+          status: 'error', 
+          error: e instanceof Error ? e.message : String(e) 
+        });
+      }
+    })();
     return true;
   }
   return false;
