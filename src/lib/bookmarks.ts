@@ -40,21 +40,22 @@ function splitFoldersAndBookmarks(
   parentId: string | null = null,
 ): { folders: Folder[]; bookmarks: BookmarkNode[] } {
   for (const node of tree) {
-    if (node.url)
+    if (node.url) {
       bookmarks.push({
         id: node.id,
         title: node.title,
         url: node.url,
         parentId: parentId ?? undefined,
       });
-    else {
+    } else {
       folders.push({
         id: (node.id as string) || '0',
         title: node.title,
         parentId: (parentId as string) || '0',
       });
-      if (node.children)
+      if (node.children) {
         splitFoldersAndBookmarks(node.children, folders, bookmarks, (node.id as string) || '0');
+      }
     }
   }
   return { folders, bookmarks };
@@ -258,105 +259,6 @@ export function diffBookmarks(
     }
   }
   
-  return { added, removed, changed };
-}
-
-/**
- * Flatten a bookmark tree to a map of id -> node.
- */
-function flattenBookmarks(
-  tree: BookmarkNode[],
-  map: Record<string, BookmarkNode> = {},
-): Record<string, BookmarkNode> {
-  for (const node of tree) {
-    map[node.id] = { title: node.title, url: node.url, id: node.id };
-    if (node.children) flattenBookmarks(node.children, map);
-  }
-  return map;
-}
-
-/**
- * Hash a bookmark/folder node using SHA-256.
- */
-export async function hashNodeSHA256(node: BookmarkNode): Promise<string> {
-  const str = JSON.stringify({ title: node.title, url: node.url, children: node.children?.length });
-  const buf = new TextEncoder().encode(str);
-  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
-  return Array.from(new Uint8Array(hashBuf))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-/**
- * Recursively hash all nodes in a bookmark tree.
- */
-export async function hashBookmarkTree(tree: BookmarkNode[]): Promise<any[]> {
-  async function hashNode(node: BookmarkNode): Promise<any> {
-    let children: any[] = [];
-    if (node.children) {
-      children = await Promise.all(node.children.map(hashNode));
-    }
-    const nodeForHash = { title: node.title, url: node.url, children: children.length };
-    const str = JSON.stringify(nodeForHash);
-    const buf = new TextEncoder().encode(str);
-    const hashBuf = await crypto.subtle.digest('SHA-256', buf);
-    const hash = Array.from(new Uint8Array(hashBuf))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-    return { ...node, hash, children };
-  }
-  return Promise.all(tree.map(hashNode));
-}
-      if (node.url) {
-        chrome.bookmarks.create({ parentId, title: node.title, url: node.url }, resolve);
-      } else {
-        chrome.bookmarks.create({ parentId, title: node.title }, resolve);
-      }
-    });
-    if (node.children && node.children.length > 0) {
-      await importTreeRecursive(node.children, newNode.id);
-    }
-  }
-}
-
-/**
- * Listen for any bookmark changes (created, removed, changed, moved, reordered).
- */
-export function listenForBookmarkChanges(callback: (...args: any[]) => void): void {
-  const events = ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered'] as const;
-  for (const evt of events) {
-    (chrome.bookmarks[evt] as any).addListener(callback);
-  }
-}
-
-/**
- * Diff two bookmark trees (returns {added, removed, changed}).
- */
-export function diffBookmarks(
-  localTree: BookmarkNode[],
-  remoteTree: BookmarkNode[],
-): {
-  added: BookmarkNode[];
-  removed: BookmarkNode[];
-  changed: { local: BookmarkNode; remote: BookmarkNode }[];
-} {
-  const localMap = flattenBookmarks(localTree);
-  const remoteMap = flattenBookmarks(remoteTree);
-  const added: BookmarkNode[] = [];
-  const removed: BookmarkNode[] = [];
-  const changed: { local: BookmarkNode; remote: BookmarkNode }[] = [];
-  for (const id in remoteMap) {
-    if (!localMap[id]) {
-      added.push(remoteMap[id]);
-    } else if (JSON.stringify(localMap[id]) !== JSON.stringify(remoteMap[id])) {
-      changed.push({ local: localMap[id], remote: remoteMap[id] });
-    }
-  }
-  for (const id in localMap) {
-    if (!remoteMap[id]) {
-      removed.push(localMap[id]);
-    }
-  }
   return { added, removed, changed };
 }
 
