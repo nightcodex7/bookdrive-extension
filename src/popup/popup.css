@@ -3,12 +3,22 @@
   --bg-color: #fff;
   --text-color: #222;
   --accent-color: #1976d2;
+  --border-color: #e0e0e0;
+  --success-color: #388e3c;
+  --error-color: #d32f2f;
+  --warning-color: #f57c00;
 }
+
 [data-theme='dark'] {
   --bg-color: #181a1b;
   --text-color: #eee;
   --accent-color: #90caf9;
+  --border-color: #444;
+  --success-color: #4caf50;
+  --error-color: #f44336;
+  --warning-color: #ff9800;
 }
+
 body {
   background: var(--bg-color);
   color: var(--text-color);
@@ -16,87 +26,251 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 400px;
-  transition:
-    background 0.2s,
-    color 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
+
+/* Tab Navigation */
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--accent-color);
+  border-bottom: 1px solid var(--border-color);
 }
+
 .tab {
   flex: 1;
   padding: 0.75em;
   background: none;
   border: none;
-  color: var(--accent-color);
-  font-weight: bold;
+  color: var(--text-color);
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
 }
+
+.tab:hover {
+  background: rgba(25, 118, 210, 0.1);
+}
+
 .tab.active {
-  background: var(--accent-color);
-  color: #fff;
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
 }
+
+.tab:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
+}
+
+/* Tab Panels */
 .tab-panel {
   display: block;
   padding: 1em;
 }
+
 .tab-panel.hidden {
   display: none;
 }
-.tab:focus,
-button:focus,
-select:focus,
-input:focus {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-  z-index: 1;
+
+/* Form Elements */
+select, input[type='number'], input[type='email'] {
+  font-size: 1em;
+  padding: 0.5em;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: border-color 0.2s;
 }
 
+select:focus, input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+button {
+  padding: 0.5em 1em;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+button:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 0.25em 0.75em;
+  border-radius: 6px;
+  margin: 0.5em 0;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.status-badge.battery-saver {
+  background: var(--warning-color);
+  color: white;
+}
+
+.status-badge.idle-paused {
+  background: #bdbdbd;
+  color: #222;
+}
+
+/* Toast Notifications */
 #toast-container {
+  position: fixed;
+  bottom: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10002;
   min-width: 200px;
   max-width: 90vw;
   text-align: center;
   pointer-events: none;
 }
+
 .toast {
   display: inline-block;
   color: #fff;
   padding: 0.75em 1.5em;
   border-radius: 6px;
   margin: 0.5em 0;
-  font-weight: bold;
+  font-weight: 500;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   opacity: 0.98;
   pointer-events: auto;
   transition: opacity 0.2s;
 }
+
 .toast.success {
-  background: #388e3c;
-}
-.toast.error {
-  background: #d32f2f;
-}
-.toast.info {
-  background: #1976d2;
+  background: var(--success-color);
 }
 
-/* Modal dialog styles (for restore dropdown) */
-#popup-root .modal,
+.toast.error {
+  background: var(--error-color);
+}
+
+.toast.info {
+  background: var(--accent-color);
+}
+
+/* Modal Dialogs */
 .modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
+  background: var(--bg-color);
   padding: 2em;
   border-radius: 10px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 10000;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
 }
-#popup-root .modal:focus,
+
 .modal:focus {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
+}
+
+/* Settings Groups */
+.settings-group {
+  margin-bottom: 1.5em;
+}
+
+.settings-group label {
+  display: block;
+  margin-bottom: 0.5em;
+  font-weight: 500;
+}
+
+.settings-group input[type='checkbox'] {
+  margin-right: 0.5em;
+}
+
+/* Logs Display */
+#logs-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5em;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+#logs-list div {
+  padding: 0.25em 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+#logs-list div:last-child {
+  border-bottom: none;
+}
+
+/* Sync Graph */
+#sync-graph-canvas {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-top: 0.5em;
+}
+
+/* Responsive Design */
+@media (max-width: 400px) {
+  .tab {
+    padding: 0.5em;
+    font-size: 0.9em;
+  }
+  
+  .tab-panel {
+    padding: 0.75em;
+  }
+  
+  button {
+    padding: 0.4em 0.8em;
+    font-size: 0.9em;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000;
+  }
+  
+  [data-theme='dark'] {
+    --border-color: #fff;
+  }
+  
+  button {
+    border: 2px solid currentColor;
+  }
 }
