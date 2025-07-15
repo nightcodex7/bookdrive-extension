@@ -24,9 +24,7 @@ export interface LogEntry {
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3/files';
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * Get an OAuth2 token for Google Drive API.
@@ -85,7 +83,7 @@ export async function isSignedIn(): Promise<boolean> {
   }
 }
 
-async function fetchWithRetry(url: string, options: RequestInit, retry = 0): Promise<Response> {
+async function fetchWithRetry(url: string, options: RequestInit, retry: number = 0): Promise<Response> {
   try {
     const res = await fetch(url, options);
     if ([401, 403, 429].includes(res.status)) {
@@ -109,7 +107,7 @@ async function fetchWithRetry(url: string, options: RequestInit, retry = 0): Pro
   }
 }
 
-// AES-GCM encryption/decryption helpers
+// Encryption utilities
 async function getEncryptionKey(passphrase: string): Promise<CryptoKey> {
   const enc = new TextEncoder().encode(passphrase);
   const key = await crypto.subtle.importKey('raw', enc, 'PBKDF2', false, ['deriveKey']);
@@ -141,6 +139,7 @@ async function decryptData<T = unknown>(blob: EncryptedData, passphrase: string)
   return JSON.parse(new TextDecoder().decode(dec)) as T;
 }
 
+// Drive folder and file management
 /**
  * Find or create a folder by name under parentId.
  */
@@ -152,13 +151,13 @@ async function getOrCreateFolder(
   return logAsyncDuration('getOrCreateFolder', async () => {
     // Search for folder
     const q = `name='${name.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false and '${parentId}' in parents`;
-    let res = await fetch(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
+    let res = await fetchWithRetry(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     let data: { files?: DriveFile[]; id?: string } = await res.json();
     if (data.files && data.files.length > 0) return data.files[0].id;
     // Create folder
-    res = await fetch(`${DRIVE_API}/files`, {
+    res = await fetchWithRetry(`${DRIVE_API}/files`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -183,13 +182,13 @@ async function getOrCreateFile(token: string, filename: string, folderId: string
   return logAsyncDuration('getOrCreateFile', async () => {
     // Search for file
     const q = `name='${filename.replace(/'/g, "\\'")}' and trashed=false and '${folderId}' in parents`;
-    let res = await fetch(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
+    let res = await fetchWithRetry(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     let data: { files?: DriveFile[]; id?: string } = await res.json();
     if (data.files && data.files.length > 0) return data.files[0].id;
     // Create file (empty)
-    res = await fetch(`${DRIVE_API}/files`, {
+    res = await fetchWithRetry(`${DRIVE_API}/files`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -242,16 +241,16 @@ export async function uploadBookmarksFile(
       const token = await getAuthToken();
       let folderId: string;
       if (mode === 'host') {
-        const root = await getOrCreateFolder(token, 'appDataFolder');
+        const root = await getOrCreateFolder(token, 'BrowserSync');
         const hostFolder = await getOrCreateFolder(token, 'HostToMany', root);
         const thisHost = await getOrCreateFolder(token, hostId as string, hostFolder);
         folderId = thisHost;
       } else if (mode === 'global') {
-        const root = await getOrCreateFolder(token, 'appDataFolder');
+        const root = await getOrCreateFolder(token, 'BrowserSync');
         folderId = await getOrCreateFolder(token, 'GlobalSync', root);
       } else if (mode === 'backup') {
-        const root = await getOrCreateFolder(token, 'appDataFolder');
-        const backupFolder = await getOrCreateFolder(token, 'Backups', root);
+        const root = await getOrCreateFolder(token, 'BrowserSync');
+        const backupFolder = await getOrCreateFolder(token, 'BackupBeforeMigration', root);
         folderId = await getOrCreateFolder(token, backupTimestamp as string, backupFolder);
       } else {
         throw new Error('Unknown mode');
@@ -511,7 +510,7 @@ export async function pushGlobalLog(logs: LogEntry[]): Promise<void> {
   return logAsyncDuration('pushGlobalLog', async () => {
     try {
       const token = await getAuthToken();
-      const root = await getOrCreateFolder(token, 'appDataFolder');
+      const root = await getOrCreateFolder(token, 'BrowserSync');
       const logsFolder = await getOrCreateFolder(token, 'Logs', root);
       const fileId = await getOrCreateFile(token, 'logs.json', logsFolder);
       let teamMode = false,
@@ -549,7 +548,7 @@ export async function fetchGlobalLogs(): Promise<LogEntry[]> {
   return logAsyncDuration('fetchGlobalLogs', async () => {
     try {
       const token = await getAuthToken();
-      const root = await getOrCreateFolder(token, 'appDataFolder');
+      const root = await getOrCreateFolder(token, 'BrowserSync');
       const logsFolder = await getOrCreateFolder(token, 'Logs', root);
       const fileId = await getOrCreateFile(token, 'logs.json', logsFolder);
       const res = await fetchWithRetry(`${DRIVE_API}/files/${fileId}?alt=media`, {

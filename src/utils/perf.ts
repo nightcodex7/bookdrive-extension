@@ -127,7 +127,16 @@ export class PerformanceTracker {
 
 // Singleton instance for easy import
 export const perfTracker = PerformanceTracker.getInstance();
-    console.log(`[Perf] ${label} (FAILED): ${(end - start).toFixed(1)} ms`);
-    throw e;
-  }
+
+/**
+ * Utility function to measure async operations with performance tracking
+ * @param label - Label for the operation
+ * @param fn - Async function to measure
+ * @returns Promise with the result of the function
+ */
+export async function logAsyncDuration<T>(
+  label: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  return perfTracker.measure(label, fn);
 }

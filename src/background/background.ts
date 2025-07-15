@@ -12,7 +12,6 @@ import {
   pushGlobalLog,
   fetchGlobalLogs,
 } from '../lib/drive';
-// Remove unused imports: BookmarkNode, BookmarkTree, SyncEvent
 
 /**
  * Sync job interface for queued syncs.
@@ -22,6 +21,7 @@ interface SyncJob {
   lastAttempt: string;
   retryCount: number;
 }
+
 /**
  * Sync log event interface for logging sync operations.
  */
@@ -31,8 +31,21 @@ interface SyncLogEvent {
   status: string;
   error?: string;
   details?: unknown;
+  bookmarkCount?: number;
   [key: string]: unknown;
 }
+
+// Global state
+let syncInProgress = false;
+let retryTimeout: ReturnType<typeof setTimeout> | undefined;
+let backoff = 1;
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let syncPausedForIdle = false;
+let lastUploadedHash: number | null = null;
+
+// Constants
+const SHORT_INTERVAL = 5; // minutes
+const LONG_INTERVAL = 30; // minutes
 
 /**
  * Host-to-Many sync as host.
@@ -130,7 +143,6 @@ async function _addSyncJob(job: SyncJob): Promise<void> {
   });
 }
 
-let syncInProgress = false;
 /**
  * Process the persistent sync queue.
  */
@@ -158,8 +170,6 @@ async function _processSyncQueue(): Promise<void> {
   });
 }
 
-let retryTimeout: ReturnType<typeof setTimeout> | undefined;
-let backoff = 1;
 /**
  * Try to sync, retrying with exponential backoff if offline.
  */
@@ -251,11 +261,9 @@ async function _doSyncWithLogging(): Promise<void> {
   }
 }
 
-// Adaptive sync interval
-const SHORT_INTERVAL = 5; // minutes
-const LONG_INTERVAL = 30; // minutes
-let isOnBattery = false;
+// Adaptive sync interval with battery awareness
 async function _checkBatteryAndUpdateSync(): Promise<void> {
+  let isOnBattery = false;
   if ('getBattery' in navigator && typeof (navigator as any).getBattery === 'function') {
     try {
       const battery = await (navigator as any).getBattery();
@@ -270,7 +278,7 @@ async function _checkBatteryAndUpdateSync(): Promise<void> {
   }
   _updateSyncAlarm();
 }
-// Update updateSyncAlarm to use battery-aware interval
+
 function _updateSyncAlarm(): void {
   chrome.storage.local.get(
     ['lastChange', 'lastSync', 'isOnBattery'],
@@ -288,7 +296,7 @@ function _updateSyncAlarm(): void {
     },
   );
 }
-// On every sync or change, update lastChange/lastSync and alarm
+
 async function _onAnySyncOrChange(type: 'change' | 'sync'): Promise<void> {
   const now = new Date().toISOString();
   if (type === 'change') {
@@ -298,8 +306,7 @@ async function _onAnySyncOrChange(type: 'change' | 'sync'): Promise<void> {
   }
   _updateSyncAlarm();
 }
-// Hook into debouncedSync and doSyncWithLogging
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
 function _debouncedSync(): void {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout((): void => {
@@ -307,13 +314,15 @@ function _debouncedSync(): void {
     _onAnySyncOrChange('change');
   }, 3000);
 }
+
+// Set up bookmark change listeners
 (['onChanged', 'onCreated', 'onRemoved', 'onMoved'] as const).forEach((evt) => {
   const handler = (chrome.bookmarks as any)[evt];
   if (typeof handler?.addListener === 'function') {
     handler.addListener(_debouncedSync);
   }
 });
-// Wrap syncs to log events and update sync time
+
 async function _doSyncWithLoggingAndUpdate(): Promise<void> {
   await _doSyncWithLogging();
   await _onAnySyncOrChange('sync');
@@ -514,7 +523,6 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse): b
 });
 
 // Idle detection: pause sync if idle for 30+ minutes
-let syncPausedForIdle = false;
 chrome.idle.onStateChanged.addListener((state: chrome.idle.IdleState): void => {
   if (state === 'idle' || state === 'locked') {
     syncPausedForIdle = true;
@@ -548,7 +556,6 @@ async function _cleanLogs(): Promise<void> {
 setInterval(_cleanLogs, 6 * 60 * 60 * 1000); // every 6 hours
 
 // Deduplicate Drive writes: skip upload if unchanged
-let lastUploadedHash: number | null = null;
 async function _uploadBookmarksFileDedup(
   mode: 'host' | 'global',
   data: chrome.bookmarks.BookmarkTreeNode[],
@@ -559,6 +566,7 @@ async function _uploadBookmarksFileDedup(
   lastUploadedHash = hash;
   return uploadBookmarksFile(mode, data, ...args);
 }
+
 async function _hashData(data: chrome.bookmarks.BookmarkTreeNode[]): Promise<number> {
   // Simple hash: JSON string + built-in hashCode
   const str = JSON.stringify(data);
@@ -572,7 +580,6 @@ async function _hashData(data: chrome.bookmarks.BookmarkTreeNode[]): Promise<num
   }
   return hash;
 }
-// Use uploadBookmarksFileDedup in sync functions
 
 // Global error handler: catch/display unexpected errors via chrome.notifications and logSyncEvent
 self.addEventListener('error', function (event: ErrorEvent): void {
@@ -613,5 +620,3 @@ self.addEventListener('unhandledrejection', function (event: PromiseRejectionEve
     });
   }
 });
-
-// In all async actions (sync, backup, restore, etc.), ensure logSyncEvent is called for both success and error (already handled in most cases)
