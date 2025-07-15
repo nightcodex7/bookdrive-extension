@@ -2,6 +2,8 @@
 
 import { getDeviceId, getMode, getSettings, getVerboseLogs, setVerboseLogs } from '../lib/storage';
 import { getAuthToken, signOut, isSignedIn } from '../lib/drive';
+import { perfTracker } from '../utils/perf';
+import { Chart } from 'chart.js/auto';
 
 /**
  * Settings interface for BookDrive popup.
@@ -26,10 +28,7 @@ interface SyncLog {
   [key: string]: unknown;
 }
 
-// Chart.js import and global declaration
-// @ts-ignore: Chart.js may be loaded globally in browser context
-import Chart from 'chart.js/auto'; // This will be bundled from node_modules
-
+// Augment the window type to include syncChart
 declare global {
   interface Window {
     syncChart?: Chart;
@@ -803,65 +802,88 @@ document.addEventListener('DOMContentLoaded', async () => {
   );
 
   // Sync Timeline Graph (Advanced tab)
-  function renderSyncGraph(): void {
-    chrome.runtime.sendMessage(
-      { action: 'getSyncLog' },
-      (response: { log?: SyncLog[] } | undefined): void => {
-        const logs = response && response.log ? response.log.slice(0, 30).reverse() : [];
-        if (!logs.length) return;
-        const ctx = document.getElementById('sync-graph-canvas') as HTMLCanvasElement | null;
-        if (!ctx) return;
-        const labels = logs.map((l: SyncLog) => new Date(l.time).toLocaleTimeString());
-        const counts = logs.map((l: SyncLog) => l.bookmarkCount || 0);
-        const statusColors = logs.map((l: SyncLog) =>
-          l.status === 'success' ? '#388e3c' : l.status === 'no-change' ? '#1976d2' : '#d32f2f',
-        );
-        if (window.syncChart) window.syncChart.destroy();
-        window.syncChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [
-              {
-                label: 'Bookmark Count',
-                data: counts,
-                borderColor: '#1976d2',
-                backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                pointBackgroundColor: statusColors,
-                pointRadius: 5,
-                fill: true,
-                tension: 0.2,
-              },
-            ],
-          },
-          options: {
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: function (ctx: any): string {
-                    const l = logs[ctx.dataIndex];
-                    return `${l.status}${l.error ? ': ' + l.error : ''} (${counts[ctx.dataIndex]} bookmarks)`;
+  // Memoized chart rendering to prevent unnecessary re-renders
+  const memoizedRenderSyncGraph = (() => {
+    let lastRenderTime = 0;
+    const RENDER_THROTTLE_MS = 500; // Prevent re-rendering too frequently
+
+    return async (): Promise<void> => {
+      const currentTime = Date.now();
+      if (currentTime - lastRenderTime < RENDER_THROTTLE_MS) return;
+
+      try {
+        await perfTracker.measure('Sync Graph Render', async () => {
+          const response = await new Promise<{ log?: SyncLog[] } | undefined>((resolve) => {
+            chrome.runtime.sendMessage({ action: 'getSyncLog' }, resolve);
+          });
+
+          const logs = response && response.log ? response.log.slice(0, 30).reverse() : [];
+          if (!logs.length) return;
+
+          const ctx = document.getElementById('sync-graph-canvas') as HTMLCanvasElement | null;
+          if (!ctx) return;
+
+          const labels = logs.map((l: SyncLog) => new Date(l.time).toLocaleTimeString());
+          const counts = logs.map((l: SyncLog) => l.bookmarkCount || 0);
+          const statusColors = logs.map((l: SyncLog) =>
+            l.status === 'success' ? '#388e3c' : l.status === 'no-change' ? '#1976d2' : '#d32f2f'
+          );
+
+          if (window.syncChart) window.syncChart.destroy();
+          
+          window.syncChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Bookmark Count',
+                  data: counts,
+                  borderColor: '#1976d2',
+                  backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                  pointBackgroundColor: statusColors,
+                  pointRadius: 5,
+                  fill: true,
+                  tension: 0.2,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function (ctx: any): string {
+                      const l = logs[ctx.dataIndex];
+                      return `${l.status}${l.error ? ': ' + l.error : ''} (${counts[ctx.dataIndex]} bookmarks)`;
+                    },
                   },
                 },
               },
+              scales: {
+                x: { display: false },
+                y: { beginAtZero: true },
+              },
             },
-            scales: {
-              x: { display: false },
-              y: { beginAtZero: true },
-            },
-          },
+          });
+
+          lastRenderTime = currentTime;
         });
-      },
-    );
-  }
+      } catch (error) {
+        console.error('Chart rendering failed:', error);
+      }
+    };
+  })();
+
   // Call on load and when Advanced tab is shown
   const advancedTab = document.querySelector('.tab[data-tab="advanced"]') as HTMLElement | null;
   if (advancedTab) {
-    advancedTab.addEventListener('click', renderSyncGraph);
+    advancedTab.addEventListener('click', memoizedRenderSyncGraph);
   }
   if (advancedTab && advancedTab.classList.contains('active')) {
-    renderSyncGraph();
+    memoizedRenderSyncGraph();
   }
 
   // View Global Logs (notification hub)
@@ -876,53 +898,115 @@ document.addEventListener('DOMContentLoaded', async () => {
     'view-global-logs-btn',
   ) as HTMLButtonElement | null;
   if (viewGlobalLogsBtnEl) {
-    viewGlobalLogsBtnEl.onclick = (): void => {
-      chrome.runtime.sendMessage(
-        { action: 'getGlobalLogs' },
-        (
-          response:
-            | {
-                logs?: {
-                  time: string;
-                  status: string;
-                  details?: { userAgent?: string };
-                  error?: string;
-                }[];
-              }
-            | undefined,
-        ): void => {
-          const logs = response && response.logs ? response.logs : [];
-          const dialog = document.createElement('div');
-          dialog.className = 'modal';
-          dialog.setAttribute('role', 'dialog');
-          dialog.setAttribute('aria-modal', 'true');
-          dialog.setAttribute('tabindex', '0');
-          dialog.style.maxHeight = '70vh';
-          dialog.style.overflowY = 'auto';
-          dialog.innerHTML =
-            `<b>Global Sync Logs</b><br><br>` +
-            logs
-              .map(
-                (l: {
-                  time: string;
-                  status: string;
-                  details?: { userAgent?: string };
-                  error?: string;
-                }): string =>
-                  `<div style='margin-bottom:0.5em;'><b>${l.time}</b> [${l.status}]<br>Device: ${l.details?.userAgent || ''}<br>${l.error ? "<span style='color:#d32f2f'>" + l.error + '</span>' : ''}</div>`,
-              )
-              .join('') +
-            `<br><button id='close-global-logs-btn'>Close</button>`;
-          document.body.appendChild(dialog);
-          if (dialog instanceof HTMLElement) (dialog as HTMLElement).focus();
-          const closeGlobalLogsBtn = document.getElementById(
-            'close-global-logs-btn',
-          ) as HTMLButtonElement | null;
-          if (closeGlobalLogsBtn) {
-            closeGlobalLogsBtn.onclick = (): void => dialog.remove();
+    viewGlobalLogsBtnEl.onclick = async (): Promise<void> => {
+      try {
+        const response = await new Promise<{
+          logs?: {
+            time: string;
+            status: string;
+            details?: { userAgent?: string };
+            error?: string;
+          }[];
+        }>((resolve) => {
+          chrome.runtime.sendMessage({ action: 'getGlobalLogs' }, resolve);
+        });
+
+        const logs = response.logs || [];
+        
+        // Use DocumentFragment for better performance
+        const dialogFragment = document.createDocumentFragment();
+        const dialog = document.createElement('div');
+        dialog.className = 'modal';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('tabindex', '0');
+        dialog.style.maxHeight = '70vh';
+        dialog.style.overflowY = 'auto';
+        dialog.style.padding = '1rem';
+        dialog.style.backgroundColor = '#f5f5f5';
+
+        const title = document.createElement('h2');
+        title.textContent = 'Global Sync Logs';
+        title.style.marginBottom = '1rem';
+        dialog.appendChild(title);
+
+        const logContainer = document.createElement('div');
+        logContainer.style.maxHeight = '50vh';
+        logContainer.style.overflowY = 'auto';
+
+        // Virtual scrolling for performance with large log sets
+        const renderLogs = (start: number, count: number) => {
+          const fragment = document.createDocumentFragment();
+          const end = Math.min(start + count, logs.length);
+          
+          for (let i = start; i < end; i++) {
+            const l = logs[i];
+            const logEntry = document.createElement('div');
+            logEntry.style.marginBottom = '0.5em';
+            logEntry.style.padding = '0.5em';
+            logEntry.style.backgroundColor = '#ffffff';
+            logEntry.style.borderRadius = '4px';
+            
+            const timeStatus = document.createElement('div');
+            timeStatus.innerHTML = `<b>${l.time}</b> [${l.status}]`;
+            
+            const deviceInfo = document.createElement('div');
+            deviceInfo.textContent = `Device: ${l.details?.userAgent || 'Unknown'}`;
+            
+            if (l.error) {
+              const errorSpan = document.createElement('span');
+              errorSpan.style.color = '#d32f2f';
+              errorSpan.textContent = l.error;
+              logEntry.appendChild(timeStatus);
+              logEntry.appendChild(deviceInfo);
+              logEntry.appendChild(errorSpan);
+            } else {
+              logEntry.appendChild(timeStatus);
+              logEntry.appendChild(deviceInfo);
+            }
+            
+            fragment.appendChild(logEntry);
           }
-        },
-      );
+          
+          return fragment;
+        };
+
+        // Initial render
+        logContainer.appendChild(renderLogs(0, 50));
+
+        // Add scroll event for lazy loading
+        logContainer.addEventListener('scroll', () => {
+          if (
+            logContainer.scrollTop + logContainer.clientHeight >= 
+            logContainer.scrollHeight - 100 // Threshold
+          ) {
+            const currentLogCount = logContainer.children.length;
+            if (currentLogCount < logs.length) {
+              logContainer.appendChild(renderLogs(currentLogCount, 50));
+            }
+          }
+        });
+
+        dialog.appendChild(logContainer);
+
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'Close';
+        closeButton.style.marginTop = '1rem';
+        closeButton.style.padding = '0.5rem 1rem';
+        closeButton.style.backgroundColor = '#1976d2';
+        closeButton.style.color = 'white';
+        closeButton.style.border = 'none';
+        closeButton.style.borderRadius = '4px';
+        closeButton.onclick = () => dialog.remove();
+
+        dialog.appendChild(closeButton);
+        dialogFragment.appendChild(dialog);
+        document.body.appendChild(dialogFragment);
+
+        dialog.focus();
+      } catch (error) {
+        console.error('Failed to fetch global logs:', error);
+      }
     };
   }
 
@@ -1060,98 +1144,4 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
         let newIdx = idx + (e.key === 'ArrowRight' ? 1 : -1);
-        if (newIdx < 0) newIdx = tabs.length - 1;
-        if (newIdx >= tabs.length) newIdx = 0;
-        tabs[newIdx].focus();
-      }
-    });
-    tab.addEventListener('focus', () => {
-      tabs.forEach((t, i) => {
-        t.setAttribute('tabindex', i === idx ? '0' : '-1');
-      });
-    });
-  });
-
-  // Update ARIA attributes when switching tabs
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => {
-        t.setAttribute('aria-selected', 'false');
-        t.classList.remove('active');
-      });
-      tab.setAttribute('aria-selected', 'true');
-      tab.classList.add('active');
-      // Update tab panels
-      const tabPanels = document.querySelectorAll<HTMLElement>('.tab-panel');
-      tabPanels.forEach((panel) => panel.classList.add('hidden'));
-      const panelId = tab.getAttribute('aria-controls');
-      const panel = document.getElementById(panelId as string);
-      if (panel) panel.classList.remove('hidden');
-      // Update tabindex
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      tabs.forEach((t, i) => {
-        t.setAttribute('tabindex', t === tab ? '0' : '-1');
-      });
-    });
-  });
-});
-
-// Global error handler: catch/display unexpected errors via toast
-window.addEventListener('error', function (event: ErrorEvent) {
-  showToast(
-    'Unexpected error: ' +
-      (event.error && event.error.message ? event.error.message : event.message),
-    'error',
-  );
-});
-window.addEventListener('unhandledrejection', function (event: PromiseRejectionEvent) {
-  showToast(
-    'Unexpected error: ' +
-      (event.reason && event.reason.message ? event.reason.message : event.reason),
-    'error',
-  );
-});
-
-// Add tooltips/help text for advanced features
-const advancedHelp = {
-  'drive-cleanup-btn': 'Remove old backups and unused files from your Drive.',
-  'conflict-viewer-btn': 'View and resolve bookmark sync conflicts.',
-  'manual-backup-btn': 'Create a manual backup of your bookmarks.',
-  'manual-restore-btn': 'Restore bookmarks from a previous backup.',
-  'preview-sync-btn': 'Preview what will change before syncing.',
-  'export-settings-btn': 'Export all BookDrive settings as a JSON file.',
-  'import-settings-btn': 'Import BookDrive settings from a JSON file.',
-};
-Object.entries(advancedHelp).forEach(([id, tip]) => {
-  const el = document.getElementById(id);
-  if (el) {
-    el.setAttribute('title', tip);
-    el.setAttribute('aria-label', tip);
-  }
-});
-
-// Ensure all dynamically created modals/buttons are focusable and accessible (already handled in previous polish)
-// Ensure all async actions provide toast feedback (already handled, but double-check)
-// Example: syncNowBtn
-if (_syncNowBtn) {
-  _syncNowBtn.addEventListener('click', (): void => {
-    if (_syncStatus) _syncStatus.textContent = 'Syncing...';
-    chrome.runtime.sendMessage(
-      { action: 'syncNow' },
-      (response: { status?: string; error?: string } | undefined): void => {
-        if (response && response.status === 'ok') {
-          if (_syncStatus) _syncStatus.textContent = 'Sync complete';
-          updateLastSyncStatus();
-          showToast('Sync complete!', 'success');
-        } else {
-          if (_syncStatus) _syncStatus.textContent = 'Sync failed';
-          const errMsg =
-            response && typeof (response as any).error === 'string'
-              ? (response as any).error
-              : 'Unknown error';
-          showToast('Sync failed: ' + errMsg, 'error');
-        }
-      },
-    );
-  });
-}
+        if
