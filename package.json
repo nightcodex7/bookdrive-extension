@@ -1,0 +1,40 @@
+{
+  "name": "bookdrive-extension",
+  "version": "1.0.0",
+  "description": "[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/your-extension-id?label=Chrome%20Web%20Store)](https://chrome.google.com/webstore/detail/your-extension-id) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE) [![Issues](https://img.shields.io/github/issues/your-org/bookdrive-extension)](https://github.com/your-org/bookdrive-extension/issues)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nightcodex7/bookdrive-extension.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nightcodex7/bookdrive-extension/issues"
+  },
+  "homepage": "https://github.com/nightcodex7/bookdrive-extension#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@types/chrome": "^0.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-jsdoc": "^51.3.4",
+    "eslint-plugin-prettier": "^5.5.1",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.0"
+  }
+}
