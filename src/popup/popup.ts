@@ -7,6 +7,7 @@ import { Chart } from 'chart.js/auto';
 import { getTeamMembers, addTeamMember, removeTeamMember, isTeamAdmin } from '../lib/team-manager';
 import { detectConflicts, resolveConflicts, autoResolveConflicts } from '../lib/conflict-resolver';
 import { validatePassphrase } from '../lib/encryption';
+import { generateSyncPreview, formatSyncPreview } from '../lib/sync-preview';
 
 /**
  * Settings interface for BookDrive popup.
@@ -287,6 +288,31 @@ function setupAdvancedFeatures(): void {
           showToast('Manual backup complete!', 'success');
         } else {
           showToast('Manual backup failed: ' + (response?.error || 'Unknown error'), 'error');
+        }
+      });
+    });
+  }
+
+  // Preview sync
+  const previewSyncBtn = document.getElementById('preview-sync-btn') as HTMLButtonElement | null;
+  if (previewSyncBtn) {
+    previewSyncBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ action: 'simulateSyncPreview' }, async (response: any) => {
+        if (response?.diff && response.diff.changed) {
+          try {
+            const preview = await generateSyncPreview(
+              response.diff.local || [],
+              response.diff.remote || []
+            );
+            const formattedPreview = formatSyncPreview(preview);
+            
+            // Show in a modal instead of alert
+            showPreviewModal(formattedPreview);
+          } catch (error) {
+            showToast('Failed to generate preview: ' + (error as Error).message, 'error');
+          }
+        } else {
+          showToast('No changes to preview', 'info');
         }
       });
     });
@@ -870,4 +896,33 @@ function setupTeamManagement(): void {
       });
     });
   }
+}
+
+function showPreviewModal(content: string): void {
+  // Create a temporary modal for sync preview
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h2>Sync Preview</h2>
+      <pre style="white-space: pre-wrap; max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.05); padding: 1em; border-radius: 4px;">${content}</pre>
+      <div class="modal-actions">
+        <button id="close-preview-btn">Close</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  const closeBtn = modal.querySelector('#close-preview-btn') as HTMLButtonElement;
+  closeBtn?.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
 }

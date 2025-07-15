@@ -509,7 +509,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse): b
         return;
       }
       const diff = diffBookmarks(localTree, remoteData);
-      sendResponse({ diff });
+      sendResponse({ 
+        diff: {
+          ...diff,
+          local: localTree,
+          remote: remoteData
+        }
+      });
     })();
     return true;
   }
