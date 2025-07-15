@@ -4,6 +4,9 @@ import { getDeviceId, getMode, getSettings, getVerboseLogs, setVerboseLogs } fro
 import { getAuthToken, signOut, isSignedIn } from '../lib/drive';
 import { perfTracker } from '../utils/perf';
 import { Chart } from 'chart.js/auto';
+import { getTeamMembers, addTeamMember, removeTeamMember, isTeamAdmin } from '../lib/team-manager';
+import { detectConflicts, resolveConflicts, autoResolveConflicts } from '../lib/conflict-resolver';
+import { validatePassphrase } from '../lib/encryption';
 
 /**
  * Settings interface for BookDrive popup.
@@ -510,6 +513,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAdvancedFeatures();
   setupLogsHandling();
   setupSyncGraph();
+  setupConflictResolution();
+  setupEncryptionModal();
+  setupTeamManagement();
 
   // Display device ID and sync mode
   getDeviceId().then((id: string) => {
@@ -544,3 +550,324 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 });
+
+// Conflict Resolution Setup
+function setupConflictResolution(): void {
+  const conflictViewerBtn = document.getElementById('conflict-viewer-btn') as HTMLButtonElement | null;
+  const conflictModal = document.getElementById('conflict-modal') as HTMLElement | null;
+  const cancelBtn = document.getElementById('cancel-conflicts-btn') as HTMLButtonElement | null;
+  const autoResolveBtn = document.getElementById('auto-resolve-btn') as HTMLButtonElement | null;
+  const resolveBtn = document.getElementById('resolve-conflicts-btn') as HTMLButtonElement | null;
+
+  if (conflictViewerBtn) {
+    conflictViewerBtn.addEventListener('click', async () => {
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'getBookmarkDiff' });
+        if (response?.diff) {
+          displayConflicts(response.diff);
+          if (conflictModal) conflictModal.style.display = 'flex';
+        } else {
+          showToast('No conflicts found', 'info');
+        }
+      } catch (error) {
+        showToast('Failed to check conflicts: ' + (error as Error).message, 'error');
+      }
+    });
+  }
+
+  if (cancelBtn && conflictModal) {
+    cancelBtn.addEventListener('click', () => {
+      conflictModal.style.display = 'none';
+    });
+  }
+
+  if (autoResolveBtn) {
+    autoResolveBtn.addEventListener('click', () => {
+      // Auto-resolve all conflicts using 'newest' strategy
+      const conflictItems = document.querySelectorAll('.conflict-item');
+      conflictItems.forEach((item, index) => {
+        const remoteRadio = item.querySelector('input[value="remote"]') as HTMLInputElement;
+        if (remoteRadio) remoteRadio.checked = true;
+      });
+      showToast('Auto-resolved all conflicts (using remote version)', 'info');
+    });
+  }
+
+  if (resolveBtn && conflictModal) {
+    resolveBtn.addEventListener('click', () => {
+      // Apply selected resolutions
+      const resolutions = gatherConflictResolutions();
+      chrome.runtime.sendMessage({ 
+        action: 'applyConflictResolutions', 
+        resolutions 
+      }, (response: any) => {
+        if (response?.status === 'ok') {
+          showToast('Conflicts resolved successfully', 'success');
+          conflictModal.style.display = 'none';
+        } else {
+          showToast('Failed to resolve conflicts: ' + (response?.error || 'Unknown error'), 'error');
+        }
+      });
+    });
+  }
+}
+
+function displayConflicts(diff: any): void {
+  const conflictList = document.getElementById('conflict-list') as HTMLElement | null;
+  if (!conflictList) return;
+
+  conflictList.innerHTML = '';
+
+  if (diff.changed && diff.changed.length > 0) {
+    diff.changed.forEach((conflict: any, index: number) => {
+      const conflictDiv = document.createElement('div');
+      conflictDiv.className = 'conflict-item';
+      conflictDiv.innerHTML = `
+        <h4>Conflict ${index + 1}: ${conflict.local.title}</h4>
+        <div class="conflict-preview">
+          <strong>Local:</strong> ${conflict.local.title} ${conflict.local.url ? `(${conflict.local.url})` : ''}
+        </div>
+        <div class="conflict-preview">
+          <strong>Remote:</strong> ${conflict.remote.title} ${conflict.remote.url ? `(${conflict.remote.url})` : ''}
+        </div>
+        <div class="conflict-options">
+          <label><input type="radio" name="conflict-${index}" value="local"> Use Local</label>
+          <label><input type="radio" name="conflict-${index}" value="remote" checked> Use Remote</label>
+        </div>
+      `;
+      conflictList.appendChild(conflictDiv);
+    });
+  } else {
+    conflictList.innerHTML = '<p>No conflicts found.</p>';
+  }
+}
+
+function gatherConflictResolutions(): any[] {
+  const resolutions: any[] = [];
+  const conflictItems = document.querySelectorAll('.conflict-item');
+  
+  conflictItems.forEach((item, index) => {
+    const selectedRadio = item.querySelector('input[type="radio"]:checked') as HTMLInputElement;
+    if (selectedRadio) {
+      resolutions.push({
+        id: `conflict-${index}`,
+        resolution: selectedRadio.value,
+      });
+    }
+  });
+  
+  return resolutions;
+}
+
+// Encryption Modal Setup
+function setupEncryptionModal(): void {
+  const encryptionModal = document.getElementById('encryption-modal') as HTMLElement | null;
+  const passphraseInput = document.getElementById('encryption-passphrase') as HTMLInputElement | null;
+  const confirmInput = document.getElementById('confirm-passphrase') as HTMLInputElement | null;
+  const strengthDiv = document.getElementById('passphrase-strength') as HTMLElement | null;
+  const enableBtn = document.getElementById('enable-encryption-btn') as HTMLButtonElement | null;
+  const cancelBtn = document.getElementById('cancel-encryption-btn') as HTMLButtonElement | null;
+
+  // Add encryption toggle to advanced settings
+  const advancedPanel = document.getElementById('advanced-panel');
+  if (advancedPanel) {
+    const encryptionDiv = document.createElement('div');
+    encryptionDiv.style.marginTop = '1em';
+    encryptionDiv.innerHTML = `
+      <label><input type="checkbox" id="encryption-toggle"> Enable Client-Side Encryption</label>
+      <button id="setup-encryption-btn" style="margin-left: 1em; display: none;">Setup Encryption</button>
+    `;
+    advancedPanel.insertBefore(encryptionDiv, advancedPanel.firstChild);
+
+    const encryptionToggle = document.getElementById('encryption-toggle') as HTMLInputElement;
+    const setupBtn = document.getElementById('setup-encryption-btn') as HTMLButtonElement;
+
+    // Load current encryption status
+    chrome.storage.sync.get(['encryptionEnabled'], (data) => {
+      if (encryptionToggle) encryptionToggle.checked = !!data.encryptionEnabled;
+      if (setupBtn) setupBtn.style.display = data.encryptionEnabled ? 'none' : 'inline-block';
+    });
+
+    if (encryptionToggle) {
+      encryptionToggle.addEventListener('change', () => {
+        if (encryptionToggle.checked) {
+          if (encryptionModal) encryptionModal.style.display = 'flex';
+        } else {
+          chrome.storage.sync.set({ encryptionEnabled: false, encryptionPass: '' });
+          showToast('Encryption disabled', 'info');
+        }
+        if (setupBtn) setupBtn.style.display = encryptionToggle.checked ? 'none' : 'inline-block';
+      });
+    }
+
+    if (setupBtn) {
+      setupBtn.addEventListener('click', () => {
+        if (encryptionModal) encryptionModal.style.display = 'flex';
+      });
+    }
+  }
+
+  if (passphraseInput && strengthDiv) {
+    passphraseInput.addEventListener('input', () => {
+      const validation = validatePassphrase(passphraseInput.value);
+      if (validation.isValid) {
+        strengthDiv.textContent = 'Strong passphrase';
+        strengthDiv.className = 'strength-strong';
+      } else if (passphraseInput.value.length > 0) {
+        strengthDiv.textContent = validation.errors.join(', ');
+        strengthDiv.className = 'strength-weak';
+      } else {
+        strengthDiv.textContent = '';
+        strengthDiv.className = '';
+      }
+    });
+  }
+
+  if (enableBtn && passphraseInput && confirmInput && encryptionModal) {
+    enableBtn.addEventListener('click', () => {
+      const passphrase = passphraseInput.value;
+      const confirm = confirmInput.value;
+
+      if (passphrase !== confirm) {
+        showToast('Passphrases do not match', 'error');
+        return;
+      }
+
+      const validation = validatePassphrase(passphrase);
+      if (!validation.isValid) {
+        showToast('Passphrase is not strong enough', 'error');
+        return;
+      }
+
+      chrome.storage.sync.set({ 
+        encryptionEnabled: true, 
+        encryptionPass: passphrase 
+      }, () => {
+        showToast('Encryption enabled successfully', 'success');
+        encryptionModal.style.display = 'none';
+        passphraseInput.value = '';
+        confirmInput.value = '';
+      });
+    });
+  }
+
+  if (cancelBtn && encryptionModal) {
+    cancelBtn.addEventListener('click', () => {
+      encryptionModal.style.display = 'none';
+      const encryptionToggle = document.getElementById('encryption-toggle') as HTMLInputElement;
+      if (encryptionToggle) encryptionToggle.checked = false;
+    });
+  }
+}
+
+// Team Management Setup
+function setupTeamManagement(): void {
+  const teamMembersList = document.getElementById('team-members-list') as HTMLElement | null;
+  const teamManagement = document.getElementById('team-management') as HTMLElement | null;
+  const addMemberBtn = document.getElementById('add-member-btn') as HTMLButtonElement | null;
+  const newMemberEmail = document.getElementById('new-member-email') as HTMLInputElement | null;
+  const newMemberRole = document.getElementById('new-member-role') as HTMLSelectElement | null;
+
+  async function loadTeamMembers(): Promise<void> {
+    if (!teamMembersList) return;
+
+    try {
+      const members = await getTeamMembers();
+      const isAdmin = await isTeamAdmin();
+
+      if (members.length === 0) {
+        teamMembersList.textContent = 'No team members found.';
+        if (teamManagement) teamManagement.style.display = 'none';
+        return;
+      }
+
+      teamMembersList.innerHTML = '';
+      members.forEach(member => {
+        const memberDiv = document.createElement('div');
+        memberDiv.className = 'team-member';
+        memberDiv.innerHTML = `
+          <div>
+            <strong>${member.email}</strong>
+            <span class="member-role">(${member.role})</span>
+            <br>
+            <small>Last sync: ${new Date(member.lastSync).toLocaleString()}</small>
+          </div>
+          ${isAdmin ? `
+            <div class="member-actions">
+              <button onclick="removeMember('${member.email}')">Remove</button>
+              <button onclick="toggleRole('${member.email}', '${member.role}')">${member.role === 'admin' ? 'Make Member' : 'Make Admin'}</button>
+            </div>
+          ` : ''}
+        `;
+        teamMembersList.appendChild(memberDiv);
+      });
+
+      if (teamManagement) {
+        teamManagement.style.display = isAdmin ? 'block' : 'none';
+      }
+    } catch (error) {
+      if (teamMembersList) {
+        teamMembersList.textContent = 'Failed to load team members.';
+      }
+    }
+  }
+
+  // Global functions for member management
+  (window as any).removeMember = async (email: string) => {
+    try {
+      await removeTeamMember(email);
+      showToast('Member removed successfully', 'success');
+      loadTeamMembers();
+    } catch (error) {
+      showToast('Failed to remove member: ' + (error as Error).message, 'error');
+    }
+  };
+
+  (window as any).toggleRole = async (email: string, currentRole: string) => {
+    try {
+      const newRole = currentRole === 'admin' ? 'member' : 'admin';
+      await chrome.runtime.sendMessage({ 
+        action: 'updateMemberRole', 
+        email, 
+        role: newRole 
+      });
+      showToast('Member role updated successfully', 'success');
+      loadTeamMembers();
+    } catch (error) {
+      showToast('Failed to update member role: ' + (error as Error).message, 'error');
+    }
+  };
+
+  if (addMemberBtn && newMemberEmail && newMemberRole) {
+    addMemberBtn.addEventListener('click', async () => {
+      const email = newMemberEmail.value.trim();
+      const role = newMemberRole.value as 'admin' | 'member';
+
+      if (!email) {
+        showToast('Please enter an email address', 'error');
+        return;
+      }
+
+      try {
+        await addTeamMember(email, role);
+        showToast('Team member added successfully', 'success');
+        newMemberEmail.value = '';
+        loadTeamMembers();
+      } catch (error) {
+        showToast('Failed to add team member: ' + (error as Error).message, 'error');
+      }
+    });
+  }
+
+  // Load team members when advanced tab is clicked
+  const advancedTab = document.querySelector('.tab[data-tab="advanced"]') as HTMLElement | null;
+  if (advancedTab) {
+    advancedTab.addEventListener('click', () => {
+      chrome.storage.sync.get(['teamMode'], (data) => {
+        if (data.teamMode) {
+          loadTeamMembers();
+        }
+      });
+    });
+  }
+}

@@ -5,6 +5,7 @@ import type { BookmarkNode } from '../types/bookmarks';
 import type { EncryptedData } from '../types/sync';
 import { logAsyncDuration } from '../utils/perf';
 import { hashBookmarkTree, exportBookmarksTree } from './bookmarks';
+import { encryptData, decryptData } from './encryption';
 
 /**
  * Represents a file in Google Drive.
@@ -83,7 +84,11 @@ export async function isSignedIn(): Promise<boolean> {
   }
 }
 
-async function fetchWithRetry(url: string, options: RequestInit, retry: number = 0): Promise<Response> {
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  retry: number = 0
+): Promise<Response> {
   try {
     const res = await fetch(url, options);
     if ([401, 403, 429].includes(res.status)) {
@@ -107,39 +112,6 @@ async function fetchWithRetry(url: string, options: RequestInit, retry: number =
   }
 }
 
-// Encryption utilities
-async function getEncryptionKey(passphrase: string): Promise<CryptoKey> {
-  const enc = new TextEncoder().encode(passphrase);
-  const key = await crypto.subtle.importKey('raw', enc, 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: enc, iterations: 100000, hash: 'SHA-256' },
-    key,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt'],
-  );
-}
-
-async function encryptData<T>(data: T, passphrase: string): Promise<EncryptedData> {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await getEncryptionKey(passphrase);
-  const enc = new TextEncoder().encode(JSON.stringify(data));
-  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc);
-  return {
-    data: btoa(String.fromCharCode(...new Uint8Array(ct))),
-    iv: btoa(String.fromCharCode(...iv)),
-  };
-}
-
-async function decryptData<T = unknown>(blob: EncryptedData, passphrase: string): Promise<T> {
-  const key = await getEncryptionKey(passphrase);
-  const iv = Uint8Array.from(atob(blob.iv), (c) => c.charCodeAt(0));
-  const ct = Uint8Array.from(atob(blob.data), (c) => c.charCodeAt(0));
-  const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
-  return JSON.parse(new TextDecoder().decode(dec)) as T;
-}
-
-// Drive folder and file management
 /**
  * Find or create a folder by name under parentId.
  */
@@ -337,7 +309,7 @@ export async function downloadBookmarksFile(
       });
       const data: { [key: string]: unknown } | EncryptedData = await res.json();
       // Decrypt if needed
-      if (data && typeof data === 'object' && 'iv' in data && 'data' in data) {
+      if (data && typeof data === 'object' && 'iv' in data && 'data' in data && 'salt' in data) {
         let passphrase = '';
         try {
           const s = await new Promise<{ encryptionPass?: string }>((res) =>

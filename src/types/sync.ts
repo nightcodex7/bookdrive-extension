@@ -12,4 +12,5 @@ export interface SyncEvent {
 export interface EncryptedData {
   iv: string;
   data: string;
+  salt?: string;
 }
