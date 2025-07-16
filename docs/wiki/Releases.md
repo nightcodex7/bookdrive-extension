@@ -1,18 +1,26 @@
-# Changelog
+# BookDrive Release Notes
 
-All notable changes to BookDrive will be documented in this file.
+This page contains detailed information about each BookDrive release, including new features, bug fixes, and other changes.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## Version 0.1.0 (2025-07-17) - Beta Release
 
-## [0.1.0] - 2025-07-17
-
-### Beta Release
 This is the first beta release of BookDrive with core functionality for testing.
 
-## [Unreleased] - Future 1.0.0 Release
+### What's Included
+- Basic bookmark synchronization with Google Drive
+- OAuth2 authentication
+- Simple conflict resolution
+- Settings import/export
+- Light/dark theme support
 
-### Added
+### Known Limitations
+- Some advanced features are still in development
+- Performance optimizations are ongoing
+- Limited cross-browser testing
+
+## Future Version 1.0.0
+
+### New Features
 - Initial release of BookDrive extension
 - Two-way bookmark synchronization using Google Drive
 - Host-to-Many and Global Sync modes
@@ -34,7 +42,7 @@ This is the first beta release of BookDrive with core functionality for testing.
 - Drive cleanup tools
 - Responsive popup UI with accessibility support
 
-### Security
+### Security Enhancements
 - Manifest V3 compliance
 - Content Security Policy implementation
 - Minimal permissions model
@@ -42,7 +50,7 @@ This is the first beta release of BookDrive with core functionality for testing.
 - No third-party server dependencies
 - Secure token handling
 
-### Performance
+### Performance Improvements
 - Delta-based synchronization with SHA-256 hashing
 - Efficient memory usage with cleanup routines
 - Optimized network requests with retry logic
@@ -57,17 +65,9 @@ This is the first beta release of BookDrive with core functionality for testing.
 - Developer contribution guidelines
 - Production deployment checklist
 
-### Developer Experience
-- TypeScript codebase with strict typing
-- Modern build system with esbuild
-- Comprehensive test suite with Jest
-- ESLint and Prettier configuration
-- GitHub Actions CI/CD pipeline
-- Automated packaging for Chrome Web Store
+## Upcoming Features
 
-## [Unreleased]
-
-### Planned
+Features planned for future releases:
 - iOS Safari extension support
 - Enhanced mobile compatibility
 - Advanced conflict resolution strategies
@@ -77,6 +77,16 @@ This is the first beta release of BookDrive with core functionality for testing.
 - Performance optimizations
 - Additional encryption algorithms
 
----
+## Release Process
 
-For more details about each release, see the [GitHub Releases](https://github.com/your-org/bookdrive-extension/releases) page.
+BookDrive follows semantic versioning (MAJOR.MINOR.PATCH):
+- MAJOR: Incompatible API changes
+- MINOR: New functionality in a backward-compatible manner
+- PATCH: Backward-compatible bug fixes
+
+Each release undergoes:
+1. Feature freeze and testing period
+2. Release candidate testing
+3. Final QA verification
+4. Release to Chrome Web Store
+5. Post-release monitoring

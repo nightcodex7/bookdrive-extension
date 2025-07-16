@@ -147,7 +147,7 @@ export async function importBookmarksTree(
     const diff = diffBookmarks(localTree as BookmarkNode[], tree as BookmarkNode[]);
     
     for (const added of diff.added) {
-      const createParams: chrome.bookmarks.BookmarkCreateArg = {
+      const createParams: { parentId?: string; title: string; url?: string } = {
         parentId: added.parentId || '1',
         title: added.title,
       };
@@ -211,7 +211,7 @@ async function removeNodeRecursive(node: chrome.bookmarks.BookmarkTreeNode): Pro
  */
 async function importTreeRecursive(tree: BookmarkNode[], parentId: string = '0'): Promise<void> {
   for (const node of tree) {
-    const createParams: chrome.bookmarks.BookmarkCreateArg = {
+    const createParams: { parentId?: string; title: string; url?: string } = {
       parentId,
       title: node.title,
     };

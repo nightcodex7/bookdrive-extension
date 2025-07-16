@@ -4,15 +4,18 @@ const mockBookmarkTree = [
   {
     id: '1',
     title: 'Bookmarks Bar',
+    syncing: false,
     children: [
       {
         id: '2',
         title: 'Example Folder',
+        syncing: false,
         children: [
           {
             id: '3',
             title: 'Example Website',
             url: 'https://example.com',
+            syncing: false,
           },
         ],
       },
@@ -22,7 +25,8 @@ const mockBookmarkTree = [
 
 describe('Bookmarks Module', () => {
   beforeEach(() => {
-    chrome.bookmarks.getTree.mockImplementation((callback: (results: chrome.bookmarks.BookmarkTreeNode[]) => void) => {
+    // Using the mock from jest.setup.js
+    (chrome.bookmarks.getTree as jest.Mock).mockImplementation((callback: (results: chrome.bookmarks.BookmarkTreeNode[]) => void) => {
       callback(mockBookmarkTree);
     });
   });

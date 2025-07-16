@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "types": ["chrome"],
+    "types": ["chrome", "jest"],
     "baseUrl": ".",
     "paths": {
       "chart.js": ["node_modules/chart.js/dist/chart.umd.js"]

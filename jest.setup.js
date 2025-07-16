@@ -1,14 +1,20 @@
 // Mock Chrome API for testing
 global.chrome = {
   bookmarks: {
-    getTree: jest.fn(),
+    getTree: jest.fn().mockImplementation(callback => callback([])),
     create: jest.fn(),
     remove: jest.fn(),
     update: jest.fn(),
     getChildren: jest.fn(),
+    removeTree: jest.fn(),
   },
   identity: {
-    getAuthToken: jest.fn(),
+    getAuthToken: jest.fn().mockImplementation((details, callback) => {
+      if (typeof callback === 'function') {
+        callback({ token: 'mock-token' });
+      }
+      return Promise.resolve({ token: 'mock-token' });
+    }),
     removeCachedAuthToken: jest.fn(),
     launchWebAuthFlow: jest.fn(),
   },
@@ -46,7 +52,13 @@ global.chrome = {
 };
 
 // Mock fetch for API calls
-global.fetch = jest.fn();
+global.fetch = jest.fn().mockImplementation((url) => {
+  return Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve('{}'),
+  });
+});
 
 // Reset all mocks before each test
 beforeEach(() => {

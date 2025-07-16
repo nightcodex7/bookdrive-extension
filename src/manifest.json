@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BookDrive",
   "short_name": "BookDrive",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "BookDrive: Two-way bookmark sync using Google Drive. Privacy-respecting, open-source, and cross-platform.",
   "author": "BookDrive Project",
   "homepage_url": "https://github.com/your-org/bookdrive-extension",
@@ -16,7 +16,7 @@
   "permissions": ["bookmarks", "identity", "storage", "alarms", "notifications"],
   "host_permissions": ["https://www.googleapis.com/*"],
   "oauth2": {
-    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", /* IMPORTANT: Replace this with your actual Google OAuth2 client ID */
     "scopes": [
       "https://www.googleapis.com/auth/drive.appdata",
       "https://www.googleapis.com/auth/drive.file"

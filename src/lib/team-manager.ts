@@ -93,7 +93,7 @@ export async function updateMemberRole(email: string, role: 'admin' | 'member'):
 export async function isTeamAdmin(): Promise<boolean> {
   try {
     const settings = await new Promise<{ userEmail?: string }>((resolve) => {
-      chrome.storage.sync.get(['userEmail'], resolve);
+      chrome.storage.sync.get(['userEmail'], (result) => resolve(result as { userEmail?: string }));
     });
     
     const members = await getTeamMembers();
