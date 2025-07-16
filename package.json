@@ -1,6 +1,6 @@
 {
   "name": "bookdrive-extension",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Privacy-first bookmark synchronization using your own Google Drive. Cross-platform, secure, and feature-rich.",
   "main": "index.js",
   "type": "module",
@@ -19,14 +19,14 @@
     "format": "prettier --write \"src/**/*.{ts,js,css,html}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,css,html}\"",
     "typecheck": "tsc --noEmit",
-    "build:js": "node esbuild.config.js",
-    "build:assets": "mkdir -p dist && cp -r src/assets src/popup/*.html src/popup/*.css src/options/*.html src/options/*.css dist/",
-    "build:manifest": "cp src/manifest.json dist/",
+    "build:js": "node esbuild.config.cjs",
+    "build:assets": "node scripts/copy-assets.js",
+    "build:manifest": "node scripts/copy-manifest.js",
     "build": "npm run clean && npm run typecheck && npm run build:js && npm run build:assets && npm run build:manifest",
-    "build:prod": "NODE_ENV=production npm run build",
-    "watch": "node esbuild.config.js --watch",
+    "build:prod": "cross-env NODE_ENV=production npm run build",
+    "watch": "node esbuild.config.cjs --watch",
     "dev": "npm run watch",
-    "package": "npm run build:prod && cd dist && zip -r ../bookdrive-extension-v$(node -p \"require('../package.json').version\").zip *",
+    "package": "npm run build:prod && node scripts/create-package.js",
     "package:dev": "npm run build && cd dist && zip -r ../bookdrive-extension-dev.zip *",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -66,7 +66,9 @@
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
     "ansi-colors": "^4.1.3",
+    "archiver": "^7.0.1",
     "chart.js": "^4.4.0",
+    "cross-env": "^7.0.3",
     "esbuild": "^0.20.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -78,12 +80,11 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "prettier": "^3.6.2",
-    "rimraf": "^5.0.5",
+    "rimraf": "^5.0.10",
     "semver": "^7.7.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
-  "dependencies": {},
   "browserslist": [
     "Chrome >= 100",
     "Edge >= 100",
@@ -92,7 +93,9 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
     "collectCoverageFrom": [
       "src/**/*.{ts,js}",
       "!src/**/*.d.ts",

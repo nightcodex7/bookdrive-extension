@@ -32,7 +32,7 @@ export class ErrorHandler {
   static asyncWrapper<T extends (...args: any[]) => Promise<any>>(fn: T): T {
     return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
       try {
-        return await logAsyncDuration(() => fn(...args), fn.name);
+        return await logAsyncDuration(fn.name, () => fn(...args));
       } catch (error) {
         this.log(error, { functionName: fn.name, args });
         throw error;
