@@ -132,7 +132,7 @@ async function importTreeFromState(
 
 /**
  * Import bookmarks tree: replace or merge based on mode.
- * mode: 'replace' (default, wipes all and imports) or 'merge' (advanced, not yet implemented)
+ * mode: 'replace' (default, wipes all and imports) or 'merge' (advanced merge)
  */
 export async function importBookmarksTree(
   tree: chrome.bookmarks.BookmarkTreeNode[],
@@ -142,20 +142,32 @@ export async function importBookmarksTree(
     await removeAllBookmarks();
     await importTreeRecursive(tree as BookmarkNode[]);
   } else if (mode === 'merge') {
-    // Advanced merge: merge local and remote trees, deduplicate, and preserve unique items
+    // Advanced merge: merge local and remote trees
     const localTree = await exportBookmarksTree();
     const diff = diffBookmarks(localTree as BookmarkNode[], tree as BookmarkNode[]);
-    // Add unique remote bookmarks
+    
     for (const added of diff.added) {
-      await importTreeRecursive([added]);
+      const createParams: chrome.bookmarks.BookmarkCreateArg = {
+        parentId: added.parentId || '1',
+        title: added.title,
+      };
+      if (added.url) createParams.url = added.url;
+      
+      await new Promise<void>((resolve) => {
+        chrome.bookmarks.create(createParams, () => resolve());
+      });
     }
-    // Optionally, handle changed bookmarks (conflict resolution)
-    // For now, prefer remote version for changed
+    
     for (const { remote } of diff.changed) {
-      await importTreeRecursive([remote]);
+      if (remote.id) {
+        await new Promise<void>((resolve) => {
+          chrome.bookmarks.update(remote.id, {
+            title: remote.title,
+            url: remote.url
+          }, () => resolve());
+        });
+      }
     }
-    // Optionally, remove bookmarks that are only in local (diff.removed)
-    // For now, keep local-only bookmarks (conservative merge)
   }
 }
 

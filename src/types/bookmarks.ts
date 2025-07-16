@@ -6,6 +6,7 @@ export interface BookmarkNode {
   url?: string;
   parentId?: string;
   children?: BookmarkNode[];
+  hash?: string;
 }
 
 export type BookmarkTree = BookmarkNode[];

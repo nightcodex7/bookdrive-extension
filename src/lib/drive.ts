@@ -2,7 +2,7 @@
 // drive.ts - Google Drive integration for BookDrive
 
 import type { BookmarkNode } from '../types/bookmarks';
-import type { EncryptedData } from '../types/sync';
+import type { EncryptedData, SyncEvent } from '../types/sync';
 import { logAsyncDuration } from '../utils/perf';
 import { hashBookmarkTree, exportBookmarksTree } from './bookmarks';
 import { encryptData, decryptData } from './encryption';
@@ -18,8 +18,9 @@ export interface DriveFile {
 /**
  * Represents a log entry for Drive operations.
  */
-export interface LogEntry {
-  [key: string]: unknown;
+export interface LogEntry extends SyncEvent {
+  author?: string;
+  syncedBy?: string;
 }
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
