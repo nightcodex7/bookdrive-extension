@@ -26,3 +26,25 @@ export const createMockSyncLog = () => ({
   status: 'success',
   bookmarkCount: 10
 });
+
+export const createMockTeamMember = () => ({
+  email: 'test@example.com',
+  deviceId: 'test-device',
+  lastSync: new Date().toISOString(),
+  role: 'member' as const
+});
+
+export const createMockConflict = () => ({
+  id: 'test-conflict',
+  local: {
+    id: '1',
+    title: 'Local Bookmark',
+    url: 'https://local.example.com'
+  },
+  remote: {
+    id: '1',
+    title: 'Remote Bookmark',
+    url: 'https://remote.example.com'
+  },
+  type: 'title' as const
+});
