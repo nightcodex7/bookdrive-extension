@@ -3,12 +3,14 @@
 import { getDeviceId, getMode, getSettings, getVerboseLogs, setVerboseLogs } from '../lib/storage';
 import { getAuthToken, signOut, isSignedIn } from '../lib/drive';
 import { perfTracker } from '../utils/perf';
-import { Chart } from 'chart.js/auto';
+import { Chart, registerables } from 'chart.js';
 import { getTeamMembers, addTeamMember, removeTeamMember, isTeamAdmin } from '../lib/team-manager';
-import { detectConflicts, resolveConflicts, autoResolveConflicts } from '../lib/conflict-resolver';
+import { detectConflicts, resolveConflicts } from '../lib/conflict-resolver';
 import { validatePassphrase } from '../lib/encryption';
 import { generateSyncPreview, formatSyncPreview } from '../lib/sync-preview';
 
+// Register Chart.js components
+Chart.register(...registerables);
 /**
  * Settings interface for BookDrive popup.
  */

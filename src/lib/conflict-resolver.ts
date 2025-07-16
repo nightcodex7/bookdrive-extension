@@ -67,7 +67,7 @@ export function resolveConflicts(
     const resolution = resolutionMap.get(conflict.id);
     
     if (!resolution) {
-      // Default to remote if no resolution specified
+      // Default to local if no resolution specified
       resolvedNodes.push(conflict.remote);
       continue;
     }
@@ -84,6 +84,9 @@ export function resolveConflicts(
           ...conflict.local,
           ...resolution.mergedData,
         });
+        break;
+      default:
+        resolvedNodes.push(conflict.remote);
         break;
     }
   }

@@ -15,8 +15,7 @@
     "types": ["chrome"],
     "baseUrl": ".",
     "paths": {
-      "chart.js": ["node_modules/chart.js/dist/chart.js"],
-      "chart.js/auto": ["node_modules/chart.js/auto"]
+      "chart.js": ["node_modules/chart.js/dist/chart.umd.js"]
     }
   },
   "include": ["src/**/*"],

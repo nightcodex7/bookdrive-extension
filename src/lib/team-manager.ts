@@ -19,21 +19,26 @@ export interface TeamMetadata {
  */
 export async function getTeamMembers(): Promise<TeamMember[]> {
   try {
-    // Get team metadata from Drive
-    const token = await chrome.identity.getAuthToken({ interactive: false });
-    if (!token) throw new Error('Not authenticated');
-    
-    // For now, return mock data - this would be implemented with actual Drive API calls
-    const mockMembers: TeamMember[] = [
-      {
-        email: 'user@example.com',
-        deviceId: 'device-1',
-        lastSync: new Date().toISOString(),
-        role: 'admin'
-      }
-    ];
-    
-    return mockMembers;
+    return new Promise((resolve) => {
+      chrome.identity.getAuthToken({ interactive: false }, (token) => {
+        if (!token) {
+          resolve([]);
+          return;
+        }
+        
+        // For now, return mock data - this would be implemented with actual Drive API calls
+        const mockMembers: TeamMember[] = [
+          {
+            email: 'user@example.com',
+            deviceId: 'device-1',
+            lastSync: new Date().toISOString(),
+            role: 'admin'
+          }
+        ];
+        
+        resolve(mockMembers);
+      });
+    });
   } catch (error) {
     console.error('Failed to get team members:', error);
     return [];

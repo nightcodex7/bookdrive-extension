@@ -177,7 +177,7 @@ const buildConfig = {
   // External dependencies
   external: [
     'chrome', 
-    'node:*', // Exclude Node.js built-in modules
+    'node:*',
   ],
   
   // Logging and reporting
@@ -188,6 +188,9 @@ const buildConfig = {
   // Performance and tree-shaking
   treeShaking: true,
   keepNames: !CONFIG.production, // Preserve function names for debugging
+  
+  // Resolve configuration
+  resolveExtensions: ['.ts', '.js'],
   
   // Error handling
   errorLimit: 10, // Limit number of errors to prevent overwhelming output

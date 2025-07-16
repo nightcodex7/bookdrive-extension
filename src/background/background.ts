@@ -11,9 +11,11 @@ import {
   cleanupBackups,
   pushGlobalLog,
   fetchGlobalLogs,
+  LogEntry,
 } from '../lib/drive';
 import { getTeamMembers, addTeamMember, removeTeamMember } from '../lib/team-manager';
-import { detectConflicts, resolveConflicts, autoResolveConflicts } from '../lib/conflict-resolver';
+import { detectConflicts, resolveConflicts } from '../lib/conflict-resolver';
+import type { SyncEvent } from '../types/sync';
 
 /**
  * Sync job interface for queued syncs.
