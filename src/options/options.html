@@ -49,6 +49,58 @@
         outline: 2px solid #1976d2;
         outline-offset: 2px;
       }
+      /* Validation error styles */
+      .validation-error {
+        border: 1px solid #d32f2f !important;
+        background-color: rgba(211, 47, 47, 0.05);
+      }
+      .error-message {
+        color: #d32f2f;
+        font-size: 0.8em;
+        margin-top: 0.2em;
+      }
+      /* Toast notification styles */
+      #toast-container {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      /* Screen reader only class */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+      /* Tooltip styles */
+      .tooltip-icon {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #1976d2;
+        color: white;
+        text-align: center;
+        font-size: 12px;
+        line-height: 16px;
+        margin-left: 5px;
+        cursor: help;
+      }
+      .tooltip-icon:hover {
+        background-color: #1565c0;
+      }
       @media (prefers-color-scheme: dark) {
         body {
           background: #181a1b;
@@ -60,6 +112,13 @@
           background: #222;
           color: #eee;
           border: 1px solid #444;
+        }
+        .validation-error {
+          border: 1px solid #f44336 !important;
+          background-color: rgba(244, 67, 54, 0.1);
+        }
+        .error-message {
+          color: #f44336;
         }
       }
     </style>
@@ -126,6 +185,136 @@
           ><input type="checkbox" id="perf-logs-toggle" name="perfLogs" /> Enable Performance
           Logging</label
         >
+      </div>
+
+      <div class="settings-group">
+        <h2>Scheduled Backups</h2>
+        <label
+          for="scheduled-backups-toggle"
+          title="Enable automatic backups on a regular schedule"
+        >
+          <input type="checkbox" id="scheduled-backups-toggle" name="scheduledBackups" /> Enable
+          Scheduled Backups
+          <span
+            class="tooltip-icon"
+            title="When enabled, backups will be created automatically according to your schedule"
+            >ⓘ</span
+          >
+        </label>
+
+        <div id="scheduled-backup-options" style="margin-left: 1.5em; margin-top: 1em">
+          <label for="backup-frequency" title="How often backups should be created"
+            >Backup Frequency</label
+          >
+          <select id="backup-frequency" name="backupFrequency" aria-describedby="frequency-desc">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="bi-weekly">Bi-weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+          <span
+            class="tooltip-icon"
+            title="Daily: Every day at the specified time. Weekly: Once a week on your selected day. Bi-weekly: Every two weeks on your selected day. Monthly: Once a month on your selected day."
+            >ⓘ</span
+          >
+          <span id="frequency-desc" class="sr-only">How often backups should be created</span>
+
+          <div id="day-selector-container" style="margin-top: 0.5em; display: none">
+            <label for="day-selector" title="Select which day of the week to run backups"
+              >Day</label
+            >
+            <select id="day-selector" name="daySelector" aria-describedby="day-desc">
+              <option value="0">Sunday</option>
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+            </select>
+            <span
+              class="tooltip-icon"
+              title="The day of the week when weekly or bi-weekly backups will be created"
+              >ⓘ</span
+            >
+            <span id="day-desc" class="sr-only"
+              >Day of the week for weekly or bi-weekly backups</span
+            >
+          </div>
+
+          <div id="day-of-month-container" style="margin-top: 0.5em; display: none">
+            <label for="day-of-month" title="Select which day of the month to run backups"
+              >Day of Month</label
+            >
+            <select id="day-of-month" name="dayOfMonth" aria-describedby="day-of-month-desc">
+              <!-- Will be populated with JavaScript -->
+            </select>
+            <span
+              class="tooltip-icon"
+              title="The day of the month when monthly backups will be created. If the selected day doesn't exist in a month (e.g., 31st in February), the backup will run on the last day of that month."
+              >ⓘ</span
+            >
+            <span id="day-of-month-desc" class="sr-only">Day of the month for monthly backups</span>
+          </div>
+
+          <div style="margin-top: 0.5em">
+            <label for="backup-time" title="Time of day to run backups (24-hour format)"
+              >Time</label
+            >
+            <div style="display: flex; gap: 0.5em; align-items: center">
+              <select
+                id="backup-hour"
+                name="backupHour"
+                aria-describedby="time-desc"
+                style="width: 5em"
+              >
+                <!-- Will be populated with JavaScript -->
+              </select>
+              <span>:</span>
+              <select id="backup-minute" name="backupMinute" style="width: 5em">
+                <!-- Will be populated with JavaScript -->
+              </select>
+            </div>
+            <span
+              class="tooltip-icon"
+              title="The time when backups will be created. If the browser is closed at this time, the backup will run when the browser is next opened."
+              >ⓘ</span
+            >
+            <span id="time-desc" class="sr-only">Time of day for scheduled backups</span>
+          </div>
+
+          <div style="margin-top: 0.5em">
+            <label
+              for="retention-policy"
+              title="Control how many backups are kept to manage storage space"
+              >Retention Policy</label
+            >
+            <select id="retention-policy" name="retentionPolicy" aria-describedby="retention-desc">
+              <option value="5">Keep 5 backups</option>
+              <option value="10">Keep 10 backups</option>
+              <option value="20">Keep 20 backups</option>
+              <option value="50">Keep 50 backups</option>
+              <option value="-1">Keep unlimited backups</option>
+            </select>
+            <span
+              class="tooltip-icon"
+              title="When the limit is reached, the oldest scheduled backup will be automatically removed. Manual backups are never automatically removed."
+              >ⓘ</span
+            >
+            <span id="retention-desc" class="sr-only">Number of scheduled backups to keep</span>
+          </div>
+
+          <div style="margin-top: 1em">
+            <a
+              href="../backup-history/backup-history.html"
+              class="backup-history-link"
+              style="color: #1976d2; text-decoration: none"
+            >
+              <span style="vertical-align: middle; margin-right: 0.5em">📋</span> View Backup
+              History
+            </a>
+          </div>
+        </div>
       </div>
       <button
         type="submit"

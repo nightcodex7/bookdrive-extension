@@ -8,6 +8,7 @@
 - [Sync Modes](Sync-Modes)
 - [Security](Security)
 - [Configuration](Configuration)
+- [Scheduled Backups](Scheduled-Backups)
 
 ### Support
 - [Troubleshooting](Troubleshooting)

@@ -24,9 +24,9 @@ const CONFIG = {
     src: resolve(__dirname, 'src'),
     dist: resolve(__dirname, 'dist'),
     entries: {
-      background: './src/background/background.ts',
-      popup: './src/popup/popup.ts',
-      options: './src/options/options.ts'
+      background: './src/background/background.js',
+      popup: './src/popup/popup.js',
+      options: './src/options/options.js'
     }
   }
 };
@@ -161,7 +161,6 @@ const buildConfig = {
   
   // Loader configurations
   loader: {
-    '.ts': 'ts',
     '.js': 'js',
     '.css': 'css',
     '.json': 'json',
@@ -190,9 +189,7 @@ const buildConfig = {
   keepNames: !CONFIG.production, // Preserve function names for debugging
   
   // Resolve configuration
-  resolveExtensions: ['.ts', '.js'],
-  
-  // Error handling options are set in the build context
+  resolveExtensions: ['.js'],
 };
 
 /**
