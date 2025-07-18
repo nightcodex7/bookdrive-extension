@@ -3,14 +3,12 @@ console.log('BookDrive popup loaded');
 
 import {
   getAuthToken,
-  isSignedIn,
+  isAuthenticated,
   signOut,
-  getBookDriveFolderId,
-  listDriveFiles,
-  createManualBackup,
+  ensureBookDriveFolder,
+  listFiles,
   uploadBookmarksFile,
   downloadBookmarksFile,
-  fetchGlobalLogs,
 } from '../lib/index.js';
 
 // Constants
@@ -41,7 +39,7 @@ let syncStatus = null;
 async function initializePopup() {
   try {
     // Check if user is signed in
-    const isUserSignedIn = await isSignedIn();
+    const isUserSignedIn = await isAuthenticated();
 
     if (!isUserSignedIn) {
       // Show onboarding screen
@@ -60,7 +58,7 @@ async function initializePopup() {
             await getAuthToken(true);
 
             // Create folder if needed
-            await getBookDriveFolderId();
+            await ensureBookDriveFolder();
 
             // Show welcome screen
             document.getElementById('onboarding').style.display = 'none';
@@ -88,7 +86,7 @@ async function initializePopup() {
     } else {
       // User is already signed in, ensure folder exists
       try {
-        await getBookDriveFolderId(false);
+        await ensureBookDriveFolder(false);
       } catch (error) {
         console.log('Silent folder check failed, will create on user action:', error.message);
       }
@@ -256,7 +254,7 @@ function setupSyncHandling() {
         await getAuthToken(true);
 
         // Ensure folder exists
-        const folderId = await getBookDriveFolderId();
+        const folderId = await ensureBookDriveFolder();
         showToast(`Using ${FOLDER_NAME} folder: ${folderId.substring(0, 8)}...`, 'info');
 
         // Update folder info display
@@ -414,7 +412,7 @@ function setupAdvancedFeatures() {
         await getAuthToken(true);
 
         // List files
-        const files = await listDriveFiles();
+        const files = await listFiles();
         showToast(`Found ${files.length} files in BookDrive folder`, 'info');
 
         // Show file list

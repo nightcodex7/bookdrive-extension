@@ -10,6 +10,7 @@ export * from './notification-manager.js';
 
 // Storage and Drive
 export * from './storage/index.js';
+export * from './drive.js';
 
 // Auth
 export * from './auth/index.js';
