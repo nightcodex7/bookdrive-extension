@@ -5,43 +5,7 @@
  * for storing and retrieving bookmark data.
  */
 
-/**
- * Get an OAuth2 token for Google Drive API
- * @param {boolean} interactive - Whether to show the auth UI if needed
- * @returns {Promise<string>} - The auth token
- */
-export async function getAuthToken(interactive = false) {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive }, (token) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      
-      if (!token) {
-        reject(new Error('Failed to get auth token'));
-        return;
-      }
-      
-      resolve(token);
-    });
-  });
-}
-
-/**
- * Refresh the OAuth2 token if it's invalid
- * @param {string} token - The token to refresh
- * @returns {Promise<string>} - The new auth token
- */
-export async function refreshAuthToken(token) {
-  // First remove the cached token
-  await new Promise((resolve) => {
-    chrome.identity.removeCachedAuthToken({ token }, resolve);
-  });
-  
-  // Then get a new token
-  return getAuthToken(true);
-}
+import { getAuthToken, refreshAuthToken } from './auth/drive-auth.js';
 
 /**
  * Handle API response with token refresh if needed
