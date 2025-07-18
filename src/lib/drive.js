@@ -5,7 +5,7 @@
  * for storing and retrieving bookmark data.
  */
 
-import { getAuthToken, refreshAuthToken } from './auth/drive-auth.js';
+import { getAuthToken, refreshToken } from './auth/drive-auth.js';
 
 /**
  * Handle API response with token refresh if needed
@@ -18,7 +18,7 @@ export async function handleApiResponse(response, token, retryFn) {
   // If unauthorized, try to refresh token and retry
   if (response.status === 401) {
     try {
-      const newToken = await refreshAuthToken(token);
+      const newToken = await refreshToken(token);
       return retryFn(newToken);
     } catch (refreshError) {
       throw new Error(`Authentication failed: ${refreshError.message}`);
@@ -44,29 +44,6 @@ export async function handleApiResponse(response, token, retryFn) {
   }
   
   return response.json();
-}
-
-/**
- * Revoke the current OAuth2 token
- * @param {string} token - The token to revoke
- * @returns {Promise<void>}
- */
-export async function revokeAuthToken(token) {
-  return new Promise((resolve, reject) => {
-    chrome.identity.removeCachedAuthToken({ token }, () => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      
-      // Also revoke on Google's servers
-      fetch(`https://accounts.google.com/o/oauth2/revoke?token=${token}`)
-        .then(() => resolve())
-        .catch(reject);
-    });
-  });
-}
-
 /**
  * Create a folder in Google Drive
  * @param {string} name - Folder name
