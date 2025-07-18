@@ -194,3 +194,52 @@ export async function getRetentionCount() {
 function daysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
 }
+
+/**
+ * Validate schedule configuration
+ * @param {Object} schedule - Schedule object to validate
+ * @returns {Object} Validation result with isValid boolean and errors array
+ */
+export function validateSchedule(schedule) {
+  const errors = [];
+  
+  if (!schedule || typeof schedule !== 'object') {
+    errors.push('Schedule must be an object');
+    return { isValid: false, errors };
+  }
+  
+  // Validate frequency
+  const validFrequencies = ['hourly', 'daily', 'weekly', 'monthly'];
+  if (!validFrequencies.includes(schedule.frequency)) {
+    errors.push('Invalid frequency. Must be one of: ' + validFrequencies.join(', '));
+  }
+  
+  // Validate hour (0-23)
+  if (typeof schedule.hour !== 'number' || schedule.hour < 0 || schedule.hour > 23) {
+    errors.push('Hour must be a number between 0 and 23');
+  }
+  
+  // Validate minute (0-59)
+  if (typeof schedule.minute !== 'number' || schedule.minute < 0 || schedule.minute > 59) {
+    errors.push('Minute must be a number between 0 and 59');
+  }
+  
+  // Validate weekly schedule
+  if (schedule.frequency === 'weekly') {
+    if (typeof schedule.dayOfWeek !== 'number' || schedule.dayOfWeek < 0 || schedule.dayOfWeek > 6) {
+      errors.push('Day of week must be a number between 0 (Sunday) and 6 (Saturday)');
+    }
+  }
+  
+  // Validate monthly schedule
+  if (schedule.frequency === 'monthly') {
+    if (typeof schedule.dayOfMonth !== 'number' || schedule.dayOfMonth < 1 || schedule.dayOfMonth > 31) {
+      errors.push('Day of month must be a number between 1 and 31');
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
