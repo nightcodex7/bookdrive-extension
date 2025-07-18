@@ -1,11 +1,14 @@
-// BookDrive popup.js - UI logic for the extension popup
-console.log('BookDrive popup loaded');
-
 import {
   getAuthToken,
   isAuthenticated,
   signOut,
-} from '../lib/index.js';
+  listFiles,
+  ensureBookDriveFolder,
+} from '../lib/auth/drive-auth.js';
+
+import {
+  downloadBookmarksFile,
+} from '../lib/drive.js';
 
 // Constants
 const FOLDER_NAME = 'MyExtensionData';

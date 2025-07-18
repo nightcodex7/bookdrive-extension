@@ -2,7 +2,7 @@
 console.log('BookDrive options page loaded');
 
 // Import scheduler constants and validation function
-import { FREQUENCY_OPTIONS, validateSchedule } from '../lib/index.js';
+import { FREQUENCY_OPTIONS, validateSchedule } from '../lib/scheduling/scheduler.js';
 
 // Initialize options when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {

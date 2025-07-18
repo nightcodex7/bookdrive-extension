@@ -7,6 +7,7 @@
 export * from './bookmarks.js';
 export * from './encryption.js';
 export * from './notification-manager.js';
+export * from './drive.js';
 
 // Storage and Drive
 export * from './storage/index.js';
