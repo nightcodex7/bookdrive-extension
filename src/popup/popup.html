@@ -7,19 +7,22 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <div id="onboarding" style="display: none; padding: 1em">
+    <div id="onboarding" style="display: none">
       <h2>Welcome to BookDrive!</h2>
       <p>
         To get started, sign in with your Google account to enable bookmark sync via your own Drive.
       </p>
-      <button id="onboarding-signin-btn">Sign in with Google</button>
+      <button id="onboarding-signin-btn">
+        <span class="material-icons">account_circle</span>
+        Sign in with Google
+      </button>
       <div id="onboarding-clientid" style="margin-top: 1em; display: none">
         <p><b>Missing OAuth2 Client ID!</b></p>
         <p>To use BookDrive, you need to set up a Google OAuth2 Client ID for this extension.</p>
         <ol>
           <li>
-            Run the <code>scripts/setup_oauth2.sh</code> or
-            <code>scripts/setup_oauth2.js</code> script in the repo.
+            Run the <code>scripts/setup-oauth2.sh</code> or
+            <code>scripts/setup-oauth2.js</code> script in the repo.
           </li>
           <li>Follow the instructions to create a Google Cloud project and OAuth2 credentials.</li>
           <li>
@@ -36,73 +39,10 @@
         </p>
       </div>
     </div>
-    <div id="welcome-setup" style="display: none; padding: 1em">
+    <div id="welcome-setup" style="display: none">
       <h2>Setup Complete!</h2>
       <p>You're signed in. Next, choose your preferred sync mode and settings.</p>
       <button id="go-to-settings-btn">Go to Settings</button>
-    </div>
-    <div
-      id="setup-wizard"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 10001;
-      "
-    >
-      <div
-        id="wizard-content"
-        style="
-          background: #fff;
-          max-width: 400px;
-          margin: 5vh auto;
-          padding: 2em;
-          border-radius: 12px;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
-          position: relative;
-        "
-      >
-        <div id="wizard-step-welcome">
-          <h2>Welcome to BookDrive</h2>
-          <p>Sync your bookmarks privately and securely using your own Google Drive.</p>
-          <button id="wizard-next-1">Get Started</button>
-        </div>
-        <div id="wizard-step-mode" style="display: none">
-          <h2>Choose Sync Mode</h2>
-          <p>
-            <label
-              ><input type="radio" name="wizard-mode" value="host" checked /> Host-to-Many
-              (One-way)</label
-            ><br />
-            <label
-              ><input type="radio" name="wizard-mode" value="global" /> Global Sync (Two-way)</label
-            >
-          </p>
-          <button id="wizard-prev-2">Back</button>
-          <button id="wizard-next-2">Next</button>
-        </div>
-        <div id="wizard-step-auth" style="display: none">
-          <h2>Authorize Google Drive</h2>
-          <p>Sign in with your Google account to enable sync.</p>
-          <button id="wizard-auth-btn">Sign in with Google</button>
-          <button id="wizard-prev-3">Back</button>
-        </div>
-        <div id="wizard-step-backup" style="display: none">
-          <h2>Backup Current Bookmarks</h2>
-          <p>Optional: Backup your current bookmarks before starting sync.</p>
-          <button id="wizard-backup-btn">Backup Now</button>
-          <button id="wizard-skip-backup-btn">Skip</button>
-        </div>
-        <div id="wizard-step-done" style="display: none">
-          <h2>Setup Complete!</h2>
-          <p>BookDrive is ready. You can change settings anytime.</p>
-          <button id="wizard-done-btn">Open BookDrive</button>
-        </div>
-      </div>
     </div>
     <div id="popup-root">
       <nav class="tabs" role="tablist">
@@ -148,148 +88,329 @@
         </button>
       </nav>
       <section id="tab-content">
+        <!-- Home Panel -->
         <div class="tab-panel" id="home-panel" role="tabpanel" aria-labelledby="home-tab">
-          <div><strong>Device ID:</strong> <span id="device-id">...</span></div>
-          <div><strong>Sync Mode:</strong> <span id="sync-mode">...</span></div>
-          <div style="margin-top: 1em">
-            <button id="sync-now-btn">Sync Now</button>
-            <span id="sync-status" style="margin-left: 1em"></span>
+          <div class="dashboard-header">
+            <img src="../assets/icon48.png" alt="BookDrive" class="logo" />
+            <h2>BookDrive</h2>
           </div>
-          <div style="margin-top: 1em">Home content (status, sync now, etc.)</div>
+
+          <div class="status-card">
+            <div class="status-row">
+              <strong>Device ID:</strong> <span id="device-id">...</span>
+            </div>
+            <div class="status-row">
+              <strong>Sync Mode:</strong> <span id="sync-mode">...</span>
+            </div>
+            <div class="status-row">
+              <strong>Last Sync:</strong> <span id="sync-status">Never</span>
+            </div>
+            <div class="status-row">
+              <strong>Bookmarks:</strong> <span id="bookmark-count">...</span>
+            </div>
+          </div>
+
+          <div class="drive-info-card">
+            <h3>Google Drive Integration</h3>
+            <div id="folder-info-container">
+              <div class="status-row">
+                <strong>Folder:</strong> <span id="folder-info" class="hidden">...</span>
+              </div>
+              <div class="status-row">
+                <strong>Access:</strong> <span>Limited to extension-created files only</span>
+              </div>
+            </div>
+            <div class="auth-actions">
+              <button id="sign-out-btn" class="btn btn-text">
+                <span class="material-icons">logout</span> Sign Out
+              </button>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="sync-now-btn" class="btn btn-primary btn-block">
+              <span class="material-icons">sync</span> Sync Now
+            </button>
+            <button id="quick-backup-btn" class="btn btn-secondary btn-block">
+              <span class="material-icons">backup</span> Quick Backup
+            </button>
+          </div>
+
+          <div class="sync-stats">
+            <h3>Recent Activity</h3>
+            <div id="mini-stats">
+              <div class="stat-card">
+                <div class="stat-value" id="total-syncs">-</div>
+                <div class="stat-label">Total Syncs</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="success-rate">-</div>
+                <div class="stat-label">Success Rate</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="last-change">-</div>
+                <div class="stat-label">Last Change</div>
+              </div>
+            </div>
+          </div>
         </div>
+        <!-- Settings Panel -->
         <div
-          class="tab-panel hidden"
+          class="tab-panel hidden settings-panel"
           id="settings-panel"
           role="tabpanel"
           aria-labelledby="settings-tab"
         >
-          Settings content (mode, theme, etc.)
-          <div style="margin-top: 1em">
-            <label for="theme-select">Theme:</label>
-            <select id="theme-select">
-              <option value="auto">Auto</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
+          <div class="settings-section">
+            <h3>Appearance</h3>
+            <div class="setting-row">
+              <div class="setting-label">
+                <label for="theme-select">Theme</label>
+              </div>
+              <div class="setting-control">
+                <select id="theme-select" class="form-control">
+                  <option value="auto">Auto (System Default)</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <div style="margin-top: 1em">
-            <label for="mode-select">Sync Mode:</label>
-            <select id="mode-select">
-              <option value="host">Host-to-Many</option>
-              <option value="global">Global Sync</option>
-            </select>
+
+          <div class="settings-section">
+            <h3>Synchronization</h3>
+            <div class="setting-row">
+              <div class="setting-label">
+                <label for="mode-select">Sync Mode</label>
+              </div>
+              <div class="setting-control">
+                <select id="mode-select" class="form-control">
+                  <option value="host">Host-to-Many (One-way)</option>
+                  <option value="global">Global Sync (Two-way)</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">
+                <label for="auto-sync-toggle">Auto Sync</label>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="auto-sync-toggle" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row" id="interval-row">
+              <div class="setting-label">
+                <label for="sync-interval">Sync Interval (minutes)</label>
+              </div>
+              <div class="setting-control">
+                <input
+                  type="range"
+                  id="sync-interval"
+                  min="5"
+                  max="60"
+                  step="5"
+                  class="slider-input"
+                />
+                <span id="interval-value">30</span>
+              </div>
+            </div>
           </div>
-          <div style="margin-top: 1em">
-            <label><input type="checkbox" id="auto-sync-toggle" /> Auto Sync</label>
-            <label style="margin-left: 1em"
-              >Interval:
-              <input
-                type="number"
-                id="sync-interval"
-                min="5"
-                max="30"
-                step="1"
-                style="width: 3em"
-              />
-              min</label
-            >
+
+          <div class="settings-section">
+            <h3>Team Collaboration</h3>
+            <div class="setting-row">
+              <div class="setting-label">
+                <label for="team-mode-toggle">Enable Team Mode</label>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="team-mode-toggle" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row" id="email-row">
+              <div class="setting-label">
+                <label for="user-email">Your Email</label>
+              </div>
+              <div class="setting-control">
+                <input
+                  type="email"
+                  id="user-email"
+                  placeholder="email@example.com"
+                  class="form-control"
+                />
+              </div>
+            </div>
           </div>
-          <div style="margin-top: 1em">
-            <label
-              ><input type="checkbox" id="team-mode-toggle" /> Enable Team Mode (Multi-User)</label
-            >
-            <input
-              type="email"
-              id="user-email"
-              placeholder="Your Email (for Team Mode)"
-              style="margin-left: 1em; width: 200px"
-            />
+
+          <div class="settings-section">
+            <h3>Notifications</h3>
+            <div class="setting-row">
+              <div class="setting-label">
+                <label for="notifications-toggle">Enable Notifications</label>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="notifications-toggle" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
+        <!-- Advanced Panel -->
         <div
           class="tab-panel hidden"
           id="advanced-panel"
           role="tabpanel"
           aria-labelledby="advanced-tab"
         >
-          <div>
-            <label><input type="checkbox" id="verbose-logs-toggle" /> Verbose Logs</label>
+          <div class="advanced-section">
+            <h3>Debugging Options</h3>
+            <div class="setting-row">
+              <div class="setting-label">
+                <label for="verbose-logs-toggle">Verbose Logs</label>
+              </div>
+              <div class="setting-control">
+                <label class="switch">
+                  <input type="checkbox" id="verbose-logs-toggle" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
           </div>
-          <div style="margin-top: 1em">
-            <button id="drive-cleanup-btn">Drive Cleanup Tool</button>
-            <button id="conflict-viewer-btn">Conflict Viewer</button>
+
+          <div class="advanced-section">
+            <h3>Tools</h3>
+            <div class="tools-grid">
+              <button id="drive-cleanup-btn" class="tool-button">
+                <span class="material-icons tool-icon">cleaning_services</span>
+                <span class="tool-name">Drive Cleanup</span>
+              </button>
+              <button id="conflict-viewer-btn" class="tool-button">
+                <span class="material-icons tool-icon">warning</span>
+                <span class="tool-name">Conflict Viewer</span>
+              </button>
+              <button id="manual-backup-btn" class="tool-button">
+                <span class="material-icons tool-icon">save</span>
+                <span class="tool-name">Manual Backup</span>
+              </button>
+              <button id="backup-history-btn" class="tool-button">
+                <span class="material-icons tool-icon">history</span>
+                <span class="tool-name">Backup History</span>
+              </button>
+              <button id="manual-restore-btn" class="tool-button">
+                <span class="material-icons tool-icon">folder_open</span>
+                <span class="tool-name">Restore Backup</span>
+              </button>
+              <button id="preview-sync-btn" class="tool-button">
+                <span class="material-icons tool-icon">visibility</span>
+                <span class="tool-name">Preview Sync</span>
+              </button>
+              <button id="export-settings-btn" class="tool-button">
+                <span class="material-icons tool-icon">file_download</span>
+                <span class="tool-name">Export Settings</span>
+              </button>
+              <button id="import-settings-btn" class="tool-button">
+                <span class="material-icons tool-icon">file_upload</span>
+                <span class="tool-name">Import Settings</span>
+              </button>
+              <button id="encryption-setup-btn" class="tool-button">
+                <span class="material-icons tool-icon">lock</span>
+                <span class="tool-name">Setup Encryption</span>
+              </button>
+            </div>
           </div>
-          <div style="margin-top: 1em">
-            <button id="manual-backup-btn">Manual Backup</button>
-            <button id="manual-restore-btn">Restore from Backup</button>
-            <button id="preview-sync-btn">Preview Sync</button>
-            <button id="export-settings-btn">Export Settings</button>
-            <button id="import-settings-btn">Import Settings</button>
+
+          <div class="advanced-section" id="sync-graph-section">
+            <h3>Sync Timeline</h3>
+            <canvas id="sync-graph-canvas" width="320" height="150"></canvas>
           </div>
-          <div style="margin-top: 2em" id="sync-graph-section">
-            <b>Sync Timeline</b>
-            <canvas id="sync-graph-canvas" width="320" height="120"></canvas>
-          </div>
-          <div style="margin-top: 2em" id="team-members-section">
-            <b>Team Members</b>
-            <div id="team-members-list">Loading...</div>
-            <div id="team-management" style="margin-top: 1em; display: none;">
-              <input type="email" id="new-member-email" placeholder="Enter email address" style="width: 200px;">
-              <select id="new-member-role">
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-              </select>
-              <button id="add-member-btn">Add Member</button>
+
+          <div class="advanced-section" id="team-members-section">
+            <h3>Team Members</h3>
+            <div id="team-members-list" class="members-list">Loading...</div>
+            <div id="team-management" class="team-controls">
+              <div class="member-add-form">
+                <input
+                  type="email"
+                  id="new-member-email"
+                  placeholder="Enter email address"
+                  class="form-control"
+                />
+                <select id="new-member-role" class="form-control">
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button id="add-member-btn" class="btn btn-primary">Add Member</button>
+              </div>
             </div>
           </div>
         </div>
+        <!-- Logs Panel -->
         <div class="tab-panel hidden" id="logs-panel" role="tabpanel" aria-labelledby="logs-tab">
-          <div id="logs-list">Loading logs...</div>
-          <button id="download-log-btn" style="margin-top: 1em">Download Full Log</button>
+          <div class="logs-container" id="logs-list">Loading logs...</div>
+          <div class="logs-actions">
+            <button id="download-log-btn" class="btn btn-primary">
+              <span class="material-icons">file_download</span> Download Full Log
+            </button>
+            <button id="clear-logs-btn" class="btn btn-secondary">
+              <span class="material-icons">delete</span> Clear Logs
+            </button>
+          </div>
         </div>
       </section>
-      
+
       <!-- Conflict Resolution Modal -->
-      <div id="conflict-modal" class="modal-overlay" style="display: none;">
+      <div id="conflict-modal" class="modal-overlay" style="display: none">
         <div class="modal-content">
           <h2>Resolve Sync Conflicts</h2>
           <div id="conflict-list"></div>
           <div class="modal-actions">
-            <button id="resolve-conflicts-btn">Resolve Selected</button>
-            <button id="auto-resolve-btn">Auto Resolve</button>
-            <button id="cancel-conflicts-btn">Cancel</button>
+            <button id="resolve-conflicts-btn" class="btn btn-primary">Resolve Selected</button>
+            <button id="auto-resolve-btn" class="btn btn-secondary">Auto Resolve</button>
+            <button id="cancel-conflicts-btn" class="btn btn-text">Cancel</button>
           </div>
         </div>
       </div>
-      
+
       <!-- Encryption Setup Modal -->
-      <div id="encryption-modal" class="modal-overlay" style="display: none;">
+      <div id="encryption-modal" class="modal-overlay" style="display: none">
         <div class="modal-content">
           <h2>Setup Encryption</h2>
           <div class="form-group">
             <label for="encryption-passphrase">Passphrase:</label>
-            <input type="password" id="encryption-passphrase" placeholder="Enter strong passphrase">
+            <input
+              type="password"
+              id="encryption-passphrase"
+              placeholder="Enter strong passphrase"
+              class="form-control"
+            />
             <div id="passphrase-strength"></div>
           </div>
           <div class="form-group">
             <label for="confirm-passphrase">Confirm Passphrase:</label>
-            <input type="password" id="confirm-passphrase" placeholder="Confirm passphrase">
+            <input
+              type="password"
+              id="confirm-passphrase"
+              placeholder="Confirm passphrase"
+              class="form-control"
+            />
           </div>
           <div class="modal-actions">
-            <button id="enable-encryption-btn">Enable Encryption</button>
-            <button id="cancel-encryption-btn">Cancel</button>
+            <button id="enable-encryption-btn" class="btn btn-primary">Enable Encryption</button>
+            <button id="cancel-encryption-btn" class="btn btn-text">Cancel</button>
           </div>
         </div>
       </div>
-      
-      <div
-        id="toast-container"
-        role="status"
-        aria-live="polite"
-        style="position: fixed; bottom: 1em; left: 50%; transform: translateX(-50%); z-index: 10002"
-      ></div>
+
+      <div id="toast-container" role="status" aria-live="polite"></div>
     </div>
-    
+
     <script src="popup.js"></script>
   </body>
 </html>

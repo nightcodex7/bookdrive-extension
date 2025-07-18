@@ -47,4 +47,4 @@
 
 ---
 
-For the full changelog and roadmap, see [GitHub Releases](https://github.com/your-org/bookdrive-extension/releases) or the project Wiki.
+For the full changelog and roadmap, see [GitHub Releases](https://github.com/nightcodex7/bookdrive-extension/releases) or the project Wiki.

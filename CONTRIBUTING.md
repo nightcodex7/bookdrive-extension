@@ -40,7 +40,7 @@ Thank you for your interest in contributing to BookDrive! We welcome contributio
    npm install
    ```
 3. **Set up OAuth2:**
-   - Run `scripts/setup_oauth2.sh` and follow the instructions.
+   - Run `scripts/setup-oauth2.sh` and follow the instructions.
    - Update `src/manifest.json` with your client_id.
 4. **Load the extension:**
    - Open Chrome > Extensions > Developer Mode > Load unpacked > select `src/`.
@@ -50,7 +50,7 @@ Thank you for your interest in contributing to BookDrive! We welcome contributio
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/your-org/bookdrive-extension/issues) for bugs, feature requests, or questions.
+- Use [GitHub Issues](https://github.com/nightcodex7/bookdrive-extension/issues) for bugs, feature requests, or questions.
 - Please provide clear steps to reproduce, screenshots, and browser/version info if relevant.
 
 ## Code Review & Release

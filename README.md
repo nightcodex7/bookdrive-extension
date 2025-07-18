@@ -16,7 +16,7 @@ BookDrive is a cross-platform browser extension that synchronizes bookmarks acro
 *Coming Soon - Currently in review*
 
 #### Option 2: Manual Installation
-1. Download the latest release from [Releases](https://github.com/your-org/bookdrive-extension/releases)
+1. Download the latest release from [Releases](https://github.com/nightcodex7/bookdrive-extension/releases)
 2. Extract the ZIP file
 3. Open Chrome → Extensions → Enable Developer Mode
 4. Click "Load Unpacked" → Select the extracted folder
@@ -48,7 +48,7 @@ BookDrive is a cross-platform browser extension that synchronizes bookmarks acro
 - **👥 Team Mode**: Multi-user collaboration
 - **🔍 Conflict Resolution**: Visual merge tools
 - **📊 Sync Analytics**: Timeline graphs and logs
-- **💾 Backup & Restore**: Versioned backup system
+- **💾 Backup & Restore**: Versioned backup system with scheduled backups
 - **🎨 Themes**: Light, dark, and auto modes
 
 ### Sync Modes
@@ -65,7 +65,7 @@ BookDrive is a cross-platform browser extension that synchronizes bookmarks acro
 ### Development Setup
 ```bash
 # Clone repository
-git clone https://github.com/your-org/bookdrive-extension.git
+git clone https://github.com/nightcodex7/bookdrive-extension.git
 cd bookdrive-extension
 
 # Install dependencies
@@ -250,9 +250,9 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ```
 
 ### Getting Help
-- [GitHub Issues](https://github.com/your-org/bookdrive-extension/issues)
-- [Discussions](https://github.com/your-org/bookdrive-extension/discussions)
-- [Wiki](https://github.com/your-org/bookdrive-extension/wiki)
+- [GitHub Issues](https://github.com/nightcodex7/bookdrive-extension/issues)
+- [Discussions](https://github.com/nightcodex7/bookdrive-extension/discussions)
+- [Wiki](https://github.com/nightcodex7/bookdrive-extension/wiki)
 
 ## 📄 License
 

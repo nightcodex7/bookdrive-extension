@@ -4,8 +4,8 @@
   "short_name": "BookDrive",
   "version": "0.1.0",
   "description": "BookDrive: Two-way bookmark sync using Google Drive. Privacy-respecting, open-source, and cross-platform.",
-  "author": "BookDrive Project",
-  "homepage_url": "https://github.com/your-org/bookdrive-extension",
+  "author": "Tuhin Garai",
+  "homepage_url": "https://github.com/nightcodex7/bookdrive-extension",
   "icons": {
     "16": "assets/icon16.png",
     "32": "assets/icon16.png",
@@ -13,14 +13,11 @@
     "64": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
-  "permissions": ["bookmarks", "identity", "storage", "alarms", "notifications"],
+  "permissions": ["bookmarks", "identity", "storage"],
   "host_permissions": ["https://www.googleapis.com/*"],
   "oauth2": {
-    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", /* IMPORTANT: Replace this with your actual Google OAuth2 client ID */
-    "scopes": [
-      "https://www.googleapis.com/auth/drive.appdata",
-      "https://www.googleapis.com/auth/drive.file"
-    ]
+    "client_id": "test-client-id.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/drive.file"]
   },
   "background": {
     "service_worker": "background/background.js"
@@ -37,7 +34,7 @@
   "minimum_chrome_version": "100",
   "web_accessible_resources": [
     {
-      "resources": ["assets/icon16.png", "assets/icon48.png", "assets/icon128.png"],
+      "resources": ["assets/icon16.png", "assets/icon48.png", "assets/icon128.png", "backup-history/backup-history.html"],
       "matches": ["<all_urls>"]
     }
   ],
