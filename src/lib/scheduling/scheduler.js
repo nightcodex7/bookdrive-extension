@@ -7,6 +7,23 @@
 
 import { getSettings, setSettings } from '../storage.js';
 
+// Frequency options for scheduling
+export const FREQUENCY_OPTIONS = [
+  { value: 'hourly', label: 'Every Hour' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' }
+];
+
+// Retention options
+export const RETENTION_OPTIONS = [
+  { value: 10, label: '10 backups' },
+  { value: 20, label: '20 backups' },
+  { value: 30, label: '30 backups' },
+  { value: 50, label: '50 backups' },
+  { value: 100, label: '100 backups' }
+];
+
 // Default schedule settings
 const DEFAULT_SCHEDULE = {
   id: 'default',
