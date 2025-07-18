@@ -5,10 +5,6 @@ import {
   getAuthToken,
   isAuthenticated,
   signOut,
-  ensureBookDriveFolder,
-  listFiles,
-  uploadBookmarksFile,
-  downloadBookmarksFile,
 } from '../lib/index.js';
 
 // Constants
