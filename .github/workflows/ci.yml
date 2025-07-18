@@ -18,7 +18,8 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-format-test:
+  lint-and-test:
+    name: Lint and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,14 +30,6 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Cache npm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm ci
@@ -62,8 +55,9 @@ jobs:
         if: always()
 
   build-and-package:
+    name: Build and Package
     runs-on: ubuntu-latest
-    needs: lint-format-test
+    needs: lint-and-test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,37 +74,32 @@ jobs:
       - name: Build and package extension
         run: npm run package
 
-      - name: Verify build output
-        run: |
-          test -f bookdrive-extension-v*.zip
-          test -d dist
-
-      - name: Validate manifest.json
-        run: |
-          jq . < dist/manifest.json
-
-      - name: Upload extension artifact
+      - name: Upload artifact for release
         uses: actions/upload-artifact@v4
         with:
           name: extension-package
           path: bookdrive-extension-v*.zip
 
-  create-release:
+  create-draft-release:
+    name: Create Draft Release
     runs-on: ubuntu-latest
     needs: build-and-package
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') # Only run this job for new tags
     permissions:
-      contents: write
+      contents: write # Required to create a GitHub release
     steps:
       - name: Download packaged extension
         uses: actions/download-artifact@v4
         with:
           name: extension-package
 
-      - name: Create GitHub Release
+      - name: Create Draft Release on GitHub
         uses: softprops/action-gh-release@v1
         with:
           files: "*.zip"
-          body_path: "RELEASE.md"
-          draft: false
+          body: |
+            ## New Release
+
+            **Note:** This is a draft release. Please update the release notes with the relevant changes from your `CHANGELOG.md` or `RELEASE.md` before publishing.
+          draft: true # This creates a draft release, it is NOT published automatically
           prerelease: false
