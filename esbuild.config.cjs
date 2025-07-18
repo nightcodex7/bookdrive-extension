@@ -218,18 +218,8 @@ async function runBuild() {
       console.log(colors.blue('👀 Starting watch mode...'));
       buildContext = await esbuild.context(buildConfig);
       
-      // Enhanced watch mode with detailed rebuild information
-      await buildContext.watch({
-        onRebuild(error, result) {
-          if (error) {
-            console.error(colors.red('❌ Rebuild failed:'), error);
-          } else {
-            const rebuildTime = Date.now() - startTime;
-            console.log(colors.green(`🔄 Rebuild successful in ${rebuildTime}ms`));
-            logBuildResult(result, true);
-          }
-        }
-      });
+      // Enhanced watch mode
+      await buildContext.watch();
 
       console.log(colors.blue('👀 Watching for changes. Press Ctrl+C to stop.'));
       
