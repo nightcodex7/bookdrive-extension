@@ -44,6 +44,7 @@ export async function handleApiResponse(response, token, retryFn) {
   }
   
   return response.json();
+}
 /**
  * Create a folder in Google Drive
  * @param {string} name - Folder name
