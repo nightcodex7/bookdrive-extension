@@ -190,6 +190,9 @@ const buildConfig = {
   
   // Resolve configuration
   resolveExtensions: ['.js'],
+  
+  // Module resolution configuration
+  mainFields: ['module', 'main'],
 };
 
 /**
