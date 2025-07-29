@@ -14,6 +14,8 @@ const colors = {
     green: '\x1b[32m',
     yellow: '\x1b[33m',
     red: '\x1b[31m',
+    blue: '\x1b[34m',
+    cyan: '\x1b[36m',
     reset: '\x1b[0m'
 };
 
@@ -54,7 +56,6 @@ function updateManifest(clientId) {
         if (!manifest.oauth2) {
             manifest.oauth2 = {
                 scopes: [
-                    "https://www.googleapis.com/auth/drive.appdata",
                     "https://www.googleapis.com/auth/drive.file"
                 ]
             };
@@ -89,6 +90,19 @@ function openGoogleConsole() {
 }
 
 /**
+ * Get extension ID for OAuth2 setup
+ */
+function getExtensionId() {
+    const manifestPath = path.join(__dirname, '..', 'src', 'manifest.json');
+    try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        return manifest.key || 'YOUR_EXTENSION_ID';
+    } catch (error) {
+        return 'YOUR_EXTENSION_ID';
+    }
+}
+
+/**
  * Main setup function
  */
 async function setup() {
@@ -100,41 +114,125 @@ async function setup() {
         return;
     }
 
-    print("\nThis script will help you set up OAuth2 for BookDrive.", colors.reset);
-    print("1. Open Google Cloud Console", colors.yellow);
-    print("2. Create a new project (or select an existing one) named 'BookDrive'", colors.yellow);
-    print("3. Click 'Create Credentials' > 'OAuth client ID'", colors.yellow);
-    print("4. Select 'Chrome App' and enter the extension ID", colors.yellow);
-    print("5. Copy the generated client_id", colors.yellow);
+    print("\nThis script will help you set up Google OAuth2 credentials for BookDrive.", colors.blue);
+    print("You'll need a Google Cloud Project and OAuth2 client ID.\n", colors.blue);
 
-    // Ask if user wants to open Google Console
-    rl.question("\nWould you like to open Google Cloud Console now? (y/n): ", (answer) => {
-        if (answer.toLowerCase() === 'y') {
-            openGoogleConsole();
-        }
-
-        // Ask for client ID
-        rl.question("\nEnter your OAuth2 client ID (ending with .apps.googleusercontent.com): ", (clientId) => {
-            if (!clientId || !clientId.endsWith('.apps.googleusercontent.com')) {
-                print("Invalid client ID format. Please make sure it ends with .apps.googleusercontent.com", colors.red);
-                rl.close();
-                return;
-            }
-
-            if (updateManifest(clientId)) {
-                print("\n✅ Success! OAuth2 client ID has been updated in manifest.json", colors.green);
-                print("Next steps:", colors.yellow);
-                print("1. Rebuild the extension: npm run build", colors.yellow);
-                print("2. Reload the extension in your browser", colors.yellow);
-                print("3. Test authentication in the extension popup", colors.yellow);
-            } else {
-                print("\n❌ Failed to update manifest.json", colors.red);
-            }
-
-            rl.close();
+    // Step 1: Check if user has a Google Cloud Project
+    print("Step 1: Google Cloud Project Setup", colors.cyan);
+    print("=====================================", colors.cyan);
+    
+    const hasProject = await new Promise((resolve) => {
+        rl.question("Do you already have a Google Cloud Project? (y/n): ", (answer) => {
+            resolve(answer.toLowerCase().startsWith('y'));
         });
     });
+
+    if (!hasProject) {
+        print("\nYou'll need to create a Google Cloud Project first:", colors.yellow);
+        print("1. Go to https://console.cloud.google.com/", colors.blue);
+        print("2. Click 'Select a project' → 'New Project'", colors.blue);
+        print("3. Give it a name (e.g., 'BookDrive Extension')", colors.blue);
+        print("4. Click 'Create'\n", colors.blue);
+        
+        const continueSetup = await new Promise((resolve) => {
+            rl.question("Press Enter when you've created the project...", () => {
+                resolve(true);
+            });
+        });
+    }
+
+    // Step 2: Enable Google Drive API
+    print("\nStep 2: Enable Google Drive API", colors.cyan);
+    print("===============================", colors.cyan);
+    print("You need to enable the Google Drive API in your project:", colors.blue);
+    print("1. Go to https://console.cloud.google.com/apis/library", colors.blue);
+    print("2. Search for 'Google Drive API'", colors.blue);
+    print("3. Click on it and press 'Enable'\n", colors.blue);
+
+    const apiEnabled = await new Promise((resolve) => {
+        rl.question("Press Enter when you've enabled the Google Drive API...", () => {
+            resolve(true);
+        });
+    });
+
+    // Step 3: Create OAuth2 Credentials
+    print("\nStep 3: Create OAuth2 Credentials", colors.cyan);
+    print("=================================", colors.cyan);
+    print("Now you'll create OAuth2 credentials for the extension:", colors.blue);
+    print("1. Go to https://console.cloud.google.com/apis/credentials", colors.blue);
+    print("2. Click 'Create Credentials' → 'OAuth client ID'", colors.blue);
+    print("3. If prompted, configure the OAuth consent screen first", colors.blue);
+    print("4. Application type: 'Chrome Extension'", colors.blue);
+    print("5. Name: 'BookDrive Extension'", colors.blue);
+    print("6. Add your extension ID to authorized origins\n", colors.blue);
+
+    // Show extension ID
+    const extensionId = getExtensionId();
+    print(`Your extension ID: ${extensionId}`, colors.green);
+    print("(You'll get the actual ID after loading the extension in Chrome)", colors.yellow);
+
+    const credentialsCreated = await new Promise((resolve) => {
+        rl.question("Press Enter when you've created the OAuth2 credentials...", () => {
+            resolve(true);
+        });
+    });
+
+    // Step 4: Get Client ID
+    print("\nStep 4: Get Your Client ID", colors.cyan);
+    print("===========================", colors.cyan);
+    print("Copy your OAuth2 client ID from the credentials page.", colors.blue);
+    print("It should look like: 123456789-abcdefghijklmnop.apps.googleusercontent.com\n", colors.blue);
+
+    const clientId = await new Promise((resolve) => {
+        rl.question("Enter your OAuth2 client ID: ", (answer) => {
+            resolve(answer.trim());
+        });
+    });
+
+    if (!clientId || !clientId.includes('.apps.googleusercontent.com')) {
+        print("Invalid client ID format. Please check and try again.", colors.red);
+        rl.close();
+        return;
+    }
+
+    // Step 5: Update manifest
+    print("\nStep 5: Update Extension Configuration", colors.cyan);
+    print("=======================================", colors.cyan);
+    
+    if (updateManifest(clientId)) {
+        print("✅ Successfully updated manifest.json with your client ID!", colors.green);
+    } else {
+        print("❌ Failed to update manifest.json", colors.red);
+        rl.close();
+        return;
+    }
+
+    // Step 6: Final instructions
+    print("\nStep 6: Load the Extension", colors.cyan);
+    print("=========================", colors.cyan);
+    print("Now you need to load the extension in Chrome:", colors.blue);
+    print("1. Run: npm run build", colors.green);
+    print("2. Open Chrome → chrome://extensions/", colors.blue);
+    print("3. Enable 'Developer mode'", colors.blue);
+    print("4. Click 'Load unpacked' → Select the 'dist' folder", colors.blue);
+    print("5. Copy the extension ID shown on the extensions page", colors.blue);
+    print("6. Go back to Google Cloud Console → OAuth2 credentials", colors.blue);
+    print("7. Add the extension ID to authorized origins", colors.blue);
+    print("8. Test the extension!\n", colors.blue);
+
+    print("🎉 OAuth2 setup complete! Your extension should now work with Google sign-in.", colors.green);
+    print("\nIf you encounter any issues:", colors.yellow);
+    print("- Check that the Google Drive API is enabled", colors.blue);
+    print("- Verify your extension ID is in the OAuth2 authorized origins", colors.blue);
+    print("- Make sure you're using the correct client ID", colors.blue);
+
+    rl.close();
 }
 
-// Run setup
-setup();
+// Validate environment and run setup
+if (require.main === module) {
+    setup().catch((error) => {
+        print(`Setup failed: ${error.message}`, colors.red);
+        process.exit(1);
+    });
+}

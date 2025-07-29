@@ -26,7 +26,8 @@ const CONFIG = {
     entries: {
       background: './src/background/background.js',
       popup: './src/popup/popup.js',
-      options: './src/options/options.js'
+      options: './src/options/options.js',
+      backupHistory: './src/backup-history/backup-history.js'
     }
   }
 };

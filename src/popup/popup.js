@@ -1,820 +1,852 @@
-import {
-  getAuthToken,
-  isAuthenticated,
-  signOut,
-  listFiles,
-  ensureBookDriveFolder,
-} from '../lib/auth/drive-auth.js';
+/**
+ * BookDrive Extension Popup
+ * Modern Material Design 3 UI with proper Google OAuth2 flow
+ */
 
-import {
-  downloadBookmarksFile,
-} from '../lib/drive.js';
+// Import lib modules
+import { getAuthToken, signOut, ensureBookDriveFolder } from '../lib/auth/drive-auth.js';
+import { getBookmarks, syncBookmarks } from '../lib/bookmarks.js';
+import { createBackup, getBackupHistory } from '../lib/backup/index.js';
 
 // Constants
-const FOLDER_NAME = 'MyExtensionData';
+const FOLDER_NAME = 'BookDrive';
+const STORAGE_KEYS = {
+  USER_INFO: 'bookDriveUserInfo',
+  SYNC_MODE: 'bookDriveSyncMode',
+  AUTO_SYNC: 'bookDriveAutoSync',
+  THEME: 'bookDriveTheme',
+  NOTIFICATIONS: 'bookDriveNotifications',
+  LAST_SYNC: 'bookDriveLastSync',
+  SYNC_COUNT: 'bookDriveSyncCount',
+  BACKUP_COUNT: 'bookDriveBackupCount'
+};
 
-// Show toast notification
-function showToast(message, type = '') {
-  const toastContainer = document.getElementById('toast-container');
-  if (!toastContainer) return;
+// Global state
+let currentUser = null;
+let syncMode = 'host-to-many';
+let autoSync = false;
+let theme = 'auto';
+let notifications = true;
 
-  toastContainer.style.display = '';
-  const toast = document.createElement('div');
-  toast.className = 'toast' + (type ? ' ' + type : '');
-  toast.setAttribute('role', 'status');
-  toast.setAttribute('aria-live', 'polite');
-  toast.textContent = message;
-  toastContainer.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 3500);
-}
+// DOM Elements
+let syncNowBtn, syncStatus, bookmarkCountEl, syncCountEl, backupCountEl;
+let activityList, userInfoContainer;
 
-// Global references for sync status
-let syncNowBtn = null;
-let syncStatus = null;
-
-// Initialize the popup
+/**
+ * Initialize the popup
+ */
 async function initializePopup() {
+  console.log('Initializing BookDrive popup...');
+  
+  // Check if user is authenticated
+  const isAuthenticated = await checkAuthentication();
+  
+  if (!isAuthenticated) {
+    showOnboarding();
+    return;
+  }
+  
+  // Load user data and settings
+  await loadUserData();
+  await loadSettings();
+  
+  // Show main popup
+  showMainPopup();
+  
+  // Setup event listeners
+  setupEventListeners();
+  
+  // Load initial data
+  await loadInitialData();
+  
+  console.log('Popup initialized successfully');
+}
+
+/**
+ * Check if user is authenticated
+ */
+async function checkAuthentication() {
   try {
-    // Check if user is signed in
-    const isUserSignedIn = await isAuthenticated();
-
-    if (!isUserSignedIn) {
-      // Show onboarding screen
-      document.getElementById('popup-root').style.display = 'none';
-      document.getElementById('onboarding').style.display = 'block';
-
-      // Set up sign-in button
-      const signInBtn = document.getElementById('onboarding-signin-btn');
-      if (signInBtn) {
-        signInBtn.addEventListener('click', async () => {
-          signInBtn.disabled = true;
-          signInBtn.textContent = 'Signing in...';
-
-          try {
-            // Get auth token (will prompt user)
-            await getAuthToken(true);
-
-            // Create folder if needed
-            await ensureBookDriveFolder();
-
-            // Show welcome screen
-            document.getElementById('onboarding').style.display = 'none';
-            document.getElementById('welcome-setup').style.display = 'block';
-
-            // Set up go to settings button
-            const goToSettingsBtn = document.getElementById('go-to-settings-btn');
-            if (goToSettingsBtn) {
-              goToSettingsBtn.addEventListener('click', () => {
-                document.getElementById('welcome-setup').style.display = 'none';
-                document.getElementById('popup-root').style.display = 'block';
-
-                // Switch to settings tab
-                const settingsTab = document.querySelector('.tab[data-tab="settings"]');
-                if (settingsTab) settingsTab.click();
-              });
-            }
-          } catch (error) {
-            signInBtn.disabled = false;
-            signInBtn.textContent = 'Sign in with Google';
-            showToast('Authentication failed: ' + error.message, 'error');
-          }
-        });
-      }
-    } else {
-      // User is already signed in, ensure folder exists
-      try {
-        await ensureBookDriveFolder(false);
-      } catch (error) {
-        console.log('Silent folder check failed, will create on user action:', error.message);
-      }
-
-      // Show main popup
-      document.getElementById('popup-root').style.display = 'block';
-
-      // Display folder info
-      displayFolderInfo();
-    }
+    // Try to get auth token
+    const token = await getAuthToken(false);
+    return !!token;
   } catch (error) {
-    console.error('Error initializing popup:', error);
-    showToast('Error initializing: ' + error.message, 'error');
+    console.log('User not authenticated:', error.message);
+    return false;
   }
 }
 
-// Update the last sync status display
-function updateLastSyncStatus() {
-  if (!syncStatus) return;
-  chrome.storage.local.get(['lastSync', 'lastSyncStatus'], (data) => {
-    if (data.lastSync) {
-      syncStatus.textContent = `${new Date(data.lastSync).toLocaleString()} (${data.lastSyncStatus || 'unknown'})`;
-    } else {
-      syncStatus.textContent = 'Never';
-    }
-  });
+/**
+ * Show onboarding screen
+ */
+function showOnboarding() {
+  document.getElementById('onboarding').style.display = 'block';
+  document.getElementById('welcome-setup').style.display = 'none';
+  document.getElementById('popup-root').style.display = 'none';
+  
+  // Setup onboarding event listeners
+  setupOnboardingListeners();
 }
 
-// Apply theme based on settings or system preference
-function applyTheme(theme) {
-  if (theme === 'auto') {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-  } else {
-    document.documentElement.setAttribute('data-theme', theme);
+/**
+ * Show welcome setup screen
+ */
+function showWelcomeSetup() {
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('welcome-setup').style.display = 'block';
+  document.getElementById('popup-root').style.display = 'none';
+  
+  // Setup welcome event listeners
+  setupWelcomeListeners();
+}
+
+/**
+ * Show main popup
+ */
+function showMainPopup() {
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('welcome-setup').style.display = 'none';
+  document.getElementById('popup-root').style.display = 'flex';
+}
+
+/**
+ * Setup onboarding event listeners
+ */
+function setupOnboardingListeners() {
+  const signInBtn = document.getElementById('onboarding-signin-btn');
+  const setupOAuthBtn = document.getElementById('setup-oauth-btn');
+  
+  if (signInBtn) {
+    signInBtn.addEventListener('click', handleGoogleSignIn);
+  }
+  
+  if (setupOAuthBtn) {
+    setupOAuthBtn.addEventListener('click', showOAuthSetupInstructions);
   }
 }
 
-// Setup theme handling
-function setupThemeHandling() {
-  // Load and apply theme
-  chrome.storage.sync.get({ theme: 'auto' }, ({ theme }) => {
-    applyTheme(theme);
-  });
+/**
+ * Setup welcome screen event listeners
+ */
+function setupWelcomeListeners() {
+  const quickSetupBtn = document.getElementById('quick-setup-btn');
+  const customSetupBtn = document.getElementById('custom-setup-btn');
+  
+  if (quickSetupBtn) {
+    quickSetupBtn.addEventListener('click', handleQuickSetup);
+  }
+  
+  if (customSetupBtn) {
+    customSetupBtn.addEventListener('click', handleCustomSetup);
+  }
+}
 
-  // Theme select event listener
-  const themeSelect = document.getElementById('theme-select');
-  if (themeSelect) {
-    chrome.storage.sync.get({ theme: 'auto' }, ({ theme }) => {
-      themeSelect.value = theme;
-    });
-
-    themeSelect.addEventListener('change', () => {
-      const newTheme = themeSelect.value;
-      chrome.storage.sync.set({ theme: newTheme }, () => {
-        applyTheme(newTheme);
+/**
+ * Handle Google Sign-in
+ */
+async function handleGoogleSignIn() {
+  const signInBtn = document.getElementById('onboarding-signin-btn');
+  
+  try {
+    // Update button state
+    signInBtn.disabled = true;
+    signInBtn.innerHTML = `
+      <span class="material-icons" style="animation: spin 1s linear infinite;">sync</span>
+      <span>Signing in...</span>
+    `;
+    
+    // Get auth token (this will trigger Google OAuth flow)
+    const token = await getAuthToken(true);
+    
+    if (token) {
+      // Get user info from token
+      const userInfo = await getUserInfoFromToken(token);
+      
+      // Store user info
+      await chrome.storage.local.set({
+        [STORAGE_KEYS.USER_INFO]: userInfo
       });
-    });
+      
+      currentUser = userInfo;
+      
+      // Show success message
+      showToast('Successfully signed in!', 'success');
+      
+      // Show welcome setup
+      setTimeout(() => {
+        showWelcomeSetup();
+      }, 1000);
+      
+    } else {
+      throw new Error('Failed to get authentication token');
+    }
+    
+  } catch (error) {
+    console.error('Sign-in failed:', error);
+    
+    if (error.message.includes('OAuth2')) {
+      showToast('OAuth2 not configured. Please run setup first.', 'error');
+      showOAuthSetupInstructions();
+    } else {
+      showToast('Sign-in failed: ' + error.message, 'error');
+    }
+    
+    // Reset button
+    signInBtn.disabled = false;
+    signInBtn.innerHTML = `
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <span>Sign in with Google</span>
+    `;
   }
-
-  // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    chrome.storage.sync.get({ theme: 'auto' }, ({ theme }) => {
-      if (theme === 'auto') applyTheme(theme);
-    });
-  });
 }
 
-// Setup tab navigation
-function setupTabNavigation() {
-  const tabs = document.querySelectorAll('.tab');
-  const panels = document.querySelectorAll('.tab-panel');
+/**
+ * Get user info from Google ID token
+ */
+async function getUserInfoFromToken(token) {
+  try {
+    // Decode the ID token to get user info
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+    const data = await response.json();
+    
+    return {
+      id: data.sub,
+      email: data.email,
+      name: data.name,
+      picture: data.picture,
+      emailVerified: data.email_verified
+    };
+  } catch (error) {
+    console.error('Failed to get user info:', error);
+    // Fallback to basic info
+    return {
+      id: 'unknown',
+      email: 'user@example.com',
+      name: 'User',
+      picture: null,
+      emailVerified: false
+    };
+  }
+}
 
-  tabs.forEach((tab) => {
+/**
+ * Show OAuth2 setup instructions
+ */
+function showOAuthSetupInstructions() {
+  const instructions = `
+    <div style="text-align: left; padding: 1rem;">
+      <h3>OAuth2 Setup Required</h3>
+      <p>To use BookDrive, you need to set up Google OAuth2 credentials:</p>
+      <ol>
+        <li>Run the setup script: <code>npm run setup:oauth2</code></li>
+        <li>Follow the interactive prompts</li>
+        <li>Create a Google Cloud project</li>
+        <li>Enable Google Drive API</li>
+        <li>Create OAuth2 credentials</li>
+        <li>Update the extension with your client ID</li>
+      </ol>
+      <p><strong>Note:</strong> This is a one-time setup required for security.</p>
+    </div>
+  `;
+  
+  showModal('OAuth2 Setup Instructions', instructions);
+}
+
+/**
+ * Handle quick setup
+ */
+async function handleQuickSetup() {
+  try {
+    // Set default settings
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.SYNC_MODE]: 'host-to-many',
+      [STORAGE_KEYS.AUTO_SYNC]: true,
+      [STORAGE_KEYS.THEME]: 'auto',
+      [STORAGE_KEYS.NOTIFICATIONS]: true
+    });
+    
+    // Ensure BookDrive folder exists
+    await ensureBookDriveFolder();
+    
+    showToast('Quick setup completed!', 'success');
+    
+    // Show main popup
+    setTimeout(() => {
+      showMainPopup();
+    }, 1000);
+    
+  } catch (error) {
+    console.error('Quick setup failed:', error);
+    showToast('Setup failed: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Handle custom setup
+ */
+function handleCustomSetup() {
+  // Switch to settings tab in main popup
+  showMainPopup();
+  switchTab('settings');
+}
+
+/**
+ * Setup main popup event listeners
+ */
+function setupEventListeners() {
+  // Navigation tabs
+  const navTabs = document.querySelectorAll('.nav-tab');
+  navTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach((t) => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-        t.setAttribute('tabindex', '-1');
-      });
-
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      tab.setAttribute('tabindex', '0');
-
-      panels.forEach((panel) => panel.classList.add('hidden'));
-      const panelId = tab.dataset.tab ? tab.dataset.tab + '-panel' : '';
-      const panel = document.getElementById(panelId);
-      if (panel) panel.classList.remove('hidden');
-    });
-
-    // Keyboard navigation for tabs
-    tab.addEventListener('keydown', (e) => {
-      const tabsArray = Array.from(tabs);
-      const currentIndex = tabsArray.indexOf(tab);
-
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        let newIndex = currentIndex + (e.key === 'ArrowRight' ? 1 : -1);
-        if (newIndex >= tabsArray.length) newIndex = 0;
-        if (newIndex < 0) newIndex = tabsArray.length - 1;
-
-        tabsArray[newIndex].click();
-        tabsArray[newIndex].focus();
-      }
+      const tabName = tab.getAttribute('data-tab');
+      switchTab(tabName);
     });
   });
-}
-
-// Display folder information
-function displayFolderInfo() {
-  const folderInfoEl = document.getElementById('folder-info');
-  if (!folderInfoEl) return;
-
-  chrome.storage.local.get(['bookDriveFolderId'], async (result) => {
-    if (result.bookDriveFolderId) {
-      folderInfoEl.textContent = `${FOLDER_NAME} (ID: ${result.bookDriveFolderId.substring(0, 8)}...)`;
-      folderInfoEl.classList.remove('hidden');
-
-      // Add a link to open the folder in Google Drive
-      const folderContainer = document.getElementById('folder-info-container');
-      if (folderContainer) {
-        // Check if we already added the link
-        if (!document.getElementById('open-drive-folder')) {
-          const openFolderLink = document.createElement('div');
-          openFolderLink.className = 'status-row';
-          openFolderLink.innerHTML = `
-            <button id="open-drive-folder" class="btn btn-text btn-sm">
-              <span class="material-icons">open_in_new</span> Open in Drive
-            </button>
-          `;
-          folderContainer.appendChild(openFolderLink);
-
-          // Add click handler
-          document.getElementById('open-drive-folder').addEventListener('click', () => {
-            const url = `https://drive.google.com/drive/folders/${result.bookDriveFolderId}`;
-            chrome.tabs.create({ url });
-          });
-        }
-      }
-    } else {
-      folderInfoEl.textContent = `${FOLDER_NAME} folder will be created on first sync`;
-      folderInfoEl.classList.remove('hidden');
-    }
-  });
-}
-
-// Setup sync functionality
-function setupSyncHandling() {
-  syncNowBtn = document.getElementById('sync-now-btn');
-  syncStatus = document.getElementById('sync-status');
-
-  // Display folder info when popup opens
-  displayFolderInfo();
-
-  if (syncNowBtn) {
-    syncNowBtn.addEventListener('click', async () => {
-      syncNowBtn.disabled = true;
-      syncNowBtn.innerHTML = '<span class="material-icons">hourglass_top</span> Syncing...';
-
-      if (syncStatus) syncStatus.textContent = 'Syncing...';
-
-      try {
-        // Ensure we're authenticated
-        await getAuthToken(true);
-
-        // Ensure folder exists
-        const folderId = await ensureBookDriveFolder();
-        showToast(`Using ${FOLDER_NAME} folder: ${folderId.substring(0, 8)}...`, 'info');
-
-        // Update folder info display
-        displayFolderInfo();
-
-        // Perform sync
-        chrome.runtime.sendMessage({ action: 'syncNow' }, (response) => {
-          syncNowBtn.disabled = false;
-          syncNowBtn.innerHTML = '<span class="material-icons">sync</span> Sync Now';
-
-          if (response && response.status === 'ok') {
-            if (syncStatus) syncStatus.textContent = 'Sync complete';
-            updateLastSyncStatus();
-            showToast('Sync complete!', 'success');
-
-            // Update stats
-            if (typeof setupHomeStats === 'function') {
-              setupHomeStats();
-            }
-          } else {
-            if (syncStatus) syncStatus.textContent = 'Sync failed';
-            const errorMsg = response?.error || 'Unknown error';
-            showToast('Sync failed: ' + errorMsg, 'error');
-          }
-        });
-      } catch (error) {
-        syncNowBtn.disabled = false;
-        syncNowBtn.innerHTML = '<span class="material-icons">sync</span> Sync Now';
-        showToast('Authentication failed: ' + error.message, 'error');
-      }
-    });
-  }
-
-  // Listen for network status updates
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.action === 'networkStatus') {
-      if (!message.online && syncStatus) {
-        syncStatus.textContent = 'No internet. Sync paused and will resume once connected.';
-      } else {
-        updateLastSyncStatus();
-      }
-    }
-  });
-}
-
-// Setup settings handling
-function setupSettingsHandling() {
-  // Mode select
-  const modeSelect = document.getElementById('mode-select');
-  if (modeSelect) {
-    chrome.storage.sync.get({ mode: 'host' }, (data) => {
-      modeSelect.value = data.mode;
-    });
-
-    modeSelect.addEventListener('change', () => {
-      const newMode = modeSelect.value;
-      chrome.storage.sync.set({ mode: newMode }, () => {
-        const syncModeEl = document.getElementById('sync-mode');
-        if (syncModeEl)
-          syncModeEl.textContent = newMode === 'host' ? 'Host-to-Many' : 'Global Sync';
-      });
-    });
-  }
-
-  // Auto sync toggle and interval
-  const autoSyncToggle = document.getElementById('auto-sync-toggle');
-  const syncIntervalInput = document.getElementById('sync-interval');
-
-  chrome.storage.sync.get({ autoSync: true, syncInterval: 30 }, (data) => {
-    if (autoSyncToggle) autoSyncToggle.checked = data.autoSync;
-    if (syncIntervalInput) syncIntervalInput.value = String(data.syncInterval);
-
-    // Update interval value display
-    const intervalValue = document.getElementById('interval-value');
-    if (intervalValue) intervalValue.textContent = String(data.syncInterval);
-  });
-
-  if (autoSyncToggle) {
-    autoSyncToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ autoSync: autoSyncToggle.checked });
-    });
-  }
-
-  // Sync interval slider
-  if (syncIntervalInput) {
-    const intervalValue = document.getElementById('interval-value');
-
-    syncIntervalInput.addEventListener('input', () => {
-      if (intervalValue) intervalValue.textContent = syncIntervalInput.value;
-    });
-
-    syncIntervalInput.addEventListener('change', () => {
-      chrome.storage.sync.set({ syncInterval: parseInt(syncIntervalInput.value, 10) });
-    });
-  }
-
-  // Team Mode
-  const teamModeToggle = document.getElementById('team-mode-toggle');
-  const userEmailInput = document.getElementById('user-email');
-
-  chrome.storage.sync.get({ teamMode: false, userEmail: '' }, (data) => {
-    if (teamModeToggle) teamModeToggle.checked = data.teamMode;
-    if (userEmailInput) userEmailInput.value = data.userEmail || '';
-  });
-
-  if (teamModeToggle) {
-    teamModeToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ teamMode: teamModeToggle.checked });
-      showToast('Team Mode ' + (teamModeToggle.checked ? 'enabled' : 'disabled'), 'info');
-    });
-  }
-
-  if (userEmailInput) {
-    userEmailInput.addEventListener('input', () => {
-      chrome.storage.sync.set({ userEmail: userEmailInput.value });
-    });
-  }
-
-  // Notifications toggle
-  const notificationsToggle = document.getElementById('notifications-toggle');
-  if (notificationsToggle) {
-    chrome.storage.sync.get({ notifications: true }, (data) => {
-      if (notificationsToggle) notificationsToggle.checked = data.notifications;
-    });
-
-    notificationsToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ notifications: notificationsToggle.checked });
-    });
-  }
-}
-
-// Setup advanced features
-function setupAdvancedFeatures() {
-  // Verbose logs toggle
-  const verboseLogsToggle = document.getElementById('verbose-logs-toggle');
-  if (verboseLogsToggle) {
-    chrome.storage.sync.get({ verboseLogs: false }, (data) => {
-      verboseLogsToggle.checked = data.verboseLogs;
-    });
-
-    verboseLogsToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ verboseLogs: verboseLogsToggle.checked });
-      showToast('Verbose logs ' + (verboseLogsToggle.checked ? 'enabled' : 'disabled'), 'info');
-    });
-  }
-
-  // Drive cleanup
-  const driveCleanupBtn = document.getElementById('drive-cleanup-btn');
-  if (driveCleanupBtn) {
-    driveCleanupBtn.addEventListener('click', async () => {
-      driveCleanupBtn.disabled = true;
-
-      try {
-        // Ensure we're authenticated
-        await getAuthToken(true);
-
-        // List files
-        const files = await listFiles();
-        showToast(`Found ${files.length} files in BookDrive folder`, 'info');
-
-        // Show file list
-        showFileListModal(files);
-      } catch (error) {
-        showToast('Failed to list files: ' + error.message, 'error');
-      } finally {
-        driveCleanupBtn.disabled = false;
-      }
-    });
-  }
-
-  // Manual backup
-  const manualBackupBtn = document.getElementById('manual-backup-btn');
-  if (manualBackupBtn) {
-    manualBackupBtn.addEventListener('click', async () => {
-      manualBackupBtn.disabled = true;
-
-      try {
-        // Ensure we're authenticated
-        await getAuthToken(true);
-
-        // Create backup
-        chrome.runtime.sendMessage({ action: 'manualBackup' }, (response) => {
-          manualBackupBtn.disabled = false;
-          if (response?.status === 'ok') {
-            showToast('Manual backup complete!', 'success');
-          } else {
-            showToast('Manual backup failed: ' + (response?.error || 'Unknown error'), 'error');
-          }
-        });
-      } catch (error) {
-        manualBackupBtn.disabled = false;
-        showToast('Authentication failed: ' + error.message, 'error');
-      }
-    });
-  }
-
-  // Backup history
-  const backupHistoryBtn = document.getElementById('backup-history-btn');
-  if (backupHistoryBtn) {
-    backupHistoryBtn.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'backup-history/backup-history.html' });
-    });
-  }
-
-  // Preview sync
-  const previewSyncBtn = document.getElementById('preview-sync-btn');
-  if (previewSyncBtn) {
-    previewSyncBtn.addEventListener('click', async () => {
-      previewSyncBtn.disabled = true;
-
-      try {
-        // Ensure we're authenticated
-        await getAuthToken(true);
-
-        // Preview sync
-        chrome.runtime.sendMessage({ action: 'simulateSyncPreview' }, (response) => {
-          previewSyncBtn.disabled = false;
-          if (response?.diff) {
-            showPreviewModal(JSON.stringify(response.diff, null, 2));
-          } else {
-            showToast('No changes to preview', 'info');
-          }
-        });
-      } catch (error) {
-        previewSyncBtn.disabled = false;
-        showToast('Authentication failed: ' + error.message, 'error');
-      }
-    });
-  }
-
-  // Settings export/import
-  setupSettingsExportImport();
-
-  // Encryption setup button
-  const encryptionSetupBtn = document.getElementById('encryption-setup-btn');
-  if (encryptionSetupBtn) {
-    encryptionSetupBtn.addEventListener('click', () => {
-      const encryptionModal = document.getElementById('encryption-modal');
-      if (encryptionModal) encryptionModal.style.display = 'flex';
-    });
+  
+  // Sync button
+  const syncBtn = document.getElementById('sync-now-btn');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', handleSync);
   }
   
-  // Encryption modal handlers
-  const enableEncryptionBtn = document.getElementById('enable-encryption-btn');
-  const cancelEncryptionBtn = document.getElementById('cancel-encryption-btn');
-  const encryptionPassphrase = document.getElementById('encryption-passphrase');
-  const encryptionModal = document.getElementById('encryption-modal');
-  
-  if (cancelEncryptionBtn && encryptionModal) {
-    cancelEncryptionBtn.addEventListener('click', () => {
-      encryptionModal.style.display = 'none';
-      if (encryptionPassphrase) encryptionPassphrase.value = '';
-    });
+  // Quick backup button
+  const backupBtn = document.getElementById('quick-backup-btn');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', handleQuickBackup);
   }
   
-  if (enableEncryptionBtn && encryptionPassphrase && encryptionModal) {
-    enableEncryptionBtn.addEventListener('click', async () => {
-      const passphrase = encryptionPassphrase.value;
-      
-      // Import encryption module
-      const { validatePassphrase } = await import('../lib/encryption.js');
-      
-      // Validate passphrase
-      const validation = validatePassphrase(passphrase);
-      if (!validation.isValid) {
-        showToast(validation.errors.join('. '), 'error');
-        return;
-      }
-      
-      // Save encryption config
-      chrome.storage.sync.set({
-        encryptionEnabled: true,
-        encryptionConfig: {
-          enabled: true,
-          timestamp: Date.now(),
-          algorithm: 'aes-gcm'
-        }
-      }, () => {
-        // Store passphrase in session storage (will be cleared when browser closes)
-        // This is more secure than storing in chrome.storage
-        sessionStorage.setItem('encryptionPassphrase', passphrase);
-        
-        // Close modal and show success message
-        encryptionModal.style.display = 'none';
-        encryptionPassphrase.value = '';
-        showToast('Encryption enabled successfully!', 'success');
-        
-        // Notify background script to re-encrypt data
-        chrome.runtime.sendMessage({ 
-          action: 'encryptionEnabled',
-          passphrase: passphrase
-        });
-      });
-    });
+  // Sync tab button
+  const syncTabBtn = document.getElementById('sync-tab-btn');
+  if (syncTabBtn) {
+    syncTabBtn.addEventListener('click', handleSync);
   }
   
-  // Check encryption status on load
-  chrome.storage.sync.get({ encryptionEnabled: false }, (data) => {
-    if (data.encryptionEnabled && encryptionSetupBtn) {
-      encryptionSetupBtn.textContent = 'Manage Encryption';
-    }
-  });
-}
-
-// Show file list modal
-function showFileListModal(files) {
-  // Create modal if it doesn't exist
-  let fileListModal = document.getElementById('file-list-modal');
-  if (!fileListModal) {
-    fileListModal = document.createElement('div');
-    fileListModal.id = 'file-list-modal';
-    fileListModal.className = 'modal-overlay';
-    fileListModal.innerHTML = `
-      <div class="modal-content">
-        <h2>BookDrive Files</h2>
-        <div class="file-list" id="drive-file-list"></div>
-        <div class="modal-actions">
-          <button id="close-file-list-btn" class="btn btn-text">Close</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(fileListModal);
-
-    // Add close button handler
-    const closeBtn = document.getElementById('close-file-list-btn');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        if (fileListModal) fileListModal.style.display = 'none';
-      });
-    }
+  // Create backup button
+  const createBackupBtn = document.getElementById('create-backup-btn');
+  if (createBackupBtn) {
+    createBackupBtn.addEventListener('click', handleCreateBackup);
   }
-
-  // Update content and show modal
-  const fileListDiv = document.getElementById('drive-file-list');
-  if (fileListDiv) {
-    if (files.length === 0) {
-      fileListDiv.innerHTML = '<p>No files found in BookDrive folder.</p>';
-    } else {
-      fileListDiv.innerHTML = `
-        <table class="file-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Modified</th>
-              <th>Size</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${files
-              .map(
-                (file) => `
-              <tr>
-                <td>${file.name}</td>
-                <td>${file.mimeType.split('/').pop()}</td>
-                <td>${new Date(file.modifiedTime).toLocaleString()}</td>
-                <td>${formatFileSize(file.size || 0)}</td>
-              </tr>
-            `,
-              )
-              .join('')}
-          </tbody>
-        </table>
-      `;
-    }
+  
+  // View backups button
+  const viewBackupsBtn = document.getElementById('view-backups-btn');
+  if (viewBackupsBtn) {
+    viewBackupsBtn.addEventListener('click', handleViewBackups);
   }
-
-  fileListModal.style.display = 'flex';
-}
-
-// Format file size
-function formatFileSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function setupSettingsExportImport() {
-  const exportBtn = document.getElementById('export-settings-btn');
-  const importBtn = document.getElementById('import-settings-btn');
-
-  if (exportBtn) {
-    exportBtn.addEventListener('click', () => {
-      exportBtn.disabled = true;
-      chrome.storage.sync.get(null, (data) => {
-        exportBtn.disabled = false;
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'bookdrive-settings.json';
-        a.click();
-        showToast('Settings exported!', 'success');
-      });
-    });
-  }
-
-  if (importBtn) {
-    importBtn.addEventListener('click', () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'application/json';
-      input.onchange = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const data = JSON.parse(reader.result);
-            if (typeof data !== 'object' || !data) throw new Error('Invalid format');
-
-            chrome.storage.sync.set(data, () => {
-              showToast('Settings imported! Reloading...', 'success');
-              setTimeout(() => location.reload(), 1200);
-            });
-          } catch (err) {
-            showToast('Import failed: ' + err.message, 'error');
-          }
-        };
-        reader.readAsText(file);
-      };
-      input.click();
-    });
-  }
-}
-
-// Show preview modal for sync changes
-function showPreviewModal(content) {
-  // Create modal if it doesn't exist
-  let previewModal = document.getElementById('preview-modal');
-  if (!previewModal) {
-    previewModal = document.createElement('div');
-    previewModal.id = 'preview-modal';
-    previewModal.className = 'modal-overlay';
-    previewModal.innerHTML = `
-      <div class="modal-content">
-        <h2>Sync Preview</h2>
-        <div class="preview-content" id="preview-content"></div>
-        <div class="modal-actions">
-          <button id="close-preview-btn" class="btn btn-text">Close</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(previewModal);
-
-    // Add close button handler
-    const closeBtn = document.getElementById('close-preview-btn');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        if (previewModal) previewModal.style.display = 'none';
-      });
-    }
-  }
-
-  // Update content and show modal
-  const previewContentDiv = document.getElementById('preview-content');
-  if (previewContentDiv) {
-    previewContentDiv.innerHTML = `<pre>${content}</pre>`;
-  }
-
-  previewModal.style.display = 'flex';
-}
-
-// Listen for toast messages from background script
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.action === 'showToast') {
-    showToast(message.message, message.type);
-  }
-});
-
-// Setup sign-out functionality
-function setupSignOut() {
+  
+  // Sign out button
   const signOutBtn = document.getElementById('sign-out-btn');
   if (signOutBtn) {
-    signOutBtn.addEventListener('click', async () => {
-      try {
-        signOutBtn.disabled = true;
-        signOutBtn.innerHTML = '<span class="material-icons">hourglass_top</span> Signing out...';
-
-        // Sign out using the drive.js function
-        await signOut();
-
-        // Clear folder ID from storage
-        chrome.storage.local.remove(['bookDriveFolderId'], () => {
-          // Show success message
-          showToast('Signed out successfully', 'success');
-
-          // Redirect to onboarding screen
-          document.getElementById('popup-root').style.display = 'none';
-          document.getElementById('onboarding').style.display = 'block';
-
-          // Reset sign-out button
-          signOutBtn.disabled = false;
-          signOutBtn.innerHTML = '<span class="material-icons">logout</span> Sign Out';
-        });
-      } catch (error) {
-        signOutBtn.disabled = false;
-        signOutBtn.innerHTML = '<span class="material-icons">logout</span> Sign Out';
-        showToast('Sign out failed: ' + error.message, 'error');
-      }
-    });
+    signOutBtn.addEventListener('click', handleSignOut);
+  }
+  
+  // Settings controls
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    themeSelect.addEventListener('change', handleThemeChange);
+  }
+  
+  const notificationsToggle = document.getElementById('notifications-toggle');
+  if (notificationsToggle) {
+    notificationsToggle.addEventListener('change', handleNotificationsChange);
+  }
+  
+  const autoSyncToggle = document.getElementById('auto-sync-toggle');
+  if (autoSyncToggle) {
+    autoSyncToggle.addEventListener('change', handleAutoSyncChange);
+  }
+  
+  // Header buttons
+  const headerSettingsBtn = document.getElementById('header-settings-btn');
+  if (headerSettingsBtn) {
+    headerSettingsBtn.addEventListener('click', () => switchTab('settings'));
+  }
+  
+  const headerMenuBtn = document.getElementById('header-menu-btn');
+  if (headerMenuBtn) {
+    headerMenuBtn.addEventListener('click', showHeaderMenu);
   }
 }
 
-// Initialize the popup when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize popup
-  initializePopup();
+/**
+ * Switch between tabs
+ */
+function switchTab(tabName) {
+  // Update tab buttons
+  const navTabs = document.querySelectorAll('.nav-tab');
+  navTabs.forEach(tab => {
+    tab.classList.remove('active');
+    if (tab.getAttribute('data-tab') === tabName) {
+      tab.classList.add('active');
+    }
+  });
+  
+  // Update tab content
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach(content => {
+    content.classList.remove('active');
+    if (content.id === `${tabName}-tab`) {
+      content.classList.add('active');
+    }
+  });
+}
 
-  // Setup UI components
-  setupThemeHandling();
-  setupTabNavigation();
-  setupSyncHandling();
-  setupSettingsHandling();
-  setupAdvancedFeatures();
-  setupSignOut();
-
-  // Update sync status
-  updateLastSyncStatus();
-
-  // Set device ID
-  const deviceIdEl = document.getElementById('device-id');
-  if (deviceIdEl) {
-    chrome.storage.local.get(['deviceId'], (data) => {
-      if (data.deviceId) {
-        deviceIdEl.textContent = data.deviceId;
-      } else {
-        // Generate a device ID if not exists
-        const newId = 'device_' + Math.random().toString(36).substring(2, 10);
-        chrome.storage.local.set({ deviceId: newId });
-        deviceIdEl.textContent = newId;
-      }
-    });
+/**
+ * Load user data from storage
+ */
+async function loadUserData() {
+  try {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.USER_INFO]);
+    currentUser = result[STORAGE_KEYS.USER_INFO] || null;
+    
+    if (currentUser) {
+      updateUserDisplay();
+    }
+  } catch (error) {
+    console.error('Failed to load user data:', error);
   }
+}
 
-  // Set sync mode
-  const syncModeEl = document.getElementById('sync-mode');
-  if (syncModeEl) {
-    chrome.storage.sync.get({ mode: 'host' }, (data) => {
-      syncModeEl.textContent = data.mode === 'host' ? 'Host-to-Many' : 'Global Sync';
-    });
+/**
+ * Load settings from storage
+ */
+async function loadSettings() {
+  try {
+    const result = await chrome.storage.local.get([
+      STORAGE_KEYS.SYNC_MODE,
+      STORAGE_KEYS.AUTO_SYNC,
+      STORAGE_KEYS.THEME,
+      STORAGE_KEYS.NOTIFICATIONS
+    ]);
+    
+    syncMode = result[STORAGE_KEYS.SYNC_MODE] || 'host-to-many';
+    autoSync = result[STORAGE_KEYS.AUTO_SYNC] || false;
+    theme = result[STORAGE_KEYS.THEME] || 'auto';
+    notifications = result[STORAGE_KEYS.NOTIFICATIONS] !== false;
+    
+    updateSettingsDisplay();
+  } catch (error) {
+    console.error('Failed to load settings:', error);
   }
+}
 
-  // Set bookmark count
+/**
+ * Load initial data
+ */
+async function loadInitialData() {
+  try {
+    // Load bookmark count
+    const bookmarks = await getBookmarks();
+    updateBookmarkCount(bookmarks.length);
+    
+    // Load sync count
+    const result = await chrome.storage.local.get([STORAGE_KEYS.SYNC_COUNT]);
+    const syncCount = result[STORAGE_KEYS.SYNC_COUNT] || 0;
+    updateSyncCount(syncCount);
+    
+    // Load backup count
+    const backupHistory = await getBackupHistory();
+    updateBackupCount(backupHistory.length);
+    
+    // Load recent activity
+    loadRecentActivity();
+    
+  } catch (error) {
+    console.error('Failed to load initial data:', error);
+  }
+}
+
+/**
+ * Update user display
+ */
+function updateUserDisplay() {
+  if (!currentUser) return;
+  
+  const userNameEl = document.getElementById('user-name');
+  const userEmailEl = document.getElementById('user-email');
+  
+  if (userNameEl) {
+    userNameEl.textContent = currentUser.name || 'User';
+  }
+  
+  if (userEmailEl) {
+    userEmailEl.textContent = currentUser.email || 'user@example.com';
+  }
+}
+
+/**
+ * Update settings display
+ */
+function updateSettingsDisplay() {
+  const themeSelect = document.getElementById('theme-select');
+  const notificationsToggle = document.getElementById('notifications-toggle');
+  const autoSyncToggle = document.getElementById('auto-sync-toggle');
+  
+  if (themeSelect) {
+    themeSelect.value = theme;
+  }
+  
+  if (notificationsToggle) {
+    notificationsToggle.checked = notifications;
+  }
+  
+  if (autoSyncToggle) {
+    autoSyncToggle.checked = autoSync;
+  }
+  
+  // Apply theme
+  applyTheme(theme);
+}
+
+/**
+ * Update bookmark count
+ */
+function updateBookmarkCount(count) {
   const bookmarkCountEl = document.getElementById('bookmark-count');
   if (bookmarkCountEl) {
-    chrome.bookmarks.getTree((tree) => {
-      let count = 0;
+    bookmarkCountEl.textContent = count.toLocaleString();
+  }
+}
 
-      function countBookmarks(nodes) {
-        for (const node of nodes) {
-          if (node.url) count++;
-          if (node.children) countBookmarks(node.children);
-        }
-      }
+/**
+ * Update sync count
+ */
+function updateSyncCount(count) {
+  const syncCountEl = document.getElementById('sync-count');
+  if (syncCountEl) {
+    syncCountEl.textContent = count.toLocaleString();
+  }
+}
 
-      countBookmarks(tree);
-      bookmarkCountEl.textContent = count.toString();
+/**
+ * Update backup count
+ */
+function updateBackupCount(count) {
+  const backupCountEl = document.getElementById('backup-count');
+  if (backupCountEl) {
+    backupCountEl.textContent = count.toLocaleString();
+  }
+}
+
+/**
+ * Load recent activity
+ */
+async function loadRecentActivity() {
+  try {
+    const activityList = document.getElementById('activity-list');
+    if (!activityList) return;
+    
+    // Get last sync time
+    const result = await chrome.storage.local.get([STORAGE_KEYS.LAST_SYNC]);
+    const lastSync = result[STORAGE_KEYS.LAST_SYNC];
+    
+    if (lastSync) {
+      const timeAgo = getTimeAgo(new Date(lastSync));
+      activityList.innerHTML = `
+        <div class="activity-item">
+          <span class="material-icons activity-icon">sync</span>
+          <div class="activity-content">
+            <div class="activity-title">Last sync completed</div>
+            <div class="activity-time">${timeAgo}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      activityList.innerHTML = `
+        <div class="activity-item">
+          <span class="material-icons activity-icon">info</span>
+          <div class="activity-content">
+            <div class="activity-title">No recent activity</div>
+            <div class="activity-time">Start by syncing your bookmarks</div>
+          </div>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error('Failed to load recent activity:', error);
+  }
+}
+
+/**
+ * Handle sync
+ */
+async function handleSync() {
+  const syncBtn = document.querySelector('#sync-now-btn, #sync-tab-btn');
+  
+  try {
+    // Update button state
+    if (syncBtn) {
+      syncBtn.disabled = true;
+      syncBtn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">sync</span> Syncing...';
+    }
+    
+    // Update status
+    updateSyncStatus('Syncing...');
+    
+    // Ensure authenticated
+    await getAuthToken(true);
+    
+    // Ensure folder exists
+    await ensureBookDriveFolder();
+    
+    // Perform sync
+    const result = await syncBookmarks();
+    
+    // Update sync count
+    const currentCount = await chrome.storage.local.get([STORAGE_KEYS.SYNC_COUNT]);
+    const newCount = (currentCount[STORAGE_KEYS.SYNC_COUNT] || 0) + 1;
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.SYNC_COUNT]: newCount,
+      [STORAGE_KEYS.LAST_SYNC]: new Date().toISOString()
     });
+    
+    // Update displays
+    updateSyncCount(newCount);
+    loadRecentActivity();
+    updateSyncStatus('Last sync: ' + getTimeAgo(new Date()));
+    
+    showToast(`Sync completed! ${result.added || 0} added, ${result.updated || 0} updated`, 'success');
+    
+  } catch (error) {
+    console.error('Sync failed:', error);
+    updateSyncStatus('Sync failed');
+    showToast('Sync failed: ' + error.message, 'error');
+  } finally {
+    // Reset button
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.innerHTML = '<span class="material-icons">sync</span> Sync Now';
+    }
+  }
+}
+
+/**
+ * Handle quick backup
+ */
+async function handleQuickBackup() {
+  try {
+    const backupBtn = document.getElementById('quick-backup-btn');
+    if (backupBtn) {
+      backupBtn.disabled = true;
+      backupBtn.innerHTML = '<span class="material-icons">hourglass_top</span> Creating...';
+    }
+    
+    const result = await createBackup('Quick backup');
+    
+    // Update backup count
+    const backupHistory = await getBackupHistory();
+    updateBackupCount(backupHistory.length);
+    
+    showToast('Backup created successfully!', 'success');
+    
+  } catch (error) {
+    console.error('Backup failed:', error);
+    showToast('Backup failed: ' + error.message, 'error');
+  } finally {
+    const backupBtn = document.getElementById('quick-backup-btn');
+    if (backupBtn) {
+      backupBtn.disabled = false;
+      backupBtn.innerHTML = '<span class="material-icons">backup</span> Quick Backup';
+    }
+  }
+}
+
+/**
+ * Handle create backup
+ */
+async function handleCreateBackup() {
+  try {
+    const result = await createBackup('Manual backup');
+    showToast('Backup created successfully!', 'success');
+  } catch (error) {
+    console.error('Backup failed:', error);
+    showToast('Backup failed: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Handle view backups
+ */
+function handleViewBackups() {
+  chrome.tabs.create({
+    url: chrome.runtime.getURL('backup-history/backup-history.html')
+  });
+}
+
+/**
+ * Handle sign out
+ */
+async function handleSignOut() {
+  try {
+    await signOut();
+    
+    // Clear stored data
+    await chrome.storage.local.clear();
+    
+    showToast('Signed out successfully', 'success');
+    
+    // Show onboarding
+    setTimeout(() => {
+      showOnboarding();
+    }, 1000);
+    
+  } catch (error) {
+    console.error('Sign out failed:', error);
+    showToast('Sign out failed: ' + error.message, 'error');
+  }
+}
+
+/**
+ * Handle theme change
+ */
+async function handleThemeChange(event) {
+  const newTheme = event.target.value;
+  theme = newTheme;
+  
+  await chrome.storage.local.set({ [STORAGE_KEYS.THEME]: newTheme });
+  applyTheme(newTheme);
+  
+  showToast('Theme updated', 'info');
+}
+
+/**
+ * Handle notifications change
+ */
+async function handleNotificationsChange(event) {
+  notifications = event.target.checked;
+  await chrome.storage.local.set({ [STORAGE_KEYS.NOTIFICATIONS]: notifications });
+  showToast('Notifications ' + (notifications ? 'enabled' : 'disabled'), 'info');
+}
+
+/**
+ * Handle auto sync change
+ */
+async function handleAutoSyncChange(event) {
+  autoSync = event.target.checked;
+  await chrome.storage.local.set({ [STORAGE_KEYS.AUTO_SYNC]: autoSync });
+  showToast('Auto sync ' + (autoSync ? 'enabled' : 'disabled'), 'info');
+}
+
+/**
+ * Apply theme
+ */
+function applyTheme(themeName) {
+  const root = document.documentElement;
+  
+  if (themeName === 'dark' || (themeName === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    root.setAttribute('data-theme', 'dark');
+  } else {
+    root.setAttribute('data-theme', 'light');
+  }
+}
+
+/**
+ * Update sync status
+ */
+function updateSyncStatus(status) {
+  const statusText = document.querySelector('.status-text');
+  if (statusText) {
+    statusText.textContent = status;
+  }
+}
+
+/**
+ * Show header menu
+ */
+function showHeaderMenu() {
+  // Simple menu for now - could be expanded
+  showToast('Menu coming soon!', 'info');
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  
+  container.appendChild(toast);
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
+  }, 3000);
+}
+
+/**
+ * Show modal
+ */
+function showModal(title, content) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h2>${title}</h2>
+      <div class="modal-body">${content}</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">Close</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+/**
+ * Get time ago string
+ */
+function getTimeAgo(date) {
+  const now = new Date();
+  const diff = now - date;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
+/**
+ * Add CSS for spinning animation
+ */
+function addSpinningAnimation() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  addSpinningAnimation();
+  initializePopup();
+});
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local') {
+    // Reload data if relevant keys changed
+    const relevantKeys = Object.values(STORAGE_KEYS);
+    const hasRelevantChanges = Object.keys(changes).some(key => relevantKeys.includes(key));
+    
+    if (hasRelevantChanges) {
+      loadInitialData();
+    }
   }
 });

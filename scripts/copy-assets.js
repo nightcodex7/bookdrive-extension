@@ -37,6 +37,13 @@ copyFilesWithExtension(
   ['.html', '.css']
 );
 
+// Copy HTML and CSS files from backup-history
+copyFilesWithExtension(
+  path.join(rootDir, 'src', 'backup-history'),
+  path.join(rootDir, 'dist', 'backup-history'),
+  ['.html', '.css']
+);
+
 console.log('✅ Assets copied successfully');
 
 /**

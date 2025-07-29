@@ -333,3 +333,68 @@ export async function hashBookmarkTree(tree) {
   }
   return Promise.all(tree.map(hashNode));
 }
+
+/**
+ * Get all bookmarks as a flat array
+ * @returns {Promise<Array>}
+ */
+export async function getBookmarks() {
+  return new Promise((resolve) => {
+    chrome.bookmarks.getTree((tree) => {
+      const bookmarks = [];
+      flattenBookmarksToArray(tree, bookmarks);
+      resolve(bookmarks);
+    });
+  });
+}
+
+/**
+ * Flatten bookmark tree to array
+ * @param {Array} tree
+ * @param {Array} bookmarks
+ */
+function flattenBookmarksToArray(tree, bookmarks) {
+  for (const node of tree) {
+    if (node.url) {
+      bookmarks.push({
+        id: node.id,
+        title: node.title,
+        url: node.url,
+        dateAdded: node.dateAdded,
+        parentId: node.parentId
+      });
+    }
+    if (node.children) {
+      flattenBookmarksToArray(node.children, bookmarks);
+    }
+  }
+}
+
+/**
+ * Sync bookmarks with Google Drive
+ * @param {string} mode - 'host-to-many' or 'global'
+ * @returns {Promise<Object>}
+ */
+export async function syncBookmarks(mode = 'host-to-many') {
+  try {
+    // Export current bookmarks
+    const localState = await exportBookmarksState();
+    
+    // For now, just return basic sync result
+    // In a real implementation, this would:
+    // 1. Upload to Google Drive
+    // 2. Download remote state
+    // 3. Compare and merge
+    // 4. Apply changes
+    
+    return {
+      added: 0,
+      updated: 0,
+      removed: 0,
+      total: localState.bookmarks.length
+    };
+  } catch (error) {
+    console.error('Sync failed:', error);
+    throw error;
+  }
+}
