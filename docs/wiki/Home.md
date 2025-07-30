@@ -1,28 +1,56 @@
-# BookDrive Wiki
+# BookDrive Documentation
 
-Welcome to the BookDrive Wiki! This comprehensive guide will help you understand, install, and use the BookDrive browser extension.
+Welcome to the BookDrive documentation! BookDrive is a privacy-first bookmark synchronization extension that uses your own Google Drive as the backend.
 
-## Quick Links
-- [Installation Guide](Installation)
-- [Sync Modes](Sync-Modes)
-- [Security Features](Security)
-- [Advanced Configuration](Configuration)
-- [Troubleshooting](Troubleshooting)
+## 🚀 Quick Start
 
-## Overview
-BookDrive is an advanced Chrome extension for bookmark synchronization that prioritizes privacy, flexibility, and user control.
+- **[Installation Guide](Installation.md)** - Get started with BookDrive
+- **[Configuration](Configuration.md)** - Configure your extension settings
+- **[Google Drive API Setup](Google-Drive-API.md)** - Set up OAuth2 credentials
 
-### Key Highlights
-- 🔄 Two-way bookmark synchronization
-- 🔒 Optional end-to-end encryption
-- 🌐 Works across multiple devices
-- 🎨 Customizable interface
+## 📚 Core Features
 
-## Latest Updates
-- Enhanced error handling
-- Improved performance tracking
-- More robust type definitions
-- Advanced sync preview features
+### Sync & Backup
+- **[Sync Modes](Sync-Modes.md)** - Host-to-Many vs Global Sync
+- **[Scheduled Backups](Scheduled-Backups.md)** - Automated backup system
+- **[Backup History](backup-history/)** - Manage your backups
 
-## Contributing
-Interested in improving BookDrive? Check out our [Contribution Guidelines](Contributing)!
+### Team Collaboration
+- **[Team Mode](team/)** - Multi-user collaboration features
+- **[Shared Folders](shared-folders/)** - Create and manage shared bookmark folders
+- **[Conflict Resolution](conflict-resolution/)** - Resolve sync conflicts
+
+### Analytics & Monitoring
+- **[Sync Analytics](analytics/)** - Monitor sync performance and activity
+- **[Troubleshooting](Troubleshooting.md)** - Common issues and solutions
+
+## 🛠️ Development
+
+### Project Structure
+- **[Project Structure Summary](Project-Structure-Summary.md)** - Overview of the codebase
+- **[File Organization](File-Organization.md)** - How files are organized
+- **[File Naming Standards](File-Naming-Standards.md)** - Naming conventions
+- **[Naming Conventions](Naming-Conventions.md)** - Code and file naming rules
+
+### Contributing
+- **[Contributing Guide](Contributing.md)** - How to contribute to BookDrive
+- **[Releases](Releases.md)** - Release process and versioning
+
+### Security
+- **[Security](Security.md)** - Security features and best practices
+
+## 📋 Reference
+
+- **[Updated File Structure](Updated-File-Structure.md)** - Current file organization
+- **[Standardized File Naming](Standardized-File-Naming.md)** - File naming standards
+
+## 🔗 External Links
+
+- **[GitHub Repository](https://github.com/nightcodex7/bookdrive-extension)**
+- **[Chrome Web Store](https://chrome.google.com/webstore)** (Coming Soon)
+- **[Issues](https://github.com/nightcodex7/bookdrive-extension/issues)**
+- **[Releases](https://github.com/nightcodex7/bookdrive-extension/releases)**
+
+---
+
+**Need help?** Check the [Troubleshooting](Troubleshooting.md) guide or [open an issue](https://github.com/nightcodex7/bookdrive-extension/issues) on GitHub.

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookDrive - Shared Folders</title>
+  <link rel="stylesheet" href="shared-folders.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+  <div class="shared-folders-container">
+    <header class="shared-folders-header">
+      <h1>📁 Shared Folders</h1>
+      <div class="header-actions">
+        <button id="create-folder-btn" class="btn btn-primary">
+          <span class="material-icons">create_new_folder</span>
+          Create Folder
+        </button>
+        <button id="refresh-btn" class="btn btn-secondary">
+          <span class="material-icons">refresh</span>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <div class="shared-folders-content">
+      <!-- Notifications Panel -->
+      <div class="notifications-panel" id="notifications-panel">
+        <div class="panel-header">
+          <h3>🔔 Notifications</h3>
+          <button class="panel-toggle" id="notifications-toggle">−</button>
+        </div>
+        <div class="panel-content" id="notifications-content">
+          <div class="notification-list" id="notification-list">
+            <!-- Notifications will be populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Shared Folders List -->
+      <div class="folders-section">
+        <h2>Your Shared Folders</h2>
+        <div class="folders-grid" id="folders-grid">
+          <!-- Shared folders will be populated here -->
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-section">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+          <button id="import-bookmarks-btn" class="action-card">
+            <span class="material-icons">file_upload</span>
+            <h3>Import Bookmarks</h3>
+            <p>Add bookmarks to shared folders</p>
+          </button>
+          <button id="export-bookmarks-btn" class="action-card">
+            <span class="material-icons">file_download</span>
+            <h3>Export Bookmarks</h3>
+            <p>Download bookmarks from folders</p>
+          </button>
+          <button id="manage-permissions-btn" class="action-card">
+            <span class="material-icons">security</span>
+            <h3>Manage Permissions</h3>
+            <p>Control folder access</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Folder Modal -->
+  <div class="modal" id="create-folder-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create Shared Folder</h2>
+        <button class="modal-close" id="create-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="create-folder-form">
+          <div class="form-group">
+            <label for="folder-name">Folder Name</label>
+            <input type="text" id="folder-name" name="name" required placeholder="Enter folder name">
+          </div>
+          <div class="form-group">
+            <label for="folder-description">Description</label>
+            <textarea id="folder-description" name="description" placeholder="Enter folder description"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="folder-encryption">Encryption</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" id="folder-encryption" name="encrypt">
+                <span class="checkmark"></span>
+                Enable encryption for this folder
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="passphrase-group" style="display: none;">
+            <label for="folder-passphrase">Encryption Passphrase</label>
+            <input type="password" id="folder-passphrase" name="passphrase" placeholder="Enter encryption passphrase">
+            <div class="passphrase-strength" id="passphrase-strength"></div>
+          </div>
+          <div class="form-group">
+            <label>Initial Members</label>
+            <div class="members-input">
+              <input type="email" id="member-email" placeholder="Enter member email">
+              <select id="member-permission">
+                <option value="read">Read Only</option>
+                <option value="write">Read & Write</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button type="button" id="add-member-btn" class="btn btn-secondary">Add</button>
+            </div>
+            <div class="members-list" id="members-list">
+              <!-- Members will be listed here -->
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="create-folder-cancel" class="btn btn-outline">Cancel</button>
+        <button type="submit" id="create-folder-submit" class="btn btn-primary">Create Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Folder Details Modal -->
+  <div class="modal" id="folder-details-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="folder-details-title">Folder Details</h2>
+        <button class="modal-close" id="details-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="folder-info">
+          <div class="info-item">
+            <span class="info-label">Name:</span>
+            <span class="info-value" id="folder-details-name"></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Description:</span>
+            <span class="info-value" id="folder-details-description"></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Created:</span>
+            <span class="info-value" id="folder-details-created"></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Bookmarks:</span>
+            <span class="info-value" id="folder-details-bookmarks"></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Your Permission:</span>
+            <span class="info-value" id="folder-details-permission"></span>
+          </div>
+        </div>
+        
+        <div class="folder-bookmarks">
+          <h3>Bookmarks</h3>
+          <div class="bookmarks-list" id="folder-bookmarks-list">
+            <!-- Bookmarks will be listed here -->
+          </div>
+        </div>
+        
+        <div class="folder-members">
+          <h3>Members</h3>
+          <div class="members-list" id="folder-members-list">
+            <!-- Members will be listed here -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="folder-details-close" class="btn btn-outline">Close</button>
+        <button type="button" id="edit-folder-btn" class="btn btn-secondary">Edit</button>
+        <button type="button" id="delete-folder-btn" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Bookmarks Modal -->
+  <div class="modal" id="import-bookmarks-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Import Bookmarks</h2>
+        <button class="modal-close" id="import-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="import-folder-select">Select Folder</label>
+          <select id="import-folder-select">
+            <option value="">Choose a shared folder</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="import-bookmarks-input">Bookmarks</label>
+          <textarea id="import-bookmarks-input" placeholder="Paste bookmark URLs (one per line) or JSON data"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Or upload a file</label>
+          <input type="file" id="import-bookmarks-file" accept=".json,.txt,.html">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="import-cancel" class="btn btn-outline">Cancel</button>
+        <button type="button" id="import-submit" class="btn btn-primary">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="shared-folders.js"></script>
+</body>
+</html> 

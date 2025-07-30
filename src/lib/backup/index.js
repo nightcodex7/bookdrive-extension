@@ -3,6 +3,7 @@
  */
 
 export * from './backup-metadata.js';
+export * from './backup-compression.js';
 
 /**
  * Create a new backup

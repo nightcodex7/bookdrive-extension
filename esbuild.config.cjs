@@ -3,6 +3,8 @@ const { readdirSync, existsSync } = require('fs');
 const { join, resolve } = require('path');
 const colors = require('ansi-colors');
 
+// OAuth2 injection is now handled separately in the build process
+
 /**
  * @typedef {Object} BuildConfig
  * @property {boolean} watchMode - Whether the build is in watch mode
@@ -207,6 +209,7 @@ async function runBuild() {
   // Graceful shutdown handler
   const handleShutdown = async (signal) => {
     console.log(colors.yellow(`\n📴 Received ${signal}. Shutting down gracefully...`));
+    
     if (buildContext) {
       await buildContext.dispose();
     }
@@ -218,6 +221,7 @@ async function runBuild() {
   process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 
   try {
+
     if (CONFIG.watchMode) {
       console.log(colors.blue('👀 Starting watch mode...'));
       buildContext = await esbuild.context(buildConfig);

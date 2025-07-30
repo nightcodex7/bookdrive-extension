@@ -7,12 +7,7 @@ import {
   showRestorationNotification,
 } from '../lib/notification-manager.js';
 
-// Mock chrome API
-global.chrome = {
-  runtime: {
-    sendMessage: jest.fn(),
-  },
-};
+
 
 // Mock window.Notification
 const originalNotification = global.Notification;
@@ -260,3 +255,4 @@ describe('Notification Manager', () => {
     });
   });
 });
+

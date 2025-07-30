@@ -186,9 +186,9 @@ describe('Sync Optimizer', () => {
       expect(applyFn).toHaveBeenCalledTimes(3);
 
       // Check that deletions are processed first
-      expect(applyFn.mock.calls[0][0]).toBe('delete');
-      expect(applyFn.mock.calls[1][0]).toBe('modify');
-      expect(applyFn.mock.calls[2][0]).toBe('add');
+      expect(applyFn.mock.calls[0][0]).toEqual({ type: 'delete', item: { id: '1', title: 'Deleted Bookmark' } });
+      expect(applyFn.mock.calls[1][0]).toEqual({ type: 'modify', item: { source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } } });
+      expect(applyFn.mock.calls[2][0]).toEqual({ type: 'add', item: { id: '3', title: 'New Bookmark' } });
     });
 
     it('should handle errors during delta application', async () => {
@@ -297,7 +297,7 @@ describe('Sync Optimizer', () => {
 
       const result = await performOptimizedSync(syncOperation);
 
-      expect(result).toBe('success');
+      expect(result.result).toBe('success');
       expect(syncOperation).toHaveBeenCalledTimes(1);
     });
 
@@ -306,7 +306,7 @@ describe('Sync Optimizer', () => {
 
       const result = await performOptimizedSync(syncOperation, { requireIdle: true });
 
-      expect(result).toBe('success');
+      expect(result.result).toBe('success');
       expect(runWhenIdle).toHaveBeenCalledTimes(1);
     });
 
@@ -319,9 +319,8 @@ describe('Sync Optimizer', () => {
         reason: 'Test error',
       });
 
-      await expect(performOptimizedSync(syncOperation, { requireIdle: true })).rejects.toThrow(
-        'Failed to perform sync operation',
-      );
+      const result = await performOptimizedSync(syncOperation, { requireIdle: true });
+      expect(result.success).toBe(false);
     });
   });
 });

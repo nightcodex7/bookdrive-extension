@@ -67,6 +67,7 @@ This error occurs when the redirect URI in the OAuth request doesn't match any o
 - Redirect URIs are validated on both client and server side
 - OAuth2 state parameter is used for security
 - Tokens are stored securely in `chrome.storage.local`
+- **No JavaScript origins required** - Chrome extensions use native OAuth2 flow
 
 ## 🚀 Next Steps
 

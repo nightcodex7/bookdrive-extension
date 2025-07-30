@@ -77,8 +77,11 @@ Your OAuth2 client ID has been configured in the extension:
 - `https://www.googleapis.com/auth/drive.file` - Access to files created by the app
 
 #### Redirect URIs
-- Chrome: `chrome-extension://[EXTENSION_ID]/`
-- Edge/Firefox: `https://oauth-redirect.googleusercontent.com/r/bookdrive-extension`
+- Chrome/Edge/Firefox: `https://ajkofadmedmmckhnjeelnjlmcpmfmohp.chromiumapp.org/`
+
+#### JavaScript Origins
+- **Chrome Extensions**: Do NOT configure JavaScript origins in Google Cloud Console
+- **Application Type**: Must be "Chrome App" (not "Web Application")
 
 ### 🛡️ Additional Security Features
 

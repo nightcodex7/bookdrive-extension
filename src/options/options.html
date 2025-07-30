@@ -2,77 +2,423 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>BookDrive Options</title>
+    <title>BookDrive Advanced Settings</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
     <style>
+      /* Material Design 3 Variables */
+      :root {
+        --md-primary: #1a73e8;
+        --md-primary-container: #e8f0fe;
+        --md-on-primary: #ffffff;
+        --md-on-primary-container: #174ea6;
+        
+        --md-secondary: #5f6368;
+        --md-secondary-container: #f1f3f4;
+        --md-on-secondary: #ffffff;
+        --md-on-secondary-container: #3c4043;
+        
+        --md-tertiary: #34a853;
+        --md-tertiary-container: #e6f4ea;
+        --md-on-tertiary: #ffffff;
+        --md-on-tertiary-container: #137333;
+        
+        --md-error: #d93025;
+        --md-error-container: #fce8e6;
+        --md-on-error: #ffffff;
+        --md-on-error-container: #a50e0e;
+        
+        --md-surface: #ffffff;
+        --md-surface-container: #f8f9fa;
+        --md-surface-container-high: #f1f3f4;
+        --md-surface-container-highest: #e8eaed;
+        --md-surface-variant: #f1f3f4;
+        --md-on-surface: #202124;
+        --md-on-surface-variant: #5f6368;
+        
+        --md-outline: #dadce0;
+        --md-outline-variant: #e8eaed;
+        
+        --md-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        --md-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+        --md-elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+        
+        --md-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --md-font-size-small: 0.75rem;
+        --md-font-size-body: 0.875rem;
+        --md-font-size-title: 1.25rem;
+        --md-font-size-headline: 1.5rem;
+        
+        --md-spacing-xs: 0.25rem;
+        --md-spacing-sm: 0.5rem;
+        --md-spacing-md: 0.75rem;
+        --md-spacing-lg: 1.25rem;
+        --md-spacing-xl: 1.75rem;
+        --md-spacing-xxl: 2.25rem;
+        
+        --md-radius-sm: 0.5rem;
+        --md-radius-md: 0.75rem;
+        --md-radius-lg: 1rem;
+        
+        --md-transition-fast: 0.15s ease-out;
+        --md-transition-normal: 0.25s ease-out;
+        --md-transition-slow: 0.35s ease-out;
+      }
+
+      /* Dark Theme */
+      [data-theme="dark"] {
+        --md-primary: #8ab4f8;
+        --md-primary-container: #174ea6;
+        --md-on-primary: #202124;
+        --md-on-primary-container: #e8f0fe;
+        
+        --md-secondary: #9aa0a6;
+        --md-secondary-container: #3c4043;
+        --md-on-secondary: #202124;
+        --md-on-secondary-container: #f1f3f4;
+        
+        --md-tertiary: #81c995;
+        --md-tertiary-container: #137333;
+        --md-on-tertiary: #202124;
+        --md-on-tertiary-container: #e6f4ea;
+        
+        --md-error: #f28b82;
+        --md-error-container: #a50e0e;
+        --md-on-error: #202124;
+        --md-on-error-container: #fce8e6;
+        
+        --md-surface: #202124;
+        --md-surface-container: #2d2e30;
+        --md-surface-container-high: #3c4043;
+        --md-surface-container-highest: #5f6368;
+        --md-surface-variant: #3c4043;
+        --md-on-surface: #e8eaed;
+        --md-on-surface-variant: #9aa0a6;
+        
+        --md-outline: #5f6368;
+        --md-outline-variant: #3c4043;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
       body {
-        font-family: system-ui, sans-serif;
-        padding: 2em;
-        background: #fafafa;
-        color: #222;
-        max-width: 480px;
+        font-family: var(--md-font-family);
+        background: var(--md-surface);
+        color: var(--md-on-surface);
+        line-height: 1.6;
+        padding: var(--md-spacing-xl);
+        max-width: 800px;
         margin: 0 auto;
+        transition: background-color var(--md-transition-normal), color var(--md-transition-normal);
       }
-      h1 {
-        font-size: 2em;
-        margin-bottom: 0.5em;
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: var(--md-spacing-lg);
+        margin-bottom: var(--md-spacing-xxl);
+        padding-bottom: var(--md-spacing-lg);
+        border-bottom: 1px solid var(--md-outline);
       }
-      .settings-group {
-        margin-bottom: 2em;
+
+      .header-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--md-radius-md);
+        background: var(--md-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--md-on-primary);
       }
-      label {
+
+      .header-content h1 {
+        font-size: var(--md-font-size-headline);
+        font-weight: 600;
+        color: var(--md-on-surface);
+        margin-bottom: var(--md-spacing-xs);
+      }
+
+      .header-content p {
+        color: var(--md-on-surface-variant);
+        font-size: var(--md-font-size-body);
+      }
+
+      .settings-container {
+        display: grid;
+        gap: var(--md-spacing-xl);
+      }
+
+      .settings-card {
+        background: var(--md-surface-container);
+        border: 1px solid var(--md-outline);
+        border-radius: var(--md-radius-lg);
+        padding: var(--md-spacing-xl);
+        transition: all var(--md-transition-normal);
+      }
+
+      .settings-card:hover {
+        box-shadow: var(--md-elevation-2);
+        border-color: var(--md-primary);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: var(--md-spacing-md);
+        margin-bottom: var(--md-spacing-lg);
+      }
+
+      .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--md-radius-sm);
+        background: var(--md-primary-container);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--md-on-primary-container);
+      }
+
+      .card-title {
+        font-size: var(--md-font-size-title);
+        font-weight: 600;
+        color: var(--md-on-surface);
+      }
+
+      .form-group {
+        margin-bottom: var(--md-spacing-lg);
+      }
+
+      .form-group:last-child {
+        margin-bottom: 0;
+      }
+
+      .form-label {
         display: block;
-        margin-bottom: 0.5em;
+        font-weight: 500;
+        color: var(--md-on-surface);
+        margin-bottom: var(--md-spacing-sm);
+        font-size: var(--md-font-size-body);
+      }
+
+      .form-control {
+        width: 100%;
+        padding: var(--md-spacing-md);
+        border: 1px solid var(--md-outline);
+        border-radius: var(--md-radius-sm);
+        background: var(--md-surface);
+        color: var(--md-on-surface);
+        font-size: var(--md-font-size-body);
+        transition: all var(--md-transition-fast);
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--md-primary);
+        box-shadow: 0 0 0 2px var(--md-primary-container);
+      }
+
+      .form-control:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: var(--md-surface-container-high);
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--md-outline);
+        transition: var(--md-transition-fast);
+        border-radius: 34px;
+      }
+
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: var(--md-transition-fast);
+        border-radius: 50%;
+      }
+
+      input:checked + .toggle-slider {
+        background-color: var(--md-primary);
+      }
+
+      input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+      }
+
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: var(--md-spacing-md);
+      }
+
+      .toggle-label {
+        font-weight: 500;
+        color: var(--md-on-surface);
+        font-size: var(--md-font-size-body);
+      }
+
+      .btn {
+        padding: var(--md-spacing-md) var(--md-spacing-lg);
+        border: none;
+        border-radius: var(--md-radius-sm);
+        font-size: var(--md-font-size-body);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--md-transition-fast);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--md-spacing-sm);
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: var(--md-primary);
+        color: var(--md-on-primary);
+      }
+
+      .btn-primary:hover {
+        background: var(--md-on-primary-container);
+        transform: translateY(-1px);
+        box-shadow: var(--md-elevation-2);
+      }
+
+      .btn-secondary {
+        background: var(--md-secondary-container);
+        color: var(--md-on-secondary-container);
+        border: 1px solid var(--md-outline);
+      }
+
+      .btn-secondary:hover {
+        background: var(--md-surface-container-high);
+        transform: translateY(-1px);
+        box-shadow: var(--md-elevation-1);
+      }
+
+      .btn-danger {
+        background: var(--md-error);
+        color: var(--md-on-error);
+      }
+
+      .btn-danger:hover {
+        background: var(--md-on-error-container);
+        transform: translateY(-1px);
+        box-shadow: var(--md-elevation-2);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: var(--md-spacing-md);
+        flex-wrap: wrap;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--md-spacing-xs);
+        padding: var(--md-spacing-xs) var(--md-spacing-sm);
+        border-radius: var(--md-radius-sm);
+        font-size: var(--md-font-size-small);
         font-weight: 500;
       }
-      select,
-      input[type='number'],
-      input[type='email'] {
-        font-size: 1em;
-        padding: 0.3em;
-        margin-top: 0.2em;
-        border-radius: 4px;
-        border: 1px solid #bbb;
-        width: 100%;
-        max-width: 250px;
+
+      .status-badge.enabled {
+        background: var(--md-tertiary-container);
+        color: var(--md-on-tertiary-container);
       }
-      input[type='checkbox'] {
-        margin-right: 0.5em;
+
+      .status-badge.disabled {
+        background: var(--md-error-container);
+        color: var(--md-on-error-container);
       }
-      .back-link {
-        display: inline-block;
-        margin-top: 2em;
-        color: #1976d2;
-        text-decoration: none;
-        font-weight: bold;
+
+      .status-badge.required {
+        background: var(--md-primary-container);
+        color: var(--md-on-primary-container);
       }
-      .back-link:focus {
-        outline: 2px solid #1976d2;
-        outline-offset: 2px;
+
+      .help-text {
+        font-size: var(--md-font-size-small);
+        color: var(--md-on-surface-variant);
+        margin-top: var(--md-spacing-xs);
       }
-      /* Validation error styles */
+
       .validation-error {
-        border: 1px solid #d32f2f !important;
-        background-color: rgba(211, 47, 47, 0.05);
+        border-color: var(--md-error) !important;
+        background-color: var(--md-error-container);
       }
+
       .error-message {
-        color: #d32f2f;
-        font-size: 0.8em;
-        margin-top: 0.2em;
+        color: var(--md-error);
+        font-size: var(--md-font-size-small);
+        margin-top: var(--md-spacing-xs);
       }
-      /* Toast notification styles */
-      #toast-container {
+
+      .toast-container {
         position: fixed;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #333;
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 4px;
+        background: var(--md-surface-container);
+        color: var(--md-on-surface);
+        padding: var(--md-spacing-md) var(--md-spacing-lg);
+        border-radius: var(--md-radius-sm);
+        box-shadow: var(--md-elevation-3);
         z-index: 1000;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--md-outline);
+        display: none;
       }
-      /* Screen reader only class */
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--md-spacing-sm);
+        margin-top: var(--md-spacing-xl);
+        color: var(--md-primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color var(--md-transition-fast);
+      }
+
+      .back-link:hover {
+        color: var(--md-on-primary-container);
+      }
+
       .sr-only {
         position: absolute;
         width: 1px;
@@ -84,261 +430,401 @@
         white-space: nowrap;
         border-width: 0;
       }
-      /* Tooltip styles */
-      .tooltip-icon {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background-color: #1976d2;
-        color: white;
-        text-align: center;
-        font-size: 12px;
-        line-height: 16px;
-        margin-left: 5px;
-        cursor: help;
-      }
-      .tooltip-icon:hover {
-        background-color: #1565c0;
-      }
-      @media (prefers-color-scheme: dark) {
+
+      @media (max-width: 768px) {
         body {
-          background: #181a1b;
-          color: #eee;
+          padding: var(--md-spacing-lg);
         }
-        select,
-        input[type='number'],
-        input[type='email'] {
-          background: #222;
-          color: #eee;
-          border: 1px solid #444;
+        
+        .btn-group {
+          flex-direction: column;
         }
-        .validation-error {
-          border: 1px solid #f44336 !important;
-          background-color: rgba(244, 67, 54, 0.1);
-        }
-        .error-message {
-          color: #f44336;
+        
+        .btn {
+          width: 100%;
+          justify-content: center;
         }
       }
     </style>
   </head>
   <body>
-    <h1 id="options-title">BookDrive Options</h1>
-    <form aria-labelledby="options-title" autocomplete="off" role="form">
-      <div class="settings-group">
-        <label for="theme-select">Theme</label>
-        <select id="theme-select" name="theme" aria-describedby="theme-desc">
-          <option value="auto">Auto</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-        <span id="theme-desc" class="sr-only">Choose light, dark, or auto theme</span>
+    <div class="header">
+      <div class="header-icon">
+        <span class="material-icons">settings</span>
       </div>
-      <div class="settings-group">
-        <label for="mode-select">Sync Mode</label>
-        <select id="mode-select" name="mode" aria-describedby="mode-desc">
-          <option value="host">Host-to-Many</option>
-          <option value="global">Global Sync</option>
-        </select>
-        <span id="mode-desc" class="sr-only">Choose how bookmarks are synchronized</span>
+      <div class="header-content">
+        <h1>Advanced Settings</h1>
+        <p>Configure BookDrive's advanced features and preferences</p>
       </div>
-      <div class="settings-group">
-        <label for="auto-sync-toggle"
-          ><input type="checkbox" id="auto-sync-toggle" name="autoSync" /> Enable Auto Sync</label
-        >
-        <label for="sync-interval">Sync Interval (minutes)</label>
-        <input
-          type="number"
-          id="sync-interval"
-          name="syncInterval"
-          min="5"
-          max="30"
-          step="1"
-          style="width: 5em"
-          aria-describedby="interval-desc"
-        />
-        <span id="interval-desc" class="sr-only"
-          >Set the interval in minutes for automatic sync</span
-        >
-      </div>
-      <div class="settings-group">
-        <label for="team-mode-toggle"
-          ><input type="checkbox" id="team-mode-toggle" name="teamMode" /> Enable Team Mode
-          (Multi-User)</label
-        >
-        <label for="user-email">Your Email (for Team Mode)</label>
-        <input
-          type="email"
-          id="user-email"
-          name="userEmail"
-          placeholder="you@example.com"
-          aria-describedby="email-desc"
-        />
-        <span id="email-desc" class="sr-only">Required for team mode</span>
-      </div>
-      <div class="settings-group">
-        <label for="verbose-logs-toggle"
-          ><input type="checkbox" id="verbose-logs-toggle" name="verboseLogs" /> Verbose Logs</label
-        >
-        <label for="perf-logs-toggle"
-          ><input type="checkbox" id="perf-logs-toggle" name="perfLogs" /> Enable Performance
-          Logging</label
-        >
-      </div>
+    </div>
 
-      <div class="settings-group">
-        <h2>Scheduled Backups</h2>
-        <label
-          for="scheduled-backups-toggle"
-          title="Enable automatic backups on a regular schedule"
-        >
-          <input type="checkbox" id="scheduled-backups-toggle" name="scheduledBackups" /> Enable
-          Scheduled Backups
-          <span
-            class="tooltip-icon"
-            title="When enabled, backups will be created automatically according to your schedule"
-            >ⓘ</span
-          >
-        </label>
-
-        <div id="scheduled-backup-options" style="margin-left: 1.5em; margin-top: 1em">
-          <label for="backup-frequency" title="How often backups should be created"
-            >Backup Frequency</label
-          >
-          <select id="backup-frequency" name="backupFrequency" aria-describedby="frequency-desc">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="bi-weekly">Bi-weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-          <span
-            class="tooltip-icon"
-            title="Daily: Every day at the specified time. Weekly: Once a week on your selected day. Bi-weekly: Every two weeks on your selected day. Monthly: Once a month on your selected day."
-            >ⓘ</span
-          >
-          <span id="frequency-desc" class="sr-only">How often backups should be created</span>
-
-          <div id="day-selector-container" style="margin-top: 0.5em; display: none">
-            <label for="day-selector" title="Select which day of the week to run backups"
-              >Day</label
-            >
-            <select id="day-selector" name="daySelector" aria-describedby="day-desc">
-              <option value="0">Sunday</option>
-              <option value="1">Monday</option>
-              <option value="2">Tuesday</option>
-              <option value="3">Wednesday</option>
-              <option value="4">Thursday</option>
-              <option value="5">Friday</option>
-              <option value="6">Saturday</option>
-            </select>
-            <span
-              class="tooltip-icon"
-              title="The day of the week when weekly or bi-weekly backups will be created"
-              >ⓘ</span
-            >
-            <span id="day-desc" class="sr-only"
-              >Day of the week for weekly or bi-weekly backups</span
-            >
-          </div>
-
-          <div id="day-of-month-container" style="margin-top: 0.5em; display: none">
-            <label for="day-of-month" title="Select which day of the month to run backups"
-              >Day of Month</label
-            >
-            <select id="day-of-month" name="dayOfMonth" aria-describedby="day-of-month-desc">
-              <!-- Will be populated with JavaScript -->
-            </select>
-            <span
-              class="tooltip-icon"
-              title="The day of the month when monthly backups will be created. If the selected day doesn't exist in a month (e.g., 31st in February), the backup will run on the last day of that month."
-              >ⓘ</span
-            >
-            <span id="day-of-month-desc" class="sr-only">Day of the month for monthly backups</span>
-          </div>
-
-          <div style="margin-top: 0.5em">
-            <label for="backup-time" title="Time of day to run backups (24-hour format)"
-              >Time</label
-            >
-            <div style="display: flex; gap: 0.5em; align-items: center">
-              <select
-                id="backup-hour"
-                name="backupHour"
-                aria-describedby="time-desc"
-                style="width: 5em"
-              >
-                <!-- Will be populated with JavaScript -->
-              </select>
-              <span>:</span>
-              <select id="backup-minute" name="backupMinute" style="width: 5em">
-                <!-- Will be populated with JavaScript -->
-              </select>
+    <form id="options-form" aria-labelledby="options-title" autocomplete="off" role="form">
+      <div class="settings-container">
+        <!-- Theme Settings -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">palette</span>
             </div>
-            <span
-              class="tooltip-icon"
-              title="The time when backups will be created. If the browser is closed at this time, the backup will run when the browser is next opened."
-              >ⓘ</span
-            >
-            <span id="time-desc" class="sr-only">Time of day for scheduled backups</span>
+            <h2 class="card-title">Appearance</h2>
           </div>
-
-          <div style="margin-top: 0.5em">
-            <label
-              for="retention-policy"
-              title="Control how many backups are kept to manage storage space"
-              >Retention Policy</label
-            >
-            <select id="retention-policy" name="retentionPolicy" aria-describedby="retention-desc">
-              <option value="5">Keep 5 backups</option>
-              <option value="10">Keep 10 backups</option>
-              <option value="20">Keep 20 backups</option>
-              <option value="50">Keep 50 backups</option>
-              <option value="-1">Keep unlimited backups</option>
+          
+          <div class="form-group">
+            <label for="theme-select" class="form-label">Theme</label>
+            <select id="theme-select" name="theme" class="form-control" aria-describedby="theme-desc">
+              <option value="auto">Auto (System)</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
             </select>
-            <span
-              class="tooltip-icon"
-              title="When the limit is reached, the oldest scheduled backup will be automatically removed. Manual backups are never automatically removed."
-              >ⓘ</span
-            >
-            <span id="retention-desc" class="sr-only">Number of scheduled backups to keep</span>
+            <div id="theme-desc" class="help-text">Choose your preferred theme. Auto follows your system settings.</div>
+          </div>
+        </div>
+
+        <!-- Sync Settings -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">sync</span>
+            </div>
+            <h2 class="card-title">Sync Configuration</h2>
+          </div>
+          
+          <div class="form-group">
+            <label for="mode-select" class="form-label">Sync Mode</label>
+            <select id="mode-select" name="mode" class="form-control" aria-describedby="mode-desc">
+              <option value="host">Host-to-Many</option>
+              <option value="global">Global Sync</option>
+            </select>
+            <div id="mode-desc" class="help-text">Choose how bookmarks are synchronized across devices</div>
           </div>
 
-          <div style="margin-top: 1em">
-            <a
-              href="../backup-history/backup-history.html"
-              class="backup-history-link"
-              style="color: #1976d2; text-decoration: none"
-            >
-              <span style="vertical-align: middle; margin-right: 0.5em">📋</span> View Backup
-              History
-            </a>
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="auto-sync-toggle" name="autoSync" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable Auto Sync</span>
+            </div>
+            <div class="help-text">Automatically sync bookmarks at regular intervals</div>
+          </div>
+
+          <div class="form-group">
+            <label for="sync-interval" class="form-label">Sync Interval (minutes)</label>
+            <input
+              type="number"
+              id="sync-interval"
+              name="syncInterval"
+              min="5"
+              max="1440"
+              step="5"
+              class="form-control"
+              aria-describedby="interval-desc"
+            />
+            <div id="interval-desc" class="help-text">Set the interval in minutes for automatic sync (5-1440 minutes)</div>
+          </div>
+        </div>
+
+        <!-- Team Mode -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">group</span>
+            </div>
+            <h2 class="card-title">Team Mode</h2>
+          </div>
+          
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="team-mode-toggle" name="teamMode" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable Team Mode (Multi-User)</span>
+            </div>
+            <div class="help-text">Allow multiple users to collaborate on bookmark synchronization</div>
+          </div>
+
+          <div id="team-options" style="display: none;">
+            <div class="form-group">
+              <label for="user-email" class="form-label">Your Email (for Team Mode)</label>
+              <input
+                type="email"
+                id="user-email"
+                name="userEmail"
+                placeholder="you@example.com"
+                class="form-control"
+                aria-describedby="email-desc"
+              />
+              <div id="email-desc" class="help-text">Required for team mode identification</div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Team Members</label>
+              <div id="team-members-list" class="help-text">No team members added yet</div>
+              
+              <div class="btn-group" style="margin-top: var(--md-spacing-md);">
+                <input
+                  type="email"
+                  id="new-member-email"
+                  placeholder="member@example.com"
+                  class="form-control"
+                  style="flex: 1;"
+                />
+                <select id="new-member-role" class="form-control" style="width: auto;">
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button type="button" id="add-member-btn" class="btn btn-secondary">Add Member</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics & Logging -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">analytics</span>
+            </div>
+            <h2 class="card-title">Analytics & Logging</h2>
+          </div>
+          
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="sync-analytics-toggle" name="syncAnalytics" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable Sync Analytics</span>
+            </div>
+            <div class="help-text">Track sync performance and generate timeline graphs</div>
+          </div>
+
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="verbose-logs-toggle" name="verboseLogs" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Verbose Logs</span>
+            </div>
+            <div class="help-text">Enable detailed logging for debugging</div>
+          </div>
+
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="perf-logs-toggle" name="perfLogs" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable Performance Logging</span>
+            </div>
+            <div class="help-text">Track performance metrics for optimization</div>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" id="view-analytics-btn" class="btn btn-secondary">
+              <span class="material-icons">analytics</span>
+              View Analytics
+            </button>
+            <button type="button" id="export-logs-btn" class="btn btn-secondary">
+              <span class="material-icons">download</span>
+              Export Logs
+            </button>
+            <button type="button" id="clear-logs-btn" class="btn btn-danger">
+              <span class="material-icons">delete</span>
+              Clear Logs
+            </button>
+          </div>
+        </div>
+
+        <!-- Encryption -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">security</span>
+            </div>
+            <h2 class="card-title">Encryption</h2>
+          </div>
+          
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="encryption-toggle" name="encryption" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable End-to-End Encryption</span>
+            </div>
+            <div class="help-text">When enabled, your bookmark data will be encrypted before being stored in Google Drive</div>
+          </div>
+
+          <div id="encryption-options" style="display: none;">
+            <div class="form-group">
+              <div id="encryption-status" class="status-badge disabled">
+                <span class="material-icons">lock</span>
+                Encryption Disabled
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="encryption-passphrase" class="form-label">Encryption Passphrase</label>
+              <input
+                type="password"
+                id="encryption-passphrase"
+                name="encryptionPassphrase"
+                placeholder="Enter a strong passphrase"
+                class="form-control"
+                aria-describedby="passphrase-desc"
+              />
+              <div id="passphrase-desc" class="help-text">Enter a strong passphrase for encryption</div>
+              
+              <div class="passphrase-strength" id="passphrase-strength" style="display: none;">
+                <!-- Passphrase strength indicator will be displayed here -->
+              </div>
+            </div>
+
+            <div class="form-group" id="confirm-passphrase-section" style="display: none;">
+              <label for="confirm-passphrase" class="form-label">Confirm Passphrase</label>
+              <input
+                type="password"
+                id="confirm-passphrase"
+                name="confirmPassphrase"
+                placeholder="Confirm your passphrase"
+                class="form-control"
+              />
+            </div>
+
+            <div class="btn-group">
+              <button type="button" id="enable-encryption-btn" class="btn btn-primary">
+                <span class="material-icons">lock</span>
+                Enable Encryption
+              </button>
+              <button type="button" id="change-passphrase-btn" class="btn btn-secondary" style="display: none;">
+                <span class="material-icons">edit</span>
+                Change Passphrase
+              </button>
+              <button type="button" id="disable-encryption-btn" class="btn btn-danger" style="display: none;">
+                <span class="material-icons">lock_open</span>
+                Disable Encryption
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scheduled Backups -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">schedule</span>
+            </div>
+            <h2 class="card-title">Scheduled Backups</h2>
+          </div>
+          
+          <div class="form-group">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" id="scheduled-backups-toggle" name="scheduledBackups" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable Scheduled Backups</span>
+            </div>
+            <div class="help-text">When enabled, backups will be created automatically according to your schedule</div>
+          </div>
+
+          <div id="scheduled-backup-options">
+            <div class="form-group">
+              <label for="backup-frequency" class="form-label">Backup Frequency</label>
+              <select id="backup-frequency" name="backupFrequency" class="form-control" aria-describedby="frequency-desc">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="bi-weekly">Bi-weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <div id="frequency-desc" class="help-text">How often backups should be created</div>
+            </div>
+
+            <div id="day-selector-container" style="display: none;">
+              <div class="form-group">
+                <label for="day-selector" class="form-label">Day</label>
+                <select id="day-selector" name="daySelector" class="form-control" aria-describedby="day-desc">
+                  <option value="0">Sunday</option>
+                  <option value="1">Monday</option>
+                  <option value="2">Tuesday</option>
+                  <option value="3">Wednesday</option>
+                  <option value="4">Thursday</option>
+                  <option value="5">Friday</option>
+                  <option value="6">Saturday</option>
+                </select>
+                <div id="day-desc" class="help-text">The day of the week when weekly or bi-weekly backups will be created</div>
+              </div>
+            </div>
+
+            <div id="day-of-month-container" style="display: none;">
+              <div class="form-group">
+                <label for="day-of-month" class="form-label">Day of Month</label>
+                <select id="day-of-month" name="dayOfMonth" class="form-control" aria-describedby="day-of-month-desc">
+                  <!-- Will be populated with JavaScript -->
+                </select>
+                <div id="day-of-month-desc" class="help-text">The day of the month when monthly backups will be created</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Time</label>
+              <div style="display: flex; gap: var(--md-spacing-sm); align-items: center;">
+                <select id="backup-hour" name="backupHour" class="form-control" style="width: auto;" aria-describedby="time-desc">
+                  <!-- Will be populated with JavaScript -->
+                </select>
+                <span>:</span>
+                <select id="backup-minute" name="backupMinute" class="form-control" style="width: auto;">
+                  <!-- Will be populated with JavaScript -->
+                </select>
+              </div>
+              <div id="time-desc" class="help-text">The time when backups will be created (24-hour format)</div>
+            </div>
+
+            <div class="form-group">
+              <label for="retention-policy" class="form-label">Retention Policy</label>
+              <select id="retention-policy" name="retentionPolicy" class="form-control" aria-describedby="retention-desc">
+                <option value="5">Keep 5 backups</option>
+                <option value="10">Keep 10 backups</option>
+                <option value="20">Keep 20 backups</option>
+                <option value="50">Keep 50 backups</option>
+                <option value="-1">Keep unlimited backups</option>
+              </select>
+              <div id="retention-desc" class="help-text">When the limit is reached, the oldest scheduled backup will be automatically removed</div>
+            </div>
+
+            <div class="btn-group">
+              <a href="../backup-history/backup-history.html" class="btn btn-secondary">
+                <span class="material-icons">history</span>
+                View Backup History
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="settings-card">
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+              <span class="material-icons">save</span>
+              Save Settings
+            </button>
           </div>
         </div>
       </div>
-      <button
-        type="submit"
-        style="
-          padding: 0.5em 1.5em;
-          font-size: 1em;
-          background: #1976d2;
-          color: #fff;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-        "
-      >
-        Save Settings
-      </button>
     </form>
-    <a href="popup.html" class="back-link" tabindex="0">&larr; Back to BookDrive Popup</a>
-    <!-- Toast container for user feedback, ARIA live for screen readers -->
-    <div id="toast-container" aria-live="polite" aria-atomic="true" style="display: none"></div>
+
+    <a href="popup.html" class="back-link">
+      <span class="material-icons">arrow_back</span>
+      Back to BookDrive
+    </a>
+
+    <!-- Toast container for user feedback -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <script type="module" src="./options.js"></script>
-    <!--
-    Accessibility notes:
-    - All form controls are associated with labels.
-    - ARIA live region for toast ensures screen reader users are notified.
-    - .sr-only class (if defined in CSS) can be used to visually hide descriptions but keep them accessible.
-  --></body>
+  </body>
 </html>

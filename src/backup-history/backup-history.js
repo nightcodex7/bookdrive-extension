@@ -1,5 +1,5 @@
 // Backup History JavaScript
-import { getAllBackups, getBackupsByType, deleteBackup } from '../lib/index.js';
+import { getAllBackups, deleteBackup } from '../lib/index.js';
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -644,7 +644,7 @@ function showToast(message, type = 'info') {
   }, 3000);
 } // Set up message listener for progress updates and notifications
 function setupMessageListener() {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     // Handle toast notifications
     if (message.action === 'showToast') {
       showToast(message.message, message.type, message.duration || 3000);

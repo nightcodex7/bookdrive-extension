@@ -29,48 +29,36 @@ jest.mock('../lib/scheduling/scheduler', () => ({
   updateBackupTime: jest.fn(),
 }));
 
-// Mock chrome.storage.local
+
+
 const mockStorage = {
   missedBackups: [],
-};
-
-global.chrome = {
-  storage: {
-    local: {
-      get: jest.fn((key, callback) => {
-        if (typeof key === 'object') {
-          const result = {};
-          const defaultValues = key;
-          Object.keys(defaultValues).forEach((k) => {
-            result[k] = mockStorage[k] !== undefined ? mockStorage[k] : defaultValues[k];
-          });
-          callback(result);
-        } else {
-          callback({ [key]: mockStorage[key] });
-        }
-      }),
-      set: jest.fn((obj, callback) => {
-        Object.keys(obj).forEach((key) => {
-          mockStorage[key] = obj[key];
-        });
-        if (callback) callback();
-      }),
-    },
-  },
-  runtime: {
-    sendMessage: jest.fn(),
-  },
 };
 
 describe('Adaptive Scheduler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStorage.missedBackups = [];
+    chrome.storage.local.get.mockImplementation((key, callback) => {
+      if (typeof key === 'object') {
+        const result = {};
+        Object.keys(key).forEach(k => {
+          result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
+        });
+        callback(result);
+      } else {
+        callback({ [key]: mockStorage[key] || [] });
+      }
+    });
+    chrome.storage.local.set.mockImplementation((obj, callback) => {
+      Object.keys(obj).forEach(key => {
+        mockStorage[key] = obj[key];
+      });
+      if (callback) callback();
+    });
 
     // Default mock implementations
-    canPerformOperation.mockResolvedValue({ isSafe: true });
     getSchedule.mockResolvedValue({
-      id: 'test-schedule',
       enabled: true,
       nextBackupTime: new Date().toISOString(),
     });
@@ -333,3 +321,4 @@ describe('Adaptive Scheduler', () => {
     });
   });
 });
+

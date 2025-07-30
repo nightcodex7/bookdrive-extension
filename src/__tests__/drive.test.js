@@ -1,49 +1,74 @@
-import { getAuthToken, downloadBookmarksFile, uploadBookmarksFile } from '../lib/drive';
+import { downloadBookmarksFile, uploadBookmarksFile } from '../lib/drive';
+import { getAuthToken } from '../lib/auth/drive-auth.js';
 
 describe('Drive Module', () => {
-  beforeEach(() => {
-    // Reset all mocks
-    jest.clearAllMocks();
+  let mockStorage;
 
-    // Mock chrome.identity.getAuthToken
-    global.chrome = {
-      identity: {
-        getAuthToken: jest.fn((options, callback) => {
-          callback('mock-token');
-        }),
-        removeCachedAuthToken: jest.fn(),
-      },
-      runtime: {
-        lastError: null,
-      },
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStorage = {
+      bookDriveAuthToken: 'test-token',
+      bookDriveTokenExpiry: new Date(Date.now() + 3600000).toISOString(),
+      bookDriveRefreshToken: 'test-refresh-token',
     };
 
-    // Mock fetch for API calls
-    global.fetch.mockImplementation((url) => {
-      if (url.includes('files')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              files: [
-                {
-                  id: 'mock-file-id',
-                  name: 'bookmarks.json',
-                },
-              ],
-            }),
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({}),
-      });
+    // Mock navigator.userAgent to ensure getBrowserType() returns 'chrome'
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      configurable: true,
     });
+
+    // Mock chrome.storage.local
+    chrome.storage.local.get.mockImplementation((key, callback) => {
+      if (typeof key === 'object') {
+        const result = {};
+        Object.keys(key).forEach(k => {
+          result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
+        });
+        if (callback) callback(result);
+      } else {
+        if (callback) callback({ [key]: mockStorage[key] || null });
+      }
+    });
+    chrome.storage.local.set.mockImplementation((obj, callback) => {
+      Object.keys(obj).forEach(key => {
+        mockStorage[key] = obj[key];
+      });
+      if (callback) callback();
+    });
+
+    // Mock chrome.storage.sync
+    chrome.storage.sync.get.mockImplementation((key, callback) => {
+      if (typeof key === 'object') {
+        const result = {};
+        Object.keys(key).forEach(k => {
+          result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
+        });
+        if (callback) callback(result);
+      } else {
+        if (callback) callback({ [key]: mockStorage[key] || null });
+      }
+    });
+    chrome.storage.sync.set.mockImplementation((obj, callback) => {
+      Object.keys(obj).forEach(key => {
+        mockStorage[key] = obj[key];
+      });
+      if (callback) callback();
+    });
+
+    // Mock chrome.identity
+    chrome.identity.getAuthToken.mockImplementation((details, callback) => {
+      if (callback) callback('test-auth-token');
+    });
+    chrome.identity.removeCachedAuthToken.mockImplementation((details, callback) => {
+      if (callback) callback();
+    });
+    chrome.identity.getRedirectURL.mockReturnValue('https://example.com/redirect');
   });
 
   it('gets auth token successfully', async () => {
     const token = await getAuthToken();
-    expect(token).toBe('mock-token');
+    expect(token).toBe('test-auth-token');
     expect(chrome.identity.getAuthToken).toHaveBeenCalledWith(
       { interactive: false },
       expect.any(Function),

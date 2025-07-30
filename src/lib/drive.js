@@ -165,27 +165,24 @@ export async function downloadFile(fileId, token) {
 }
 
 /**
- * List files in a folder with pagination support
+ * List files in a Google Drive folder
  * @param {string} folderId - Folder ID
  * @param {string} token - Auth token
- * @param {string} query - Search query (optional)
- * @param {number} pageSize - Maximum number of files to return (optional)
+ * @param {string} query - Query string (optional)
+ * @param {number} pageSize - Number of files per page (default: 100)
  * @returns {Promise<Array>} - Array of file metadata
  */
 export async function listFiles(folderId, token, query = '', pageSize = 100) {
-  // Validate folderId
-  if (!folderId) {
-    throw new Error('Folder ID cannot be empty');
-  }
-
-  let q = `'${folderId}' in parents and trashed = false`;
-
-  if (query) {
-    q += ` and ${query}`;
-  }
-
   const makeRequest = async (currentToken, pageToken = null) => {
-    let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=nextPageToken,files(id,name,mimeType,modifiedTime)&pageSize=${pageSize}`;
+    let url = `https://www.googleapis.com/drive/v3/files?pageSize=${pageSize}&fields=files(id,name,mimeType,modifiedTime,size)`;
+
+    if (folderId) {
+      url += `&q=${encodeURIComponent(`'${folderId}' in parents`)}`;
+    }
+
+    if (query) {
+      url += `&q=${encodeURIComponent(query)}`;
+    }
 
     if (pageToken) {
       url += `&pageToken=${pageToken}`;
@@ -197,17 +194,30 @@ export async function listFiles(folderId, token, query = '', pageSize = 100) {
       },
     });
 
-    const result = await handleApiResponse(response, currentToken, (newToken) =>
+    return handleApiResponse(response, currentToken, (newToken) =>
       makeRequest(newToken, pageToken),
     );
+  };
 
-    // If there are more pages, fetch them recursively
-    if (result.nextPageToken) {
-      const nextPageResults = await makeRequest(currentToken, result.nextPageToken);
-      return [...(result.files || []), ...nextPageResults];
-    }
+  return makeRequest(token);
+}
 
-    return result.files || [];
+/**
+ * Delete a file from Google Drive
+ * @param {string} fileId - File ID to delete
+ * @param {string} token - Auth token
+ * @returns {Promise<void>} - Success or throws error
+ */
+export async function deleteFile(fileId, token) {
+  const makeRequest = async (currentToken) => {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+
+    return handleApiResponse(response, currentToken, (newToken) => makeRequest(newToken));
   };
 
   return makeRequest(token);

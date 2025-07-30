@@ -46,7 +46,7 @@
   "minimum_chrome_version": "100",
   "web_accessible_resources": [
     {
-      "resources": ["assets/icon16.png", "assets/icon48.png", "assets/icon128.png", "backup-history/backup-history.html"],
+      "resources": ["assets/icon16.png", "assets/icon48.png", "assets/icon128.png", "backup-history/backup-history.html", "analytics/analytics.html", "conflict-resolution/conflict-resolution.html", "shared-folders/shared-folders.html"],
       "matches": ["<all_urls>"]
     }
   ],

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookDrive - Conflict Resolution</title>
+  <link rel="stylesheet" href="conflict-resolution.css">
+</head>
+<body>
+  <div class="conflict-container">
+    <header class="conflict-header">
+      <h1>🔧 Conflict Resolution</h1>
+      <div class="header-actions">
+        <button id="auto-resolve-btn" class="btn btn-primary">🔄 Auto Resolve</button>
+        <button id="apply-all-btn" class="btn btn-secondary">✅ Apply All</button>
+        <button id="skip-all-btn" class="btn btn-outline">⏭️ Skip All</button>
+      </div>
+    </header>
+
+    <div class="conflict-content">
+      <!-- Conflict Summary -->
+      <div class="conflict-summary">
+        <div class="summary-card">
+          <div class="summary-icon">⚠️</div>
+          <div class="summary-content">
+            <h3>Conflicts Detected</h3>
+            <p id="conflict-count">0 conflicts found</p>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon">📊</div>
+          <div class="summary-content">
+            <h3>Resolution Strategy</h3>
+            <select id="resolution-strategy">
+              <option value="manual">Manual Resolution</option>
+              <option value="local">Local Wins</option>
+              <option value="remote">Remote Wins</option>
+              <option value="merge">Smart Merge</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conflict List -->
+      <div class="conflict-list" id="conflict-list">
+        <!-- Conflicts will be populated here -->
+      </div>
+
+      <!-- Resolution Progress -->
+      <div class="resolution-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text">
+          <span id="resolved-count">0</span> of <span id="total-count">0</span> conflicts resolved
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button id="resolve-selected-btn" class="btn btn-primary" disabled>Resolve Selected</button>
+        <button id="cancel-btn" class="btn btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conflict Detail Modal -->
+  <div class="modal" id="conflict-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Resolve Conflict</h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="conflict-detail">
+          <div class="conflict-info">
+            <h3 id="conflict-title">Bookmark Title</h3>
+            <p id="conflict-url">https://example.com</p>
+          </div>
+          
+          <div class="conflict-versions">
+            <div class="version local-version">
+              <h4>Local Version</h4>
+              <div class="version-content">
+                <input type="text" id="local-title" placeholder="Title">
+                <input type="url" id="local-url" placeholder="URL">
+                <select id="local-folder">
+                  <option value="">Select folder</option>
+                </select>
+              </div>
+              <div class="version-meta">
+                <span class="meta-item">Modified: <span id="local-modified">-</span></span>
+                <span class="meta-item">Added: <span id="local-added">-</span></span>
+              </div>
+            </div>
+            
+            <div class="version remote-version">
+              <h4>Remote Version</h4>
+              <div class="version-content">
+                <input type="text" id="remote-title" placeholder="Title">
+                <input type="url" id="remote-url" placeholder="URL">
+                <select id="remote-folder">
+                  <option value="">Select folder</option>
+                </select>
+              </div>
+              <div class="version-meta">
+                <span class="meta-item">Modified: <span id="remote-modified">-</span></span>
+                <span class="meta-item">Added: <span id="remote-added">-</span></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="resolution-options">
+            <h4>Resolution Options</h4>
+            <div class="option-buttons">
+              <button class="option-btn" data-option="local">Use Local</button>
+              <button class="option-btn" data-option="remote">Use Remote</button>
+              <button class="option-btn" data-option="merge">Merge</button>
+              <button class="option-btn" data-option="custom">Custom</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="apply-resolution-btn" class="btn btn-primary">Apply Resolution</button>
+        <button id="skip-conflict-btn" class="btn btn-outline">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations Panel -->
+  <div class="recommendations-panel" id="recommendations-panel">
+    <div class="panel-header">
+      <h3>💡 Recommendations</h3>
+      <button class="panel-toggle" id="panel-toggle">−</button>
+    </div>
+    <div class="panel-content" id="panel-content">
+      <div class="recommendation-item">
+        <div class="rec-icon">ℹ️</div>
+        <div class="rec-content">
+          <h4>Review Conflicts Carefully</h4>
+          <p>Check both versions before resolving to avoid losing important changes.</p>
+        </div>
+      </div>
+      <div class="recommendation-item">
+        <div class="rec-icon">🔧</div>
+        <div class="rec-content">
+          <h4>Use Smart Merge</h4>
+          <p>Smart merge combines the best of both versions automatically.</p>
+        </div>
+      </div>
+      <div class="recommendation-item">
+        <div class="rec-icon">📝</div>
+        <div class="rec-content">
+          <h4>Custom Resolution</h4>
+          <p>Create a custom version by editing the fields manually.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="conflict-resolution.js"></script>
+</body>
+</html> 

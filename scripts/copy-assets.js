@@ -44,6 +44,27 @@ copyFilesWithExtension(
   ['.html', '.css']
 );
 
+// Copy HTML and CSS files from analytics
+copyFilesWithExtension(
+  path.join(rootDir, 'src', 'analytics'),
+  path.join(rootDir, 'dist', 'analytics'),
+  ['.html', '.css']
+);
+
+// Copy HTML and CSS files from conflict-resolution
+copyFilesWithExtension(
+  path.join(rootDir, 'src', 'conflict-resolution'),
+  path.join(rootDir, 'dist', 'conflict-resolution'),
+  ['.html', '.css']
+);
+
+// Copy HTML and CSS files from shared-folders
+copyFilesWithExtension(
+  path.join(rootDir, 'src', 'shared-folders'),
+  path.join(rootDir, 'dist', 'shared-folders'),
+  ['.html', '.css']
+);
+
 console.log('✅ Assets copied successfully');
 
 /**

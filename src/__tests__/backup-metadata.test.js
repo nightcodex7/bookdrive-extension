@@ -7,15 +7,7 @@ import {
   BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
 
-// Mock chrome.storage.local
-global.chrome = {
-  storage: {
-    local: {
-      get: jest.fn(),
-      set: jest.fn(),
-    },
-  },
-};
+
 
 describe('Backup Metadata Module', () => {
   beforeEach(() => {
@@ -62,14 +54,14 @@ describe('Backup Metadata Module', () => {
 
     test('should create backup metadata with custom values', () => {
       const metadata = createBackupMetadata({
-        type: BACKUP_TYPES.SCHEDULED,
+        type: BACKUP_TYPES.MANUAL,
         status: BACKUP_STATUS.IN_PROGRESS,
         scheduleId: 'schedule_123',
         filename: 'backup_123.json',
       });
 
       expect(metadata).toMatchObject({
-        type: 'scheduled',
+        type: 'manual',
         status: 'in_progress',
         attempt: 1,
         maxAttempts: 3,
@@ -129,3 +121,4 @@ describe('Backup Metadata Module', () => {
     });
   });
 });
+

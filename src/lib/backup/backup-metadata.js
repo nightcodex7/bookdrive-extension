@@ -289,7 +289,7 @@ export async function getRecentBackups(days = 7) {
  */
 /**
  * Get backups by type
- * @param {string} type Backup type (manual, scheduled, auto)
+ * @param {string} type Backup type
  * @returns {Promise<Array>} Array of backups of the specified type
  */
 export async function getBackupsByType(type) {
@@ -297,8 +297,119 @@ export async function getBackupsByType(type) {
     const backups = await getAllBackups();
     return backups.filter((backup) => backup.type === type);
   } catch (error) {
-    console.error(`Failed to get backups by type ${type}:`, error);
+    console.error('Failed to get backups by type:', error);
     return [];
+  }
+}
+
+/**
+ * Get backups by schedule ID
+ * @param {string} scheduleId Schedule ID
+ * @returns {Promise<Array>} Array of backups for the specified schedule
+ */
+export async function getBackupsBySchedule(scheduleId) {
+  try {
+    const backups = await getAllBackups();
+    return backups.filter((backup) => backup.scheduleId === scheduleId);
+  } catch (error) {
+    console.error('Failed to get backups by schedule:', error);
+    return [];
+  }
+}
+
+/**
+ * Enforce retention policy for a specific schedule
+ * @param {string} scheduleId Schedule ID
+ * @param {number} retentionCount Number of backups to retain
+ * @returns {Promise<number>} Number of backups removed
+ */
+export async function enforceRetentionPolicy(scheduleId, retentionCount) {
+  try {
+    if (retentionCount === -1) {
+      // Unlimited retention
+      return 0;
+    }
+
+    const backups = await getBackupsBySchedule(scheduleId);
+    
+    if (backups.length <= retentionCount) {
+      return 0;
+    }
+
+    // Sort by timestamp (oldest first)
+    const sortedBackups = backups.sort((a, b) => 
+      new Date(a.timestamp) - new Date(b.timestamp)
+    );
+
+    // Get backups to remove (oldest ones)
+    const backupsToRemove = sortedBackups.slice(0, backups.length - retentionCount);
+    
+    // Delete the backups
+    for (const backup of backupsToRemove) {
+      await deleteBackup(backup.id);
+    }
+
+    return backupsToRemove.length;
+  } catch (error) {
+    console.error('Failed to enforce retention policy:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get backups to remove based on retention policy
+ * @param {string} scheduleId Schedule ID
+ * @param {number} retentionCount Number of backups to retain
+ * @returns {Promise<Array>} Array of backups to remove
+ */
+export async function getBackupsToRemove(scheduleId, retentionCount) {
+  try {
+    if (retentionCount === -1) {
+      // Unlimited retention
+      return [];
+    }
+
+    const backups = await getBackupsBySchedule(scheduleId);
+    
+    if (backups.length <= retentionCount) {
+      return [];
+    }
+
+    // Sort by timestamp (oldest first)
+    const sortedBackups = backups.sort((a, b) => 
+      new Date(a.timestamp) - new Date(b.timestamp)
+    );
+
+    // Return backups to remove (oldest ones)
+    return sortedBackups.slice(0, backups.length - retentionCount);
+  } catch (error) {
+    console.error('Failed to get backups to remove:', error);
+    return [];
+  }
+}
+
+/**
+ * Delete multiple backups
+ * @param {Array} backupIds Array of backup IDs to delete
+ * @returns {Promise<number>} Number of backups deleted
+ */
+export async function deleteBackups(backupIds) {
+  try {
+    let deletedCount = 0;
+    
+    for (const backupId of backupIds) {
+      try {
+        await deleteBackup(backupId);
+        deletedCount++;
+      } catch (error) {
+        console.error(`Failed to delete backup ${backupId}:`, error);
+      }
+    }
+    
+    return deletedCount;
+  } catch (error) {
+    console.error('Failed to delete backups:', error);
+    return 0;
   }
 }
 

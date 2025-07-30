@@ -22,11 +22,12 @@ const STORAGE_KEYS = {
 // OAuth2 Configuration
 const OAUTH2_CONFIG = {
   client_id: 'YOUR_OAUTH2_CLIENT_ID.apps.googleusercontent.com', // Replace with your actual client ID
+  client_secret: 'YOUR_OAUTH2_CLIENT_SECRET', // Replace with your actual client secret
   redirect_uri: chrome.identity
     ? chrome.identity.getRedirectURL()
-    : 'https://oauth-redirect.googleusercontent.com/r/bookdrive-extension',
+    : `https://${chrome.runtime.id}.chromiumapp.org/`,
   scope:
-    'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata',
   auth_url: 'https://accounts.google.com/o/oauth2/v2/auth',
   token_url: 'https://oauth2.googleapis.com/token',
   userinfo_url: 'https://www.googleapis.com/oauth2/v3/userinfo',

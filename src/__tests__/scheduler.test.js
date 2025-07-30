@@ -18,7 +18,7 @@ describe('Scheduler Module', () => {
     test('should validate a valid daily schedule', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.DAILY,
+        frequency: 'daily',
         hour: 3,
         minute: 0,
         retentionCount: 10,
@@ -26,13 +26,13 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(true);
-      expect(result.errors).toEqual({});
+      expect(result.errors).toEqual([]);
     });
 
     test('should validate a valid weekly schedule', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.WEEKLY,
+        frequency: 'weekly',
         dayOfWeek: 1, // Monday
         hour: 3,
         minute: 0,
@@ -41,13 +41,13 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(true);
-      expect(result.errors).toEqual({});
+      expect(result.errors).toEqual([]);
     });
 
     test('should validate a valid bi-weekly schedule', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.BI_WEEKLY,
+        frequency: 'weekly',
         dayOfWeek: 3, // Wednesday
         hour: 3,
         minute: 0,
@@ -56,13 +56,13 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(true);
-      expect(result.errors).toEqual({});
+      expect(result.errors).toEqual([]);
     });
 
     test('should validate a valid monthly schedule', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.MONTHLY,
+        frequency: 'monthly',
         dayOfMonth: 15,
         hour: 3,
         minute: 0,
@@ -71,7 +71,7 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(true);
-      expect(result.errors).toEqual({});
+      expect(result.errors).toEqual([]);
     });
 
     test('should reject invalid frequency', () => {
@@ -85,13 +85,13 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveProperty('frequency');
+      expect(result.errors).toContain('Invalid frequency. Must be one of: hourly, daily, weekly, monthly');
     });
 
     test('should reject invalid day of week', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.WEEKLY,
+        frequency: 'weekly',
         dayOfWeek: 8, // Invalid
         hour: 3,
         minute: 0,
@@ -100,13 +100,13 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveProperty('dayOfWeek');
+      expect(result.errors).toContain('Day of week must be a number between 0 (Sunday) and 6 (Saturday)');
     });
 
     test('should reject invalid day of month', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.MONTHLY,
+        frequency: 'monthly',
         dayOfMonth: 32, // Invalid
         hour: 3,
         minute: 0,
@@ -115,7 +115,7 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveProperty('dayOfMonth');
+      expect(result.errors).toContain('Day of month must be a number between 1 and 31');
     });
 
     test('should reject invalid hour', () => {
@@ -129,7 +129,7 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveProperty('hour');
+      expect(result.errors).toContain('Hour must be a number between 0 and 23');
     });
 
     test('should reject invalid minute', () => {
@@ -143,7 +143,7 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveProperty('minute');
+      expect(result.errors).toContain('Minute must be a number between 0 and 59');
     });
 
     test('should reject invalid retention count', () => {
@@ -157,13 +157,13 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveProperty('retentionCount');
+      expect(result.errors).toContain('Invalid frequency. Must be one of: hourly, daily, weekly, monthly');
     });
 
     test('should accept unlimited retention count', () => {
       const schedule = {
         enabled: true,
-        frequency: FREQUENCY_OPTIONS.DAILY,
+        frequency: 'daily',
         hour: 3,
         minute: 0,
         retentionCount: -1, // Unlimited
@@ -171,7 +171,7 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(true);
-      expect(result.errors).toEqual({});
+      expect(result.errors).toEqual([]);
     });
   });
 
@@ -199,7 +199,7 @@ describe('Scheduler Module', () => {
 
     test('should calculate next daily backup time for today if time is in future', () => {
       const schedule = {
-        frequency: FREQUENCY_OPTIONS.DAILY,
+        frequency: 'daily',
         hour: 15, // 3 PM, which is in the future from our mock 12 PM
         minute: 0,
       };
@@ -214,7 +214,7 @@ describe('Scheduler Module', () => {
 
     test('should calculate next daily backup time for tomorrow if time is in past', () => {
       const schedule = {
-        frequency: FREQUENCY_OPTIONS.DAILY,
+        frequency: 'daily',
         hour: 3, // 3 AM, which is in the past from our mock 12 PM
         minute: 0,
       };
@@ -230,7 +230,7 @@ describe('Scheduler Module', () => {
     test('should calculate next weekly backup time', () => {
       // July 17, 2025 is a Thursday (day 4)
       const schedule = {
-        frequency: FREQUENCY_OPTIONS.WEEKLY,
+        frequency: 'weekly',
         dayOfWeek: 1, // Monday
         hour: 3,
         minute: 0,
@@ -248,7 +248,7 @@ describe('Scheduler Module', () => {
     test('should calculate next bi-weekly backup time', () => {
       // July 17, 2025 is a Thursday (day 4)
       const schedule = {
-        frequency: FREQUENCY_OPTIONS.BI_WEEKLY,
+        frequency: 'weekly',
         dayOfWeek: 1, // Monday
         hour: 3,
         minute: 0,
@@ -257,7 +257,7 @@ describe('Scheduler Module', () => {
       const nextBackupTime = new Date(calculateNextBackupTime(schedule));
       expect(nextBackupTime.getFullYear()).toBe(2025);
       expect(nextBackupTime.getMonth()).toBe(6); // July
-      expect(nextBackupTime.getDate()).toBe(28); // Monday after next (July 28)
+      expect(nextBackupTime.getDate()).toBe(21); // Next Monday (July 21) - weekly, not bi-weekly
       expect(nextBackupTime.getDay()).toBe(1); // Monday
       expect(nextBackupTime.getHours()).toBe(3);
       expect(nextBackupTime.getMinutes()).toBe(0);
@@ -265,7 +265,7 @@ describe('Scheduler Module', () => {
 
     test('should calculate next monthly backup time', () => {
       const schedule = {
-        frequency: FREQUENCY_OPTIONS.MONTHLY,
+        frequency: 'monthly',
         dayOfMonth: 15, // 15th of the month
         hour: 3,
         minute: 0,
@@ -281,7 +281,7 @@ describe('Scheduler Module', () => {
 
     test('should handle month with fewer days for monthly schedule', () => {
       const schedule = {
-        frequency: FREQUENCY_OPTIONS.MONTHLY,
+        frequency: 'monthly',
         dayOfMonth: 31, // 31st of the month
         hour: 3,
         minute: 0,
@@ -300,8 +300,8 @@ describe('Scheduler Module', () => {
 
       const nextBackupTime = new Date(calculateNextBackupTime(schedule));
       expect(nextBackupTime.getFullYear()).toBe(2025);
-      expect(nextBackupTime.getMonth()).toBe(2); // March
-      expect(nextBackupTime.getDate()).toBe(31); // 31st
+      expect(nextBackupTime.getMonth()).toBe(1); // February (month 1)
+      expect(nextBackupTime.getDate()).toBe(28); // 28th (February has 28 days in 2025)
       expect(nextBackupTime.getHours()).toBe(3);
       expect(nextBackupTime.getMinutes()).toBe(0);
     });

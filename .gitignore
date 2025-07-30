@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Build outputs
 dist/
@@ -10,6 +11,7 @@ build/
 *.zip
 *.crx
 *.pem
+*.key
 
 # Environment files
 .env
@@ -17,13 +19,16 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.oauth
 
-# IDE files
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.cursor/
+.kiro/
 
 # OS generated files
 .DS_Store
@@ -33,10 +38,15 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
 # Runtime data
 pids/
@@ -47,10 +57,12 @@ pids/
 # Coverage directory used by tools like istanbul
 coverage/
 .nyc_output/
+*.lcov
 
 # Temporary folders
 tmp/
 temp/
+.tmp/
 
 # Optional npm cache directory
 .npm
@@ -95,26 +107,60 @@ temp/
 # DynamoDB Local files
 .dynamodb/
 
-# Extension specific
-src/manifest.json.backup
-*.key
-oauth2_credentials.json
-
-# OAuth and sensitive credentials
+# Extension specific - OAuth and sensitive credentials
 src/manifest.json
 src/lib/auth/drive-auth.js
-.env.oauth
 oauth2_config.json
 secrets.json
+.oauth2-backup/
+*.backup
+*.bak
 
 # Keep template files but exclude actual credential files
 !src/manifest.template.json
 !src/lib/auth/drive-auth.template.js
 
-# Test files
+# Test files and reports
 test-results/
 playwright-report/
 test-results.xml
+coverage/
+.nyc_output/
 
 # Husky
 .husky/_
+
+# Performance monitoring
+.perf/
+
+# Backup files
+*.backup
+*.bak
+*.old
+*.orig
+
+# Local development files
+.local/
+local/
+
+# Debug files
+.debug/
+
+# Lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional: Uncomment if you want to ignore all markdown files except README
+# *.md
+# !README.md
+
+# Optional: Uncomment if you want to ignore all documentation except main docs
+# docs/
+# !README.md
+# !CONTRIBUTING.md
+# !SECURITY.md
+# !PRIVACY_POLICY.md
+# !TERMS_OF_SERVICE.md

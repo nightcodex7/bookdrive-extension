@@ -1,9 +1,10 @@
 # BookDrive CI/CD Pipeline
 # - Lint, format, test, build, and package
 # - Release on tag push
-# - Node 20+, runs on Ubuntu
+# - Node 22+, runs on Ubuntu
 # - Caches npm for speed
 # - Fails fast with clear logs
+# - Updated to latest action versions for security and performance
 #
 # For details, see CONTRIBUTING.md and BUILD.md
 
@@ -17,6 +18,10 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  NODE_VERSION: '22'
+  NPM_VERSION: '10'
+
 jobs:
   lint-and-test:
     name: Lint and Test
@@ -28,8 +33,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -43,11 +49,11 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Run test coverage (optional)
+      - name: Run test coverage
         run: npm run test:coverage
         continue-on-error: true
 
-      - name: Upload coverage report (optional)
+      - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
@@ -65,8 +71,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -79,6 +86,7 @@ jobs:
         with:
           name: extension-package
           path: bookdrive-extension-v*.zip
+          retention-days: 30
 
   create-draft-release:
     name: Create Draft Release
@@ -94,12 +102,23 @@ jobs:
           name: extension-package
 
       - name: Create Draft Release on GitHub
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: "*.zip"
           body: |
             ## New Release
 
             **Note:** This is a draft release. Please update the release notes with the relevant changes from your `CHANGELOG.md` or `RELEASE.md` before publishing.
+            
+            ### Changes
+            - [ ] Add release notes here
+            - [ ] Update version information
+            - [ ] Review security updates
+            
+            ### Installation
+            1. Download the extension package
+            2. Extract the ZIP file
+            3. Load the extension in your browser
           draft: true # This creates a draft release, it is NOT published automatically
           prerelease: false
+          generate_release_notes: true

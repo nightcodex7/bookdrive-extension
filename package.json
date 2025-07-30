@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "directories": {
     "doc": "docs",
@@ -21,7 +21,7 @@
     "build:js": "node esbuild.config.cjs",
     "build:assets": "node scripts/copy-assets.js",
     "build:manifest": "node scripts/copy-manifest.js",
-    "build": "npm run clean && npm run build:js && npm run build:assets && npm run build:manifest",
+    "build": "npm run clean && npm run oauth2:inject && npm run build:js && npm run build:assets && npm run build:manifest && npm run oauth2:cleanup",
     "build:prod": "cross-env NODE_ENV=production npm run build",
     "watch": "node esbuild.config.cjs --watch",
     "dev": "npm run watch",
@@ -31,7 +31,9 @@
     "test:watch": "jest --config jest.config.cjs --watch",
     "test:coverage": "jest --config jest.config.cjs --coverage",
     "validate": "npm run lint:check && npm run format:check && npm run test",
-    "setup:oauth2": "node scripts/setup-oauth.js",
+    "setup:oauth2": "node scripts/setup-oauth2.js",
+    "oauth2:inject": "node scripts/inject-oauth2.js inject",
+    "oauth2:cleanup": "node scripts/inject-oauth2.js cleanup",
     "docs:serve": "cd docs && python -m http.server 8080",
     "release": "npm run validate && npm run build:prod && npm run package",
     "precommit": "npm run lint && npm run format",
@@ -100,7 +102,8 @@
     "rules": {
       "no-console": "warn",
       "import/extensions": "off",
-      "import/no-unresolved": "off"
+      "import/no-unresolved": "off",
+      "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
     }
   }
 }

@@ -95,14 +95,46 @@ function dedupeBookmarks(bookmarks) {
 }
 
 /**
- * Restore bookmarks from exported state (clears and reconstructs tree).
- * @param {Object} state
+ * Restore bookmarks from a state object
+ * @param {Object} state - Bookmarks state object
  * @returns {Promise<void>}
  */
 export async function restoreBookmarksState(state) {
-  await removeAllBookmarks();
-  const bookmarks = dedupeBookmarks(state.bookmarks);
-  await importTreeFromState(state.folders, bookmarks);
+  try {
+    if (!state || !state.bookmarks) {
+      throw new Error('Invalid bookmarks state');
+    }
+
+    await importBookmarksState(state, 'replace');
+  } catch (error) {
+    console.error('Failed to restore bookmarks state:', error);
+    throw error;
+  }
+}
+
+/**
+ * Import bookmarks from a state object
+ * @param {Object} state - Bookmarks state object
+ * @param {string} mode - Import mode ('replace', 'merge', 'append')
+ * @returns {Promise<void>}
+ */
+export async function importBookmarksState(state, mode = 'replace') {
+  try {
+    if (!state || !state.bookmarks) {
+      throw new Error('Invalid bookmarks state');
+    }
+
+    if (mode === 'replace') {
+      // Remove all existing bookmarks first
+      await removeAllBookmarks();
+    }
+
+    // Import the bookmarks
+    await importTreeFromState(state.folders || [], state.bookmarks || []);
+  } catch (error) {
+    console.error('Failed to import bookmarks state:', error);
+    throw error;
+  }
 }
 
 /**
@@ -377,21 +409,25 @@ function flattenBookmarksToArray(tree, bookmarks) {
  */
 export async function syncBookmarks(mode = 'host-to-many') {
   try {
-    // Export current bookmarks
-    const localState = await exportBookmarksState();
+    // Import real sync service
+    const { performRealSync, SYNC_MODES } = await import('./sync/sync-service.js');
 
-    // For now, just return basic sync result
-    // In a real implementation, this would:
-    // 1. Upload to Google Drive
-    // 2. Download remote state
-    // 3. Compare and merge
-    // 4. Apply changes
+    // Map mode to sync mode constant
+    const syncMode = mode === 'global' ? SYNC_MODES.GLOBAL : SYNC_MODES.HOST_TO_MANY;
+
+    // Perform real sync with Google Drive
+    const syncResult = await performRealSync(syncMode, {
+      autoResolveConflicts: true,
+    });
 
     return {
-      added: 0,
-      updated: 0,
-      removed: 0,
-      total: localState.bookmarks.length,
+      success: syncResult.success,
+      added: syncResult.localChanges || 0,
+      updated: 0, // Will be calculated from delta
+      removed: 0, // Will be calculated from delta
+      total: syncResult.bookmarkCount || 0,
+      conflicts: syncResult.conflicts || 0,
+      message: syncResult.message,
     };
   } catch (error) {
     console.error('Sync failed:', error);

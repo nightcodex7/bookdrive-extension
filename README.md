@@ -1,4 +1,4 @@
-# BookDrive - Cross-Platform Bookmark Sync Extension (WORK IN PROGRESS)
+# BookDrive - Cross-Platform Bookmark Sync Extension
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Coming%20Soon-blue)](https://chrome.google.com/webstore)
@@ -44,21 +44,45 @@ BookDrive is a cross-platform browser extension that synchronizes bookmarks acro
 - **⚡ Offline Support**: Queued sync when connection returns
 
 ### Advanced Features
-- **🔐 End-to-End Encryption**: Optional AES-GCM encryption
-- **👥 Team Mode**: Multi-user collaboration
-- **🔍 Conflict Resolution**: Visual merge tools
-- **📊 Sync Analytics**: Timeline graphs and logs
-- **💾 Backup & Restore**: Versioned backup system with scheduled backups
-- **🎨 Themes**: Light, dark, and auto modes
+- **🔐 End-to-End Encryption**: Optional AES-GCM encryption with passphrase
+- **👥 Team Mode**: Multi-user collaboration with role-based access
+- **🔍 Conflict Resolution**: Visual merge tools with multiple resolution strategies
+- **📊 Sync Analytics**: Timeline graphs, performance metrics, and detailed logs
+- **💾 Backup & Restore**: Versioned backup system with scheduled backups and compression
+- **🎨 Themes**: Light, dark, and auto modes with persistent preferences
+- **📁 Shared Folders**: Team collaboration with permission enforcement
+- **🔄 Sync Preview**: Preview changes before committing to sync
+- **📈 Performance Optimization**: Delta compression, smart retry mechanisms, and caching
 
 ### Sync Modes
 - **Host-to-Many**: One primary device pushes to others
 - **Global Sync**: Bi-directional sync with conflict resolution
 
+### Team Collaboration Features
+- **Role-Based Access**: Admin, Editor, and Viewer roles
+- **Shared Bookmark Folders**: Create and manage shared folders
+- **Real-Time Notifications**: Team activity notifications
+- **Permission Enforcement**: Granular control over folder access
+- **Member Management**: Add, remove, and update team members
+
+### Analytics & Monitoring
+- **Sync Timeline**: Visual timeline of sync activities
+- **Performance Metrics**: Sync speed, success rates, and error tracking
+- **Error Analysis**: Detailed error reporting and recommendations
+- **Export Capabilities**: Export analytics data for external analysis
+- **Log Management**: Verbose logging with export and clear options
+
+### Backup & Recovery
+- **Scheduled Backups**: Automated backup scheduling
+- **Incremental Backups**: Store only changes between backups
+- **Compression**: Gzip compression for storage optimization
+- **Retention Policies**: Configurable backup retention rules
+- **Backup History**: Visual backup timeline and management
+
 ## 🛠️ For Developers
 
 ### Prerequisites
-- Node.js 16+
+- Node.js 18+
 - Chrome/Chromium browser
 - Google Cloud Project (for OAuth2)
 
@@ -74,7 +98,7 @@ npm install
 # Setup OAuth2 credentials
 npm run setup:oauth2
 
-# Development build with watch
+# Development build with watch (includes automatic OAuth2 injection)
 npm run watch
 
 # Production build
@@ -91,17 +115,24 @@ npm run format
 ### Project Structure
 ```
 src/
-├── background/         # Service worker
-├── popup/             # Extension popup UI
-├── options/           # Settings page
-├── lib/               # Core libraries
-│   ├── bookmarks.ts   # Bookmark operations
-│   ├── drive.ts       # Google Drive API
-│   ├── encryption.ts  # Client-side encryption
-│   ├── sync-preview.ts # Sync preview
-│   └── team-manager.ts # Team collaboration
-├── types/             # TypeScript definitions
-└── utils/             # Utility functions
+├── background/           # Service worker
+├── popup/               # Extension popup UI
+├── options/             # Settings page
+├── analytics/           # Sync analytics dashboard
+├── conflict-resolution/ # Conflict resolution interface
+├── shared-folders/      # Team collaboration interface
+├── backup-history/      # Backup management interface
+├── lib/                 # Core libraries
+│   ├── auth/           # Authentication and OAuth2
+│   ├── backup/         # Backup and compression
+│   ├── encryption/     # Client-side encryption
+│   ├── sync/           # Sync operations and optimization
+│   ├── team/           # Team collaboration
+│   ├── analytics/      # Analytics and monitoring
+│   ├── scheduling/     # Adaptive scheduling
+│   └── storage/        # Storage management
+├── types/              # TypeScript definitions
+└── utils/              # Utility functions
 ```
 
 ### Build System
@@ -165,6 +196,35 @@ BookDrive uses only **non-sensitive scopes** that do not require Google's OAuth 
 - **Chrome Web Store**: Ready for submission
 - **User Trust**: Transparent about data access and usage
 
+### 🔄 Automatic OAuth2 Credential Injection
+
+BookDrive includes an automatic OAuth2 credential injection system that ensures credentials are always up-to-date during builds:
+
+#### **How It Works**
+- **Automatic Injection**: Credentials from `oauth2_config.json` are automatically injected during build
+- **Safe Process**: Original files are backed up and restored after build
+- **No Manual Management**: No need to manually update credential files
+
+#### **Available Commands**
+```bash
+# Automatic injection during build (recommended)
+npm run build        # Development build with injection
+npm run build:prod   # Production build with injection
+npm run dev          # Watch mode with injection
+
+# Manual credential management
+npm run oauth2:inject    # Manually inject credentials
+npm run oauth2:cleanup   # Restore original files
+```
+
+#### **Security Features**
+- ✅ **No Credentials in Git**: Actual credentials never reach version control
+- ✅ **Automatic Cleanup**: Original files always restored after build
+- ✅ **Backup Protection**: Files backed up before modification
+- ✅ **Error Handling**: Build fails if credentials cannot be injected
+
+For detailed information, see [OAUTH2_AUTOMATIC_INJECTION.md](OAUTH2_AUTOMATIC_INJECTION.md).
+
 ## 📋 Configuration
 
 ### Environment Variables
@@ -206,6 +266,8 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - **Efficient Storage**: Minimal local storage usage
 - **Background Processing**: Non-blocking sync operations
 - **Smart Caching**: Intelligent caching for better performance
+- **Delta Compression**: Only sync changes for faster transfers
+- **Adaptive Scheduling**: Smart scheduling based on system resources
 
 ## 🚨 Troubleshooting
 
@@ -228,4 +290,5 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - Google Drive API for secure cloud storage
 - Chrome Extensions API for cross-browser compatibility
 - Material Design 3 for modern UI components
+- Chart.js for analytics visualization
 - Open source community for inspiration and support

@@ -7,6 +7,103 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
     <link rel="stylesheet" href="popup.css" />
+    <style>
+      /* Universal Scrollbar System - Single scrollbar for entire extension */
+      html, body {
+        width: 500px !important;
+        height: 650px !important;
+        min-width: 500px !important;
+        min-height: 650px !important;
+        max-width: 500px !important;
+        max-height: 650px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important; /* Hide body scrollbar */
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100% !important;
+        -ms-text-size-adjust: 100% !important;
+      }
+      
+      /* Main container with universal scrollbar */
+      .onboarding-screen,
+      .welcome-screen,
+      .popup-root {
+        width: 100% !important;
+        height: 100% !important;
+        min-width: 500px !important;
+        min-height: 650px !important;
+        overflow: auto !important; /* Only this container has scrollbar */
+        position: relative !important;
+      }
+      
+      /* Remove scrollbars from all other containers */
+      .onboarding-container,
+      .welcome-container,
+      .popup-header,
+      .popup-nav,
+      .popup-content,
+      .tab-content {
+        overflow: visible !important; /* Remove individual scrollbars */
+      }
+      
+      /* Ensure proper content flow without individual scrollbars */
+      .popup-content {
+        height: auto !important;
+        max-height: none !important;
+        padding: 1.25rem !important;
+        overflow: visible !important;
+      }
+      
+      /* Ensure buttons are clickable and accessible */
+      button {
+        cursor: pointer !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        touch-action: manipulation !important;
+        min-height: 44px !important;
+      }
+      
+      /* Ensure proper image rendering */
+      img {
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+        object-fit: contain !important;
+      }
+      
+      /* Responsive design for smaller screens - but maintain extension size */
+      @media (max-width: 500px) {
+        html, body {
+          width: 500px !important;
+          height: 650px !important;
+          min-width: 500px !important;
+          min-height: 650px !important;
+          max-width: 500px !important;
+          max-height: 650px !important;
+        }
+        
+        .popup-content {
+          padding: 0.75rem !important;
+        }
+        
+        .popup-header {
+          padding: 0.5rem 0.75rem !important;
+        }
+        
+        .popup-nav {
+          padding: 0 0.75rem !important;
+        }
+      }
+      
+      /* High DPI display optimizations */
+      @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        img {
+          image-rendering: -webkit-optimize-contrast !important;
+          image-rendering: crisp-edges !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- Onboarding Screen -->
@@ -114,15 +211,32 @@
             </div>
           </div>
           <div class="header-actions">
-            <button id="header-settings-btn" class="icon-btn" title="Settings">
-              <span class="material-icons">settings</span>
-            </button>
             <button id="header-menu-btn" class="icon-btn" title="Menu">
               <span class="material-icons">more_vert</span>
             </button>
           </div>
         </div>
       </header>
+
+      <!-- Dropdown Menu -->
+      <div id="dropdown-menu" class="dropdown-menu" style="display: none;">
+        <div class="dropdown-item" id="menu-settings">
+          <span class="material-icons">settings</span>
+          <span>Settings</span>
+        </div>
+        <div class="dropdown-item" id="menu-theme-toggle">
+          <span class="material-icons">dark_mode</span>
+          <span>Toggle Theme</span>
+        </div>
+        <div class="dropdown-item" id="menu-account">
+          <span class="material-icons">account_circle</span>
+          <span>Account</span>
+        </div>
+        <div class="dropdown-item" id="menu-sign-out">
+          <span class="material-icons">logout</span>
+          <span>Sign Out</span>
+        </div>
+      </div>
 
       <!-- Navigation -->
       <nav class="popup-nav">
@@ -138,108 +252,123 @@
           <span class="material-icons">backup</span>
           <span>Backups</span>
         </button>
-        <button class="nav-tab" data-tab="settings">
-          <span class="material-icons">settings</span>
-          <span>Settings</span>
-        </button>
       </nav>
 
       <!-- Content -->
       <main class="popup-content">
         <!-- Home Tab -->
         <div class="tab-content active" id="home-tab">
-          <div class="home-content">
-            <!-- Quick Stats -->
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-icon">
-                  <span class="material-icons">bookmark</span>
-                </div>
-                <div class="stat-info">
-                  <div class="stat-value" id="bookmark-count">0</div>
-                  <div class="stat-label">Bookmarks</div>
-                </div>
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">bookmark</span>
               </div>
-              <div class="stat-card">
-                <div class="stat-icon">
-                  <span class="material-icons">sync</span>
-                </div>
-                <div class="stat-info">
-                  <div class="stat-value" id="sync-count">0</div>
-                  <div class="stat-label">Syncs Today</div>
-                </div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">
-                  <span class="material-icons">backup</span>
-                </div>
-                <div class="stat-info">
-                  <div class="stat-value" id="backup-count">0</div>
-                  <div class="stat-label">Backups</div>
-                </div>
+              <div class="stat-info">
+                <div class="stat-value" id="bookmark-count">0</div>
+                <div class="stat-label">Bookmarks</div>
               </div>
             </div>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-              <button id="sync-now-btn" class="action-btn primary">
+            <div class="stat-card">
+              <div class="stat-icon">
                 <span class="material-icons">sync</span>
-                <span>Sync Now</span>
-              </button>
-              <button id="quick-backup-btn" class="action-btn secondary">
-                <span class="material-icons">backup</span>
-                <span>Quick Backup</span>
-              </button>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="recent-activity">
-              <h3 class="section-title">Recent Activity</h3>
-              <div class="activity-list" id="activity-list">
-                <div class="activity-item">
-                  <span class="material-icons activity-icon">sync</span>
-                  <div class="activity-content">
-                    <div class="activity-title">Last sync completed</div>
-                    <div class="activity-time">2 minutes ago</div>
-                  </div>
-                </div>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value" id="sync-count">0</div>
+                <div class="stat-label">Syncs Today</div>
               </div>
             </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <span class="material-icons">backup</span>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value" id="backup-count">0</div>
+                <div class="stat-label">Backups</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="section-title">
+            <span class="material-icons">flash_on</span>
+            Quick Actions
+          </div>
+          <div class="quick-actions">
+            <button class="action-btn primary" id="sync-now-btn">
+              <span class="material-icons">sync</span>
+              <span>Sync Now</span>
+            </button>
+            <button class="action-btn secondary" id="quick-backup-btn">
+              <span class="material-icons">backup</span>
+              <span>Quick Backup</span>
+            </button>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="section-title">
+            <span class="material-icons">history</span>
+            Recent Activity
+          </div>
+          <div class="activity-list" id="activity-list">
+            <!-- Activity items will be populated by JavaScript -->
           </div>
         </div>
 
         <!-- Sync Tab -->
         <div class="tab-content" id="sync-tab">
-          <div class="sync-content">
-            <div class="sync-status-card">
-              <h3 class="card-title">Sync Status</h3>
-              <div class="sync-info">
-                <div class="sync-item">
-                  <span class="sync-label">Last Sync:</span>
-                  <span class="sync-value" id="last-sync-time">Never</span>
-                </div>
-                <div class="sync-item">
-                  <span class="sync-label">Status:</span>
-                  <span class="sync-value" id="sync-status">Ready</span>
-                </div>
-                <div class="sync-item">
-                  <span class="sync-label">Mode:</span>
-                  <span class="sync-value" id="sync-mode">Host-to-Many</span>
-                </div>
-              </div>
-              <button id="sync-tab-btn" class="sync-btn">
-                <span class="material-icons">sync</span>
-                Start Sync
-              </button>
+          <div class="sync-status-card">
+            <div class="card-title">
+              <span class="material-icons">sync</span>
+              Sync Status
             </div>
+            <div class="sync-info">
+              <div class="sync-item">
+                <span class="sync-label">Last Sync</span>
+                <span class="sync-value" id="last-sync-time">Never</span>
+              </div>
+              <div class="sync-item">
+                <span class="sync-label">Status</span>
+                <span class="sync-value" id="sync-status">Ready</span>
+              </div>
+              <div class="sync-item">
+                <span class="sync-label">Auto Sync</span>
+                <span class="sync-value" id="auto-sync-status">Disabled</span>
+              </div>
+            </div>
+            <button class="sync-btn" id="sync-tab-btn">
+              <span class="material-icons">sync</span>
+              <span>Start Sync</span>
+            </button>
+          </div>
 
-            <div class="sync-options">
-              <h3 class="section-title">Sync Options</h3>
-              <div class="option-group">
-                <label class="option-item">
-                  <input type="checkbox" id="auto-sync-toggle" />
-                  <span class="option-label">Auto sync every 30 minutes</span>
-                </label>
+          <div class="section-title">
+            <span class="material-icons">settings</span>
+            Sync Options
+          </div>
+          <div class="option-group">
+            <div class="option-item">
+              <input type="checkbox" id="auto-sync-toggle" />
+              <label for="auto-sync-toggle" class="option-label">Enable Auto Sync</label>
+            </div>
+          </div>
+
+          <!-- Feature-specific options -->
+          <div id="feature-options" style="display: none;">
+            <div class="section-title">
+              <span class="material-icons">extension</span>
+              Advanced Features
+            </div>
+            <div class="option-group" id="conflict-resolution-option" style="display: none;">
+              <div class="option-item">
+                <input type="checkbox" id="conflict-resolution-toggle" />
+                <label for="conflict-resolution-toggle" class="option-label">Conflict Resolution</label>
+              </div>
+            </div>
+            <div class="option-group" id="shared-folders-option" style="display: none;">
+              <div class="option-item">
+                <input type="checkbox" id="shared-folders-toggle" />
+                <label for="shared-folders-toggle" class="option-label">Shared Folders</label>
               </div>
             </div>
           </div>
@@ -247,73 +376,27 @@
 
         <!-- Backups Tab -->
         <div class="tab-content" id="backups-tab">
-          <div class="backups-content">
-            <div class="backup-actions">
-              <button id="create-backup-btn" class="backup-btn primary">
-                <span class="material-icons">add</span>
-                Create Backup
-              </button>
-              <button id="view-backups-btn" class="backup-btn secondary">
-                <span class="material-icons">history</span>
-                View History
-              </button>
-            </div>
-
-            <div class="backup-schedule">
-              <h3 class="section-title">Scheduled Backups</h3>
-              <div class="schedule-info">
-                <div class="schedule-item">
-                  <span class="material-icons">schedule</span>
-                  <div class="schedule-details">
-                    <div class="schedule-title">Daily at 3:00 AM</div>
-                    <div class="schedule-status">Enabled</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="section-title">
+            <span class="material-icons">backup</span>
+            Backup Actions
           </div>
-        </div>
+          <div class="backup-actions">
+            <button class="backup-btn primary" id="create-backup-btn">
+              <span class="material-icons">add</span>
+              <span>Create Backup</span>
+            </button>
+            <button class="backup-btn secondary" id="view-backups-btn">
+              <span class="material-icons">folder</span>
+              <span>View Backups</span>
+            </button>
+          </div>
 
-        <!-- Settings Tab -->
-        <div class="tab-content" id="settings-tab">
-          <div class="settings-content">
-            <div class="settings-section">
-              <h3 class="section-title">Account</h3>
-              <div class="account-info">
-                <div class="user-info">
-                  <div class="user-avatar">
-                    <span class="material-icons">account_circle</span>
-                  </div>
-                  <div class="user-details">
-                    <div class="user-name" id="user-name">User Name</div>
-                    <div class="user-email" id="user-email">user@example.com</div>
-                  </div>
-                </div>
-                <button id="sign-out-btn" class="sign-out-btn">
-                  <span class="material-icons">logout</span>
-                  Sign Out
-                </button>
-              </div>
-            </div>
-
-            <div class="settings-section">
-              <h3 class="section-title">Preferences</h3>
-              <div class="preference-item">
-                <label class="preference-label">Theme</label>
-                <select id="theme-select" class="preference-select">
-                  <option value="auto">Auto</option>
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                </select>
-              </div>
-              <div class="preference-item">
-                <label class="preference-label">Notifications</label>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="notifications-toggle" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
+          <div class="section-title">
+            <span class="material-icons">schedule</span>
+            Backup Schedule
+          </div>
+          <div class="schedule-info" id="schedule-info">
+            <!-- Schedule items will be populated by JavaScript -->
           </div>
         </div>
       </main>

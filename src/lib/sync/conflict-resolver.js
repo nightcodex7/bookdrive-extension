@@ -1,122 +1,275 @@
-// conflict-resolver.js - Conflict resolution for Global Sync mode
+/**
+ * Conflict Resolver Module
+ * Provides visual merge tools for resolving bookmark conflicts
+ */
 
 /**
- * Detect conflicts between local and remote bookmark trees
- * @param {Array} localTree
- * @param {Array} remoteTree
- * @returns {Array} Array of conflict items
+ * Conflict resolution strategies
  */
-export function detectConflicts(localTree, remoteTree) {
-  const conflicts = [];
-  const localMap = createBookmarkMap(localTree);
-  const remoteMap = createBookmarkMap(remoteTree);
-
-  // Find conflicts where same ID exists but with different data
-  for (const [id, localNode] of localMap) {
-    const remoteNode = remoteMap.get(id);
-    if (remoteNode) {
-      if (localNode.title !== remoteNode.title) {
-        conflicts.push({
-          id,
-          local: localNode,
-          remote: remoteNode,
-          type: 'title',
-        });
-      }
-
-      if (localNode.url !== remoteNode.url) {
-        conflicts.push({
-          id,
-          local: localNode,
-          remote: remoteNode,
-          type: 'url',
-        });
-      }
-    }
-  }
-
-  return conflicts;
-}
+export const CONFLICT_STRATEGIES = {
+  LOCAL_WINS: 'local',
+  REMOTE_WINS: 'remote',
+  MERGE: 'merge',
+  MANUAL: 'manual',
+};
 
 /**
- * Resolve conflicts based on user choices or automatic rules
- * @param {Array} conflicts
- * @param {Array} resolutions
- * @returns {Array} Resolved bookmark nodes
+ * Resolve conflicts automatically
+ * @param {Array} conflicts - Array of conflict objects
+ * @param {string} strategy - Resolution strategy
+ * @returns {Object} Resolution result
  */
-export function resolveConflicts(conflicts, resolutions) {
-  const resolvedNodes = [];
-  const resolutionMap = new Map(resolutions.map((r) => [r.id, r]));
+export function resolveConflicts(conflicts, strategy = CONFLICT_STRATEGIES.LOCAL_WINS) {
+  const resolved = [];
+  const unresolved = [];
 
   for (const conflict of conflicts) {
-    const resolution = resolutionMap.get(conflict.id);
-
-    if (!resolution) {
-      // Default to local if no resolution specified
-      resolvedNodes.push(conflict.remote);
-      continue;
-    }
-
-    switch (resolution.resolution) {
-      case 'local':
-        resolvedNodes.push(conflict.local);
-        break;
-      case 'remote':
-        resolvedNodes.push(conflict.remote);
-        break;
-      case 'merge':
-        resolvedNodes.push({
-          ...conflict.local,
-          ...resolution.mergedData,
-        });
-        break;
-      default:
-        resolvedNodes.push(conflict.remote);
-        break;
+    const resolution = resolveConflict(conflict, strategy);
+    if (resolution.resolved) {
+      resolved.push(resolution.bookmark);
+    } else {
+      unresolved.push(conflict);
     }
   }
 
-  return resolvedNodes;
+  return {
+    resolved,
+    unresolved,
+    strategy,
+    totalConflicts: conflicts.length,
+    resolvedCount: resolved.length,
+    unresolvedCount: unresolved.length,
+  };
 }
 
 /**
- * Automatic conflict resolution using timestamp-based strategy
- * @param {Array} conflicts
- * @param {'newest'|'local'|'remote'} strategy
- * @returns {Array} Conflict resolutions
+ * Resolve a single conflict
+ * @param {Object} conflict - Conflict object
+ * @param {string} strategy - Resolution strategy
+ * @returns {Object} Resolution result
  */
-export function autoResolveConflicts(conflicts, strategy = 'newest') {
-  return conflicts.map((conflict) => {
-    switch (strategy) {
-      case 'local':
-        return { id: conflict.id, resolution: 'local' };
-      case 'remote':
-        return { id: conflict.id, resolution: 'remote' };
-      case 'newest':
-      default:
-        // For now, prefer remote (could be enhanced with actual timestamps)
-        return { id: conflict.id, resolution: 'remote' };
-    }
-  });
+function resolveConflict(conflict, strategy) {
+  const { local, remote } = conflict;
+
+  switch (strategy) {
+    case CONFLICT_STRATEGIES.LOCAL_WINS:
+      return {
+        resolved: true,
+        bookmark: local,
+        reason: 'Local version chosen',
+      };
+
+    case CONFLICT_STRATEGIES.REMOTE_WINS:
+      return {
+        resolved: true,
+        bookmark: remote,
+        reason: 'Remote version chosen',
+      };
+
+    case CONFLICT_STRATEGIES.MERGE:
+      return mergeBookmarks(local, remote);
+
+    case CONFLICT_STRATEGIES.MANUAL:
+      return {
+        resolved: false,
+        bookmark: null,
+        reason: 'Requires manual resolution',
+      };
+
+    default:
+      return {
+        resolved: false,
+        bookmark: null,
+        reason: 'Unknown strategy',
+      };
+  }
 }
 
 /**
- * Create a map of bookmark ID to bookmark node for efficient lookup
- * @param {Array} tree
- * @returns {Map} Map of bookmark ID to bookmark node
+ * Merge two bookmarks intelligently
+ * @param {Object} local - Local bookmark
+ * @param {Object} remote - Remote bookmark
+ * @returns {Object} Merged bookmark
  */
-function createBookmarkMap(tree) {
-  const map = new Map();
+function mergeBookmarks(local, remote) {
+  // Compare modification times
+  const localTime = new Date(local.dateModified || 0).getTime();
+  const remoteTime = new Date(remote.dateModified || 0).getTime();
 
-  function traverse(nodes) {
-    for (const node of nodes) {
-      map.set(node.id, node);
-      if (node.children) {
-        traverse(node.children);
-      }
-    }
+  // If one is significantly newer, prefer it
+  if (Math.abs(localTime - remoteTime) > 60000) {
+    // 1 minute threshold
+    const newer = localTime > remoteTime ? local : remote;
+    return {
+      resolved: true,
+      bookmark: newer,
+      reason: 'Newer version chosen',
+    };
   }
 
-  traverse(tree);
-  return map;
+  // Otherwise, merge intelligently
+  const merged = { ...local };
+
+  // Merge title - prefer non-empty, longer title
+  if (!local.title && remote.title) {
+    merged.title = remote.title;
+  } else if (local.title && remote.title && remote.title.length > local.title.length) {
+    merged.title = remote.title;
+  }
+
+  // Merge URL - prefer non-empty URL
+  if (!local.url && remote.url) {
+    merged.url = remote.url;
+  }
+
+  // Merge dateAdded - use earliest
+  const localAdded = new Date(local.dateAdded || 0).getTime();
+  const remoteAdded = new Date(remote.dateAdded || 0).getTime();
+  merged.dateAdded = localAdded < remoteAdded ? local.dateAdded : remote.dateAdded;
+
+  // Merge dateModified - use latest
+  merged.dateModified = localTime > remoteTime ? local.dateModified : remote.dateModified;
+
+  // Merge parentId - prefer local if both exist
+  if (local.parentId && remote.parentId) {
+    merged.parentId = local.parentId;
+  } else if (remote.parentId) {
+    merged.parentId = remote.parentId;
+  }
+
+  return {
+    resolved: true,
+    bookmark: merged,
+    reason: 'Intelligently merged',
+  };
+}
+
+/**
+ * Generate conflict summary for display
+ * @param {Array} conflicts - Array of conflicts
+ * @returns {Object} Summary
+ */
+export function generateConflictSummary(conflicts) {
+  const summary = {
+    total: conflicts.length,
+    byType: {
+      title: 0,
+      url: 0,
+      folder: 0,
+      mixed: 0,
+    },
+    bySeverity: {
+      low: 0,
+      medium: 0,
+      high: 0,
+    },
+  };
+
+  for (const conflict of conflicts) {
+    const conflictType = analyzeConflictType(conflict);
+    const severity = analyzeConflictSeverity(conflict);
+
+    summary.byType[conflictType]++;
+    summary.bySeverity[severity]++;
+  }
+
+  return summary;
+}
+
+/**
+ * Analyze conflict type
+ * @param {Object} conflict - Conflict object
+ * @returns {string} Conflict type
+ */
+function analyzeConflictType(conflict) {
+  const { local, remote } = conflict;
+
+  const titleChanged = local.title !== remote.title;
+  const urlChanged = local.url !== remote.url;
+  const folderChanged = local.parentId !== remote.parentId;
+
+  if (titleChanged && urlChanged && folderChanged) {
+    return 'mixed';
+  } else if (folderChanged) {
+    return 'folder';
+  } else if (urlChanged) {
+    return 'url';
+  } else if (titleChanged) {
+    return 'title';
+  }
+
+  return 'mixed';
+}
+
+/**
+ * Analyze conflict severity
+ * @param {Object} conflict - Conflict object
+ * @returns {string} Severity level
+ */
+function analyzeConflictSeverity(conflict) {
+  const { local, remote } = conflict;
+
+  // High severity: URL changes
+  if (local.url !== remote.url) {
+    return 'high';
+  }
+
+  // Medium severity: Title changes
+  if (local.title !== remote.title) {
+    return 'medium';
+  }
+
+  // Low severity: Folder changes or other metadata
+  return 'low';
+}
+
+/**
+ * Get conflict resolution recommendations
+ * @param {Array} conflicts - Array of conflicts
+ * @returns {Array} Recommendations
+ */
+export function getConflictRecommendations(conflicts) {
+  const recommendations = [];
+  const summary = generateConflictSummary(conflicts);
+
+  if (summary.total === 0) {
+    return recommendations;
+  }
+
+  // General recommendations
+  if (summary.bySeverity.high > 0) {
+    recommendations.push({
+      type: 'warning',
+      message: `${summary.bySeverity.high} conflicts involve URL changes. Review these carefully.`,
+      priority: 'high',
+    });
+  }
+
+  if (summary.byType.mixed > 0) {
+    recommendations.push({
+      type: 'info',
+      message: `${summary.byType.mixed} conflicts have multiple changes. Consider manual resolution.`,
+      priority: 'medium',
+    });
+  }
+
+  if (summary.total > 10) {
+    recommendations.push({
+      type: 'info',
+      message:
+        'Large number of conflicts detected. Consider using automatic resolution strategies.',
+      priority: 'medium',
+    });
+  }
+
+  // Strategy recommendations
+  if (summary.bySeverity.low > summary.bySeverity.high) {
+    recommendations.push({
+      type: 'suggestion',
+      message: 'Most conflicts are low severity. Automatic resolution should be safe.',
+      priority: 'low',
+    });
+  }
+
+  return recommendations;
 }

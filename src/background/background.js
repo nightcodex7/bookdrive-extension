@@ -13,8 +13,16 @@ import {
   showToast,
   updateBackupProgress,
   showBackupNotification,
-  showRestorationNotification,
+  // showRestorationNotification,
 } from '../lib/index.js';
+
+// Import real sync service
+import {
+  performRealSync,
+  createRealBackup,
+  restoreRealBackup,
+  SYNC_MODES,
+} from '../lib/sync/sync-service.js';
 
 // Global state
 let syncInProgress = false;
@@ -66,7 +74,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Ensure we're authenticated before syncing
     initializeAuth()
       .then(async () => {
-        // Simulate sync process
         if (syncInProgress) {
           sendResponse({ status: 'error', error: 'Sync already in progress' });
           return;
@@ -75,52 +82,50 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         syncInProgress = true;
 
         try {
-          // Ensure folder exists
-          await ensureBookDriveFolder(true);
+          // Get current sync mode from settings
+          const result = await chrome.storage.sync.get({ syncMode: 'host-to-many' });
+          const syncMode =
+            result.syncMode === 'global' ? SYNC_MODES.GLOBAL : SYNC_MODES.HOST_TO_MANY;
 
-          // Simulate a sync process with a delay
-          setTimeout(() => {
+          // Perform real sync
+          const syncResult = await performRealSync(syncMode, {
+            autoResolveConflicts: true,
+          });
+
+          if (syncResult.success) {
             const now = new Date().toISOString();
 
-            // Count bookmarks
-            chrome.bookmarks.getTree((tree) => {
-              let count = 0;
-
-              function countBookmarks(nodes) {
-                for (const node of nodes) {
-                  if (node.url) count++;
-                  if (node.children) countBookmarks(node.children);
-                }
-              }
-
-              countBookmarks(tree);
-
-              // Update storage with sync results
-              chrome.storage.local.set({
-                lastSync: now,
-                lastSyncStatus: 'success',
-                lastChange: now,
-              });
-
-              // Log the sync event
-              logSyncEvent({
-                time: now,
-                mode: 'manual',
-                status: 'success',
-                bookmarkCount: count,
-              });
-
-              syncInProgress = false;
-              sendResponse({ status: 'ok' });
+            // Update storage with sync results
+            chrome.storage.local.set({
+              lastSync: now,
+              lastSyncStatus: 'success',
+              lastChange: now,
             });
-          }, 1500);
+
+            // Log the sync event
+            logSyncEvent({
+              time: now,
+              mode: 'manual',
+              status: 'success',
+              bookmarkCount: syncResult.bookmarkCount,
+              changes: syncResult.localChanges,
+              conflicts: syncResult.conflicts,
+            });
+
+            syncInProgress = false;
+            sendResponse({ status: 'ok', result: syncResult });
+          } else {
+            throw new Error(syncResult.message || 'Sync failed');
+          }
         } catch (error) {
+          console.error('Real sync failed:', error);
           syncInProgress = false;
           sendResponse({ status: 'error', error: error.message });
           showNotification(`Sync failed: ${error.message}`, 'error');
         }
       })
       .catch((_error) => {
+        syncInProgress = false;
         sendResponse({ status: 'error', error: 'Authentication failed' });
         showNotification('Authentication failed', 'error');
       });
@@ -133,91 +138,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     initializeAuth()
       .then(async () => {
         try {
-          // Ensure folder exists
-          await ensureBookDriveFolder(true);
-
-          // Create backup metadata
-          const backupMetadata = createBackupMetadata({
-            type: BACKUP_TYPES.MANUAL,
-            status: BACKUP_STATUS.IN_PROGRESS,
-            filename: `bookmarks_manual_${Date.now()}.json`,
+          // Create real backup
+          const backupResult = await createRealBackup({
+            type: 'manual',
+            description: 'Manual backup from background',
+            progressCallback: (progress, message) => {
+              // Update progress in storage for popup to read
+              chrome.storage.local.set({
+                backupProgress: { progress, message, timestamp: Date.now() },
+              });
+            },
           });
 
-          // Save initial backup metadata
-          await saveBackup(backupMetadata);
-
-          // Send initial progress update
-          updateBackupProgress(backupMetadata.id, 0, 'Starting backup...');
-
-          // Simulate backup process with progress updates
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 10;
-            if (progress <= 90) {
-              updateBackupProgress(
-                backupMetadata.id,
-                progress,
-                `Backing up bookmarks (${progress}%)...`,
-              );
-            }
-          }, 100);
-
-          setTimeout(async () => {
-            clearInterval(progressInterval);
-            updateBackupProgress(backupMetadata.id, 100, 'Finalizing backup...');
-
+          if (backupResult.success) {
             const now = new Date().toISOString();
 
-            // Count bookmarks
-            chrome.bookmarks.getTree(async (tree) => {
-              let count = 0;
-
-              function countBookmarks(nodes) {
-                for (const node of nodes) {
-                  if (node.url) count++;
-                  if (node.children) countBookmarks(node.children);
-                }
-              }
-
-              countBookmarks(tree);
-
-              // Update backup metadata
-              const updatedMetadata = {
-                ...backupMetadata,
-                status: BACKUP_STATUS.SUCCESS,
-                timestamp: now,
-                bookmarkCount: count,
-                updatedAt: now,
-              };
-
-              // Save updated backup metadata
-              await saveBackup(updatedMetadata);
-
-              // Log the backup event
-              logSyncEvent({
-                time: now,
-                mode: 'backup',
-                status: 'success',
-                backupId: backupMetadata.id,
-              });
-
-              sendResponse({ status: 'ok', backupId: backupMetadata.id });
-
-              // Show success notification with enhanced details
-              showBackupNotification(
-                updatedMetadata,
-                true,
-                `Manual backup completed successfully with ${count} bookmarks`,
-              );
+            // Log the backup event
+            logSyncEvent({
+              time: now,
+              mode: 'backup',
+              status: 'success',
+              backupId: backupResult.backupId,
+              bookmarkCount: backupResult.bookmarkCount,
             });
-          }, 1000);
+
+            sendResponse({ status: 'ok', result: backupResult });
+          } else {
+            throw new Error(backupResult.message || 'Backup failed');
+          }
         } catch (error) {
+          console.error('Real backup failed:', error);
           sendResponse({ status: 'error', error: error.message });
-          showBackupNotification(
-            { type: BACKUP_TYPES.MANUAL },
-            false,
-            `Backup failed: ${error.message}`,
-          );
+          showNotification(`Backup failed: ${error.message}`, 'error');
         }
       })
       .catch((_error) => {
@@ -299,39 +251,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     initializeAuth()
       .then(async () => {
         try {
-          // Get backup ID from message
-          const backupId = message.backupId;
+          const { backupId } = message;
 
           if (!backupId) {
-            throw new Error('No backup ID provided');
+            throw new Error('Backup ID is required');
           }
 
-          // Get all backups
-          const backups = await getAllBackups();
+          // Perform real restore
+          const restoreResult = await restoreRealBackup(backupId, {
+            mode: 'replace',
+            progressCallback: (progress, message) => {
+              // Update progress in storage for popup to read
+              chrome.storage.local.set({
+                restoreProgress: { progress, message, timestamp: Date.now() },
+              });
+            },
+          });
 
-          // Find the backup to restore
-          const backup = backups.find((b) => b.id === backupId);
-
-          if (!backup) {
-            throw new Error(`Backup with ID ${backupId} not found`);
-          }
-
-          // Send initial progress update
-          updateBackupProgress(backupId, 0, 'Starting restoration...');
-
-          // Simulate restore process with progress updates
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 10;
-            if (progress <= 90) {
-              updateBackupProgress(backupId, progress, `Restoring bookmarks (${progress}%)...`);
-            }
-          }, 150);
-
-          setTimeout(() => {
-            clearInterval(progressInterval);
-            updateBackupProgress(backupId, 100, 'Finalizing restoration...');
-
+          if (restoreResult.success) {
             const now = new Date().toISOString();
 
             // Log the restore event
@@ -340,37 +277,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               mode: 'restore',
               status: 'success',
               backupId: backupId,
-              type: backup.type,
+              bookmarkCount: restoreResult.bookmarkCount,
             });
 
-            // Update with more detailed success message including backup type
-            const backupTypeText = backup.type === 'scheduled' ? 'scheduled' : 'manual';
-            const successMessage = `${backupTypeText.charAt(0).toUpperCase() + backupTypeText.slice(1)} backup restored successfully from ${new Date(backup.timestamp).toLocaleString()}`;
-
-            // Send success response with additional details
             sendResponse({
               success: true,
-              backupType: backup.type,
-              timestamp: backup.timestamp,
-              message: successMessage,
-              bookmarkCount: backup.bookmarkCount || 'Unknown',
+              backupId: backupId,
+              message: restoreResult.message,
+              bookmarkCount: restoreResult.bookmarkCount,
             });
-
-            // Show notification with enhanced message using our notification manager
-            showRestorationNotification(backup, true, successMessage);
-          }, 1500);
+          } else {
+            throw new Error(restoreResult.message || 'Restore failed');
+          }
         } catch (error) {
-          console.error('Restore failed:', error);
-          sendResponse({ success: false, error: error.message });
-          showRestorationNotification(
-            { type: 'unknown', timestamp: new Date().toISOString() },
-            false,
-            `Restore failed: ${error.message}`,
-          );
+          console.error('Real restore failed:', error);
+          sendResponse({ status: 'error', error: error.message });
+          showNotification(`Restore failed: ${error.message}`, 'error');
         }
       })
       .catch((_error) => {
-        sendResponse({ success: false, error: 'Authentication failed' });
+        sendResponse({ status: 'error', error: 'Authentication failed' });
         showNotification('Authentication failed', 'error');
       });
 

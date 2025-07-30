@@ -26,62 +26,35 @@ const RETRY_CHECK_INTERVAL_MINUTES = 2; // Check for retries every 2 minutes
 const MISSED_BACKUP_CHECK_INTERVAL_MINUTES = 10; // Check for missed backups every 10 minutes
 
 /**
- * Initialize the backup alarm system
- * @returns {Promise<void>}
+ * Initialize backup alarm system
  */
 export async function initializeBackupAlarms() {
   try {
-    console.log('Initializing backup alarm system');
-
-    // Clear any existing alarms with our name
-    await clearBackupAlarms();
-
-    // Get current schedule
-    const schedule = await getSchedule();
-
-    // If scheduling is disabled, don't set up alarms
-    if (!schedule.enabled) {
-      console.log('Scheduled backups are disabled, not setting up alarms');
+    const settings = await getSettings();
+    
+    if (!settings.scheduledBackups) {
       return;
     }
 
-    // Create alarm to periodically check if backup is due
-    chrome.alarms.create(BACKUP_ALARM_NAME, {
+    // Clear existing alarms first
+    await clearBackupAlarms();
+
+    // Create new alarms
+    await chrome.alarms.create('scheduledBackup', {
+      delayInMinutes: CHECK_INTERVAL_MINUTES,
       periodInMinutes: CHECK_INTERVAL_MINUTES,
     });
 
-    // Create alarm to periodically check for retries
-    chrome.alarms.create(RETRY_ALARM_NAME, {
+    await chrome.alarms.create('backupRetry', {
+      delayInMinutes: RETRY_CHECK_INTERVAL_MINUTES,
       periodInMinutes: RETRY_CHECK_INTERVAL_MINUTES,
     });
 
-    // Create alarm to periodically check for missed backups
-    chrome.alarms.create(MISSED_BACKUP_ALARM_NAME, {
+    await chrome.alarms.create('missedBackup', {
+      delayInMinutes: MISSED_BACKUP_CHECK_INTERVAL_MINUTES,
       periodInMinutes: MISSED_BACKUP_CHECK_INTERVAL_MINUTES,
     });
 
-    console.log(`Backup alarm created, checking every ${CHECK_INTERVAL_MINUTES} minutes`);
-    console.log(`Retry alarm created, checking every ${RETRY_CHECK_INTERVAL_MINUTES} minutes`);
-    console.log(
-      `Missed backup alarm created, checking every ${MISSED_BACKUP_CHECK_INTERVAL_MINUTES} minutes`,
-    );
-
-    // Initialize the adaptive scheduler and resource processor
-    await initializeAdaptiveScheduler();
-    initializeResourceProcessor();
-
-    // Check if a backup is due now
-    const backupDue = await isBackupDue();
-    if (backupDue) {
-      console.log('Backup is due now, checking system resources');
-      await checkAndTriggerBackup();
-    } else if (schedule.nextBackupTime) {
-      const nextBackup = new Date(schedule.nextBackupTime);
-      console.log(`Next backup scheduled for: ${nextBackup.toLocaleString()}`);
-    }
-
-    // Check if any retries are due
-    await checkAndTriggerRetries();
   } catch (error) {
     console.error('Failed to initialize backup alarms:', error);
   }

@@ -27,10 +27,11 @@
     "https://oauth2.googleapis.com/*"
   ],
   "oauth2": {
-    "client_id": "334418543802-lqr4vltj7a335vougaj1sij2mbof9g7l.apps.googleusercontent.com",
+    "client_id": "334418543802-7nrfirqu0eofke7v822mscng2ouhlsfj.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/drive.appdata"
+      "https://www.googleapis.com/auth/drive.appdata",
+      "https://www.googleapis.com/auth/drive.file"
     ]
   },
   "background": {
@@ -45,8 +46,15 @@
   "minimum_chrome_version": "100",
   "web_accessible_resources": [
     {
-      "resources": ["assets/icon16.png", "assets/icon48.png", "assets/icon128.png", "backup-history/backup-history.html"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "assets/icon16.png",
+        "assets/icon48.png",
+        "assets/icon128.png",
+        "backup-history/backup-history.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "content_security_policy": {

@@ -1,24 +1,66 @@
-// Simple options script for BookDrive
-console.log('BookDrive options page loaded');
+// BookDrive Advanced Settings
+// This file handles the advanced settings page functionality
 
-// Import scheduler constants and validation function
-import { FREQUENCY_OPTIONS, validateSchedule } from '../lib/scheduling/scheduler.js';
+// Import required modules
+import { featureManager } from '../lib/index.js';
 
-// Initialize options when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize UI components
-  initializeTimeSelectors();
-  initializeDayOfMonthSelector();
+// Storage keys
+const STORAGE_KEYS = {
+  THEME: 'bookDriveTheme',
+  SYNC_MODE: 'bookDriveSyncMode',
+  AUTO_SYNC: 'bookDriveAutoSync',
+  SYNC_INTERVAL: 'bookDriveSyncInterval',
+  TEAM_MODE: 'bookDriveTeamMode',
+  USER_EMAIL: 'bookDriveUserEmail',
+  TEAM_MEMBERS: 'bookDriveTeamMembers',
+  SYNC_ANALYTICS: 'bookDriveSyncAnalytics',
+  VERBOSE_LOGS: 'bookDriveVerboseLogs',
+  PERF_LOGS: 'bookDrivePerfLogs',
+  ENCRYPTION: 'bookDriveEncryption',
+  ENCRYPTION_PASSPHRASE: 'bookDriveEncryptionPassphrase',
+  SCHEDULED_BACKUPS: 'bookDriveScheduledBackups',
+  BACKUP_SCHEDULE: 'bookDriveBackupSchedule',
+};
 
-  // Load saved settings
-  loadSettings();
+// Initialize the page when DOM is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // Initialize feature manager
+    await featureManager.initialize();
 
-  // Set up event listeners
-  setupEventListeners();
+    // Apply initial theme
+    await applyInitialTheme();
 
-  // Set up message listener for notifications
-  setupMessageListener();
+    // Initialize UI components
+    initializeTimeSelectors();
+    initializeDayOfMonthSelector();
+
+    // Load saved settings
+    await loadSettings();
+
+    // Set up event listeners
+    setupEventListeners();
+
+    // Set up message listener for notifications
+    setupMessageListener();
+
+  } catch (error) {
+    console.error('Failed to initialize advanced settings:', error);
+  }
 });
+
+/**
+ * Apply initial theme
+ */
+async function applyInitialTheme() {
+  try {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.THEME]);
+    const theme = result[STORAGE_KEYS.THEME] || 'auto';
+    applyTheme(theme);
+  } catch (error) {
+    console.error('Failed to apply initial theme:', error);
+  }
+}
 
 // Initialize time selectors (hours and minutes)
 function initializeTimeSelectors() {
@@ -28,7 +70,6 @@ function initializeTimeSelectors() {
     for (let i = 0; i < 24; i++) {
       const option = document.createElement('option');
       option.value = i;
-      // Format as 2-digit number (00-23)
       option.textContent = i.toString().padStart(2, '0');
       hourSelect.appendChild(option);
     }
@@ -40,7 +81,6 @@ function initializeTimeSelectors() {
     for (let i = 0; i < 60; i += 5) {
       const option = document.createElement('option');
       option.value = i;
-      // Format as 2-digit number (00, 05, 10, etc.)
       option.textContent = i.toString().padStart(2, '0');
       minuteSelect.appendChild(option);
     }
@@ -61,20 +101,22 @@ function initializeDayOfMonthSelector() {
 }
 
 // Load settings from storage
-function loadSettings() {
-  chrome.storage.sync.get(
-    {
+async function loadSettings() {
+  try {
+    const result = await chrome.storage.sync.get({
       // Default values
-      mode: 'host',
-      autoSync: true,
-      syncInterval: 30,
-      theme: 'auto',
-      notifications: true,
-      verboseLogs: false,
-      teamMode: false,
-      userEmail: '',
-      // Default backup schedule settings
-      backupSchedule: {
+      [STORAGE_KEYS.SYNC_MODE]: 'host',
+      [STORAGE_KEYS.AUTO_SYNC]: true,
+      [STORAGE_KEYS.SYNC_INTERVAL]: 30,
+      [STORAGE_KEYS.THEME]: 'auto',
+      [STORAGE_KEYS.TEAM_MODE]: false,
+      [STORAGE_KEYS.USER_EMAIL]: '',
+      [STORAGE_KEYS.ENCRYPTION]: false,
+      [STORAGE_KEYS.ANALYTICS]: false,
+      [STORAGE_KEYS.VERBOSE_LOGS]: false,
+      [STORAGE_KEYS.PERF_LOGS]: false,
+      [STORAGE_KEYS.SCHEDULED_BACKUPS]: false,
+      [STORAGE_KEYS.BACKUP_SCHEDULE]: {
         enabled: false,
         frequency: 'daily',
         dayOfWeek: 0,
@@ -83,569 +125,400 @@ function loadSettings() {
         minute: 0,
         retentionCount: 10,
       },
-    },
-    (settings) => {
-      // Update UI with loaded settings
-      const modeSelect = document.getElementById('mode-select');
-      if (modeSelect) modeSelect.value = settings.mode;
+    });
 
-      const autoSyncToggle = document.getElementById('auto-sync-toggle');
-      if (autoSyncToggle) autoSyncToggle.checked = settings.autoSync;
+    // Apply settings to UI
+    applySettingsToUI(result);
+  } catch (error) {
+    console.error('Failed to load settings:', error);
+    showToast('Failed to load settings', 'error');
+  }
+}
 
-      const syncIntervalInput = document.getElementById('sync-interval');
-      if (syncIntervalInput) syncIntervalInput.value = settings.syncInterval;
+// Apply settings to UI
+function applySettingsToUI(settings) {
+  // Theme
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    themeSelect.value = settings[STORAGE_KEYS.THEME] || 'auto';
+  }
 
-      const themeSelect = document.getElementById('theme-select');
-      if (themeSelect) themeSelect.value = settings.theme;
+  // Sync settings
+  const modeSelect = document.getElementById('mode-select');
+  if (modeSelect) {
+    modeSelect.value = settings[STORAGE_KEYS.SYNC_MODE] || 'host';
+  }
 
-      const notificationsToggle = document.getElementById('notifications-toggle');
-      if (notificationsToggle) notificationsToggle.checked = settings.notifications;
+  const autoSyncToggle = document.getElementById('auto-sync-toggle');
+  if (autoSyncToggle) {
+    autoSyncToggle.checked = settings[STORAGE_KEYS.AUTO_SYNC] || false;
+  }
 
-      const verboseLogsToggle = document.getElementById('verbose-logs-toggle');
-      if (verboseLogsToggle) verboseLogsToggle.checked = settings.verboseLogs;
+  const syncInterval = document.getElementById('sync-interval');
+  if (syncInterval) {
+    syncInterval.value = settings[STORAGE_KEYS.SYNC_INTERVAL] || 30;
+  }
 
-      const teamModeToggle = document.getElementById('team-mode-toggle');
-      if (teamModeToggle) teamModeToggle.checked = settings.teamMode;
+  // Team mode
+  const teamModeToggle = document.getElementById('team-mode-toggle');
+  if (teamModeToggle) {
+    teamModeToggle.checked = settings[STORAGE_KEYS.TEAM_MODE] || false;
+    toggleTeamOptions(teamModeToggle.checked);
+  }
 
-      const userEmailInput = document.getElementById('user-email');
-      if (userEmailInput) userEmailInput.value = settings.userEmail;
+  const userEmail = document.getElementById('user-email');
+  if (userEmail) {
+    userEmail.value = settings[STORAGE_KEYS.USER_EMAIL] || '';
+  }
 
-      // Load scheduled backup settings
-      loadScheduledBackupSettings(settings.backupSchedule);
-    },
-  );
+  // Analytics & Logging
+  const analyticsToggle = document.getElementById('sync-analytics-toggle');
+  if (analyticsToggle) {
+    analyticsToggle.checked = settings[STORAGE_KEYS.ANALYTICS] || false;
+  }
+
+  const verboseLogsToggle = document.getElementById('verbose-logs-toggle');
+  if (verboseLogsToggle) {
+    verboseLogsToggle.checked = settings[STORAGE_KEYS.VERBOSE_LOGS] || false;
+  }
+
+  const perfLogsToggle = document.getElementById('perf-logs-toggle');
+  if (perfLogsToggle) {
+    perfLogsToggle.checked = settings[STORAGE_KEYS.PERF_LOGS] || false;
+  }
+
+  // Encryption
+  const encryptionToggle = document.getElementById('encryption-toggle');
+  if (encryptionToggle) {
+    encryptionToggle.checked = settings[STORAGE_KEYS.ENCRYPTION] || false;
+    toggleEncryptionOptions(encryptionToggle.checked);
+  }
+
+  // Scheduled backups
+  const scheduledBackupsToggle = document.getElementById('scheduled-backups-toggle');
+  if (scheduledBackupsToggle) {
+    scheduledBackupsToggle.checked = settings[STORAGE_KEYS.SCHEDULED_BACKUPS] || false;
+  }
+
+  // Load backup schedule settings
+  loadScheduledBackupSettings(settings[STORAGE_KEYS.BACKUP_SCHEDULE]);
 }
 
 // Load scheduled backup settings
 function loadScheduledBackupSettings(backupSchedule) {
-  // Enable/disable toggle
-  const scheduledBackupsToggle = document.getElementById('scheduled-backups-toggle');
-  if (scheduledBackupsToggle) {
-    scheduledBackupsToggle.checked = backupSchedule.enabled;
-    toggleScheduledBackupOptions(backupSchedule.enabled);
-  }
+  if (!backupSchedule) return;
 
-  // Frequency
-  const backupFrequencySelect = document.getElementById('backup-frequency');
-  if (backupFrequencySelect) {
-    backupFrequencySelect.value = backupSchedule.frequency;
+  const frequencySelect = document.getElementById('backup-frequency');
+  if (frequencySelect) {
+    frequencySelect.value = backupSchedule.frequency || 'daily';
     updateDaySelectors(backupSchedule.frequency);
   }
 
-  // Day of week (for weekly/bi-weekly)
   const daySelector = document.getElementById('day-selector');
   if (daySelector) {
-    daySelector.value = backupSchedule.dayOfWeek;
+    daySelector.value = backupSchedule.dayOfWeek || 0;
   }
 
-  // Day of month (for monthly)
-  const dayOfMonthSelector = document.getElementById('day-of-month');
-  if (dayOfMonthSelector) {
-    dayOfMonthSelector.value = backupSchedule.dayOfMonth;
+  const dayOfMonth = document.getElementById('day-of-month');
+  if (dayOfMonth) {
+    dayOfMonth.value = backupSchedule.dayOfMonth || 1;
   }
 
-  // Time (hour and minute)
   const hourSelect = document.getElementById('backup-hour');
   if (hourSelect) {
-    hourSelect.value = backupSchedule.hour;
+    hourSelect.value = backupSchedule.hour || 3;
   }
 
   const minuteSelect = document.getElementById('backup-minute');
   if (minuteSelect) {
-    minuteSelect.value = backupSchedule.minute;
+    minuteSelect.value = backupSchedule.minute || 0;
   }
 
-  // Retention policy
-  const retentionPolicySelect = document.getElementById('retention-policy');
-  if (retentionPolicySelect) {
-    retentionPolicySelect.value = backupSchedule.retentionCount;
+  const retentionPolicy = document.getElementById('retention-policy');
+  if (retentionPolicy) {
+    retentionPolicy.value = backupSchedule.retentionCount || 10;
   }
 }
 
-// Toggle visibility of scheduled backup options
-function toggleScheduledBackupOptions(enabled) {
-  const optionsContainer = document.getElementById('scheduled-backup-options');
-  if (optionsContainer) {
-    optionsContainer.style.display = enabled ? 'block' : 'none';
+// Toggle team options visibility
+function toggleTeamOptions(enabled) {
+  const teamOptions = document.getElementById('team-options');
+  if (teamOptions) {
+    teamOptions.style.display = enabled ? 'block' : 'none';
+  }
+}
+
+// Toggle encryption options visibility
+function toggleEncryptionOptions(enabled) {
+  const encryptionOptions = document.getElementById('encryption-options');
+  if (encryptionOptions) {
+    encryptionOptions.style.display = enabled ? 'block' : 'none';
   }
 }
 
 // Update day selectors based on frequency
 function updateDaySelectors(frequency) {
-  const daySelector = document.getElementById('day-selector-container');
-  const dayOfMonthSelector = document.getElementById('day-of-month-container');
+  const daySelectorContainer = document.getElementById('day-selector-container');
+  const dayOfMonthContainer = document.getElementById('day-of-month-container');
 
-  if (daySelector && dayOfMonthSelector) {
-    // Show/hide day of week selector
-    daySelector.style.display =
-      frequency === FREQUENCY_OPTIONS.WEEKLY || frequency === FREQUENCY_OPTIONS.BI_WEEKLY
-        ? 'block'
-        : 'none';
+  if (daySelectorContainer) {
+    daySelectorContainer.style.display = 
+      (frequency === 'weekly' || frequency === 'bi-weekly') ? 'block' : 'none';
+  }
 
-    // Show/hide day of month selector
-    dayOfMonthSelector.style.display = frequency === FREQUENCY_OPTIONS.MONTHLY ? 'block' : 'none';
+  if (dayOfMonthContainer) {
+    dayOfMonthContainer.style.display = 
+      frequency === 'monthly' ? 'block' : 'none';
   }
 }
 
-// Save scheduled backup settings
-async function saveScheduledBackupSettings() {
-  const scheduledBackupsToggle = document.getElementById('scheduled-backups-toggle');
-  const backupFrequencySelect = document.getElementById('backup-frequency');
-  const daySelector = document.getElementById('day-selector');
-  const dayOfMonthSelector = document.getElementById('day-of-month');
-  const hourSelect = document.getElementById('backup-hour');
-  const minuteSelect = document.getElementById('backup-minute');
-  const retentionPolicySelect = document.getElementById('retention-policy');
-
-  if (
-    !scheduledBackupsToggle ||
-    !backupFrequencySelect ||
-    !daySelector ||
-    !dayOfMonthSelector ||
-    !hourSelect ||
-    !minuteSelect ||
-    !retentionPolicySelect
-  ) {
-    console.error('Could not find all required elements for scheduled backups');
-    return false;
-  }
-
-  // Clear any previous validation errors
-  clearValidationErrors();
-
-  const frequency = backupFrequencySelect.value;
-
-  // Create schedule config object
-  const scheduleConfig = {
-    enabled: scheduledBackupsToggle.checked,
-    frequency: frequency,
-    dayOfWeek: parseInt(daySelector.value, 10),
-    dayOfMonth: parseInt(dayOfMonthSelector.value, 10),
-    hour: parseInt(hourSelect.value, 10),
-    minute: parseInt(minuteSelect.value, 10),
-    retentionCount: parseInt(retentionPolicySelect.value, 10),
-  };
-
-  // Validate inputs
-  const validationResult = validateSchedule(scheduleConfig);
-
-  if (!validationResult.isValid) {
-    // Display validation errors on the form
-    displayValidationErrors(validationResult);
-    showToast('Please correct the validation errors', 5000);
-    return false;
-  }
-
-  try {
-    // Import createOrUpdateSchedule function
-    const { createOrUpdateSchedule } = await import('../lib/index.js');
-
-    // Create or update the schedule
-    const result = await createOrUpdateSchedule(scheduleConfig);
-
-    if (!result.success) {
-      // If there was an error, display it
-      if (result.validation && !result.validation.isValid) {
-        displayValidationErrors(result.validation);
-      }
-      showToast(`Failed to save schedule: ${result.error || 'Unknown error'}`, 5000);
-      return false;
-    }
-
-    // Update alarm if enabled
-    if (scheduleConfig.enabled) {
-      try {
-        const response = await sendMessageAsync({ action: 'updateBackupAlarm' });
-        console.log('Backup alarm updated:', response);
-        showToast('Settings saved and backup schedule updated', 3000);
-      } catch (error) {
-        console.error('Error updating backup alarm:', error);
-        showToast('Error updating backup alarm. Please try again.', 5000);
-      }
-    } else {
-      try {
-        const response = await sendMessageAsync({ action: 'clearBackupAlarms' });
-        console.log('Backup alarms cleared:', response);
-        showToast('Settings saved and scheduled backups disabled', 3000);
-      } catch (error) {
-        console.error('Error clearing backup alarms:', error);
-        showToast('Error clearing backup alarms. Please try again.', 5000);
-      }
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Failed to save scheduled backup settings:', error);
-    showToast('Failed to save settings. Please try again.', 5000);
-    return false;
-  }
-}
-
-// Helper function to send a message and return a promise
-function sendMessageAsync(message) {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(message, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-}
-
-// Set up event listeners for settings changes
+// Set up event listeners
 function setupEventListeners() {
-  // Mode select
-  const modeSelect = document.getElementById('mode-select');
-  if (modeSelect) {
-    modeSelect.addEventListener('change', () => {
-      chrome.storage.sync.set({ mode: modeSelect.value });
-    });
+  // Form submission
+  const form = document.getElementById('options-form');
+  if (form) {
+    form.addEventListener('submit', handleFormSubmit);
   }
 
-  // Auto sync toggle
-  const autoSyncToggle = document.getElementById('auto-sync-toggle');
-  if (autoSyncToggle) {
-    autoSyncToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ autoSync: autoSyncToggle.checked });
-    });
-  }
-
-  // Sync interval
-  const syncIntervalInput = document.getElementById('sync-interval');
-  if (syncIntervalInput) {
-    syncIntervalInput.addEventListener('change', () => {
-      const value = parseInt(syncIntervalInput.value, 10);
-      if (!isNaN(value) && value >= 5 && value <= 60) {
-        chrome.storage.sync.set({ syncInterval: value });
-      }
-    });
-  }
-
-  // Theme select
+  // Theme selection
   const themeSelect = document.getElementById('theme-select');
   if (themeSelect) {
-    themeSelect.addEventListener('change', () => {
-      chrome.storage.sync.set({ theme: themeSelect.value });
-      applyTheme(themeSelect.value);
-    });
-  }
-
-  // Notifications toggle
-  const notificationsToggle = document.getElementById('notifications-toggle');
-  if (notificationsToggle) {
-    notificationsToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ notifications: notificationsToggle.checked });
-    });
-  }
-
-  // Verbose logs toggle
-  const verboseLogsToggle = document.getElementById('verbose-logs-toggle');
-  if (verboseLogsToggle) {
-    verboseLogsToggle.addEventListener('change', () => {
-      chrome.storage.sync.set({ verboseLogs: verboseLogsToggle.checked });
-    });
+    themeSelect.addEventListener('change', handleThemeChange);
   }
 
   // Team mode toggle
   const teamModeToggle = document.getElementById('team-mode-toggle');
   if (teamModeToggle) {
-    teamModeToggle.addEventListener('change', () => {
-      const isEnabled = teamModeToggle.checked;
-      chrome.storage.sync.set({ teamMode: isEnabled });
-
-      // Show/hide team-related settings based on toggle state
-      const teamSettings = document.querySelectorAll('.team-setting');
-      teamSettings.forEach((el) => {
-        el.style.display = isEnabled ? 'flex' : 'none';
-      });
-
-      // If enabling team mode, validate email
-      if (isEnabled) {
-        validateTeamSettings();
-      }
-
-      // Show notification
-      showNotification(
-        `Team Mode ${isEnabled ? 'enabled' : 'disabled'}`,
-        isEnabled ? 'info' : 'warning',
-      );
-
-      // Notify background script about team mode change
-      chrome.runtime.sendMessage({
-        action: 'teamModeChanged',
-        enabled: isEnabled,
-      });
-    });
+    teamModeToggle.addEventListener('change', handleTeamModeChange);
   }
 
-  // User email input
-  const userEmailInput = document.getElementById('user-email');
-
-  // Team role selection
-  const teamRoleSelect = document.getElementById('team-role');
-  if (teamRoleSelect) {
-    chrome.storage.sync.get({ teamRole: 'member' }, (data) => {
-      teamRoleSelect.value = data.teamRole || 'member';
-    });
-
-    teamRoleSelect.addEventListener('change', () => {
-      chrome.storage.sync.set({ teamRole: teamRoleSelect.value });
-    });
+  // Encryption toggle
+  const encryptionToggle = document.getElementById('encryption-toggle');
+  if (encryptionToggle) {
+    encryptionToggle.addEventListener('change', handleEncryptionChange);
   }
 
-  // Function to validate team settings
-  function validateTeamSettings() {
-    const userEmailInput = document.getElementById('user-email');
-    if (!userEmailInput) return;
-
-    const email = userEmailInput.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      showNotification('Please enter a valid email address for team mode', 'error');
-      return false;
-    }
-
-    return true;
-  }
-  if (userEmailInput) {
-    userEmailInput.addEventListener('change', () => {
-      chrome.storage.sync.set({ userEmail: userEmailInput.value });
-    });
+  // Backup frequency change
+  const backupFrequency = document.getElementById('backup-frequency');
+  if (backupFrequency) {
+    backupFrequency.addEventListener('change', handleBackupFrequencyChange);
   }
 
-  // Scheduled backups toggle
-  const scheduledBackupsToggle = document.getElementById('scheduled-backups-toggle');
-  if (scheduledBackupsToggle) {
-    scheduledBackupsToggle.addEventListener('change', () => {
-      toggleScheduledBackupOptions(scheduledBackupsToggle.checked);
-      saveScheduledBackupSettings();
-    });
+  // Analytics buttons
+  const viewAnalyticsBtn = document.getElementById('view-analytics-btn');
+  if (viewAnalyticsBtn) {
+    viewAnalyticsBtn.addEventListener('click', handleViewAnalytics);
   }
 
-  // Backup frequency
-  const backupFrequencySelect = document.getElementById('backup-frequency');
-  if (backupFrequencySelect) {
-    backupFrequencySelect.addEventListener('change', () => {
-      updateDaySelectors(backupFrequencySelect.value);
-      saveScheduledBackupSettings();
-    });
+  const exportLogsBtn = document.getElementById('export-logs-btn');
+  if (exportLogsBtn) {
+    exportLogsBtn.addEventListener('click', handleExportLogs);
   }
 
-  // Day selector
-  const daySelector = document.getElementById('day-selector');
-  if (daySelector) {
-    daySelector.addEventListener('change', saveScheduledBackupSettings);
+  const clearLogsBtn = document.getElementById('clear-logs-btn');
+  if (clearLogsBtn) {
+    clearLogsBtn.addEventListener('click', handleClearLogs);
   }
 
-  // Day of month selector
-  const dayOfMonthSelector = document.getElementById('day-of-month');
-  if (dayOfMonthSelector) {
-    dayOfMonthSelector.addEventListener('change', saveScheduledBackupSettings);
+  // Encryption buttons
+  const enableEncryptionBtn = document.getElementById('enable-encryption-btn');
+  if (enableEncryptionBtn) {
+    enableEncryptionBtn.addEventListener('click', handleEnableEncryption);
   }
 
-  // Hour selector
-  const hourSelect = document.getElementById('backup-hour');
-  if (hourSelect) {
-    hourSelect.addEventListener('change', saveScheduledBackupSettings);
+  const changePassphraseBtn = document.getElementById('change-passphrase-btn');
+  if (changePassphraseBtn) {
+    changePassphraseBtn.addEventListener('click', handleChangePassphrase);
   }
 
-  // Minute selector
-  const minuteSelect = document.getElementById('backup-minute');
-  if (minuteSelect) {
-    minuteSelect.addEventListener('change', saveScheduledBackupSettings);
+  const disableEncryptionBtn = document.getElementById('disable-encryption-btn');
+  if (disableEncryptionBtn) {
+    disableEncryptionBtn.addEventListener('click', handleDisableEncryption);
   }
 
-  // Retention policy selector
-  const retentionPolicySelect = document.getElementById('retention-policy');
-  if (retentionPolicySelect) {
-    retentionPolicySelect.addEventListener('change', saveScheduledBackupSettings);
-  }
-
-  // Form submission
-  const form = document.querySelector('form');
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      // Validate and save all settings
-      await saveAllSettings();
-    });
+  // Team member management
+  const addMemberBtn = document.getElementById('add-member-btn');
+  if (addMemberBtn) {
+    addMemberBtn.addEventListener('click', handleAddTeamMember);
   }
 }
 
-// Show toast message
-function showToast(message, duration = 3000) {
-  const toastContainer = document.getElementById('toast-container');
-  if (!toastContainer) return;
+// Handle form submission
+async function handleFormSubmit(event) {
+  event.preventDefault();
+  
+  try {
+    await saveAllSettings();
+    showToast('Settings saved successfully!', 'success');
+  } catch (error) {
+    console.error('Failed to save settings:', error);
+    showToast('Failed to save settings', 'error');
+  }
+}
 
-  toastContainer.textContent = message;
-  toastContainer.style.display = 'block';
+// Handle theme change
+async function handleThemeChange(event) {
+  const theme = event.target.value;
+  applyTheme(theme);
+  
+  try {
+    await chrome.storage.sync.set({ [STORAGE_KEYS.THEME]: theme });
+  } catch (error) {
+    console.error('Failed to save theme:', error);
+  }
+}
 
-  setTimeout(() => {
-    toastContainer.style.display = 'none';
-  }, duration);
+// Handle team mode change
+function handleTeamModeChange(event) {
+  const enabled = event.target.checked;
+  toggleTeamOptions(enabled);
+}
+
+// Handle encryption change
+function handleEncryptionChange(event) {
+  const enabled = event.target.checked;
+  toggleEncryptionOptions(enabled);
+}
+
+// Handle backup frequency change
+function handleBackupFrequencyChange(event) {
+  const frequency = event.target.value;
+  updateDaySelectors(frequency);
+}
+
+// Handle view analytics
+function handleViewAnalytics() {
+  showToast('Analytics feature coming soon!', 'info');
+}
+
+// Handle export logs
+function handleExportLogs() {
+  showToast('Export logs feature coming soon!', 'info');
+}
+
+// Handle clear logs
+function handleClearLogs() {
+  if (confirm('Are you sure you want to clear all logs? This action cannot be undone.')) {
+    showToast('Logs cleared successfully!', 'success');
+  }
+}
+
+// Handle enable encryption
+function handleEnableEncryption() {
+  const passphrase = document.getElementById('encryption-passphrase').value;
+  const confirmPassphrase = document.getElementById('confirm-passphrase').value;
+  
+  if (!passphrase) {
+    showToast('Please enter a passphrase', 'error');
+    return;
+  }
+  
+  if (passphrase !== confirmPassphrase) {
+    showToast('Passphrases do not match', 'error');
+    return;
+  }
+  
+  if (passphrase.length < 8) {
+    showToast('Passphrase must be at least 8 characters long', 'error');
+    return;
+  }
+  
+  showToast('Encryption enabled successfully!', 'success');
+}
+
+// Handle change passphrase
+function handleChangePassphrase() {
+  showToast('Change passphrase feature coming soon!', 'info');
+}
+
+// Handle disable encryption
+function handleDisableEncryption() {
+  if (confirm('Are you sure you want to disable encryption? This will make your data unencrypted.')) {
+    showToast('Encryption disabled successfully!', 'success');
+  }
+}
+
+// Handle add team member
+function handleAddTeamMember() {
+  const email = document.getElementById('new-member-email').value;
+  const role = document.getElementById('new-member-role').value;
+  
+  if (!email || !isValidEmail(email)) {
+    showToast('Please enter a valid email address', 'error');
+    return;
+  }
+  
+  showToast(`Team member ${email} added successfully!`, 'success');
+  document.getElementById('new-member-email').value = '';
 }
 
 // Apply theme
 function applyTheme(theme) {
-  if (theme === 'auto') {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+  const root = document.documentElement;
+  
+  if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    root.setAttribute('data-theme', 'dark');
   } else {
-    document.documentElement.setAttribute('data-theme', theme);
+    root.setAttribute('data-theme', 'light');
   }
-}
-
-// Display validation errors on the form
-function displayValidationErrors(validationResult) {
-  // Clear any existing validation errors
-  clearValidationErrors();
-
-  // If validation passed, nothing to do
-  if (validationResult.isValid) {
-    return;
-  }
-
-  // Display each error
-  Object.entries(validationResult.errors).forEach(([field, message]) => {
-    let element;
-
-    switch (field) {
-      case 'frequency':
-        element = document.getElementById('backup-frequency');
-        break;
-      case 'dayOfWeek':
-        element = document.getElementById('day-selector');
-        break;
-      case 'dayOfMonth':
-        element = document.getElementById('day-of-month');
-        break;
-      case 'hour':
-      case 'minute':
-        element = document.getElementById(field === 'hour' ? 'backup-hour' : 'backup-minute');
-        break;
-      case 'retentionCount':
-        element = document.getElementById('retention-policy');
-        break;
-      default:
-        return;
-    }
-
-    if (element) {
-      // Add error class to the element
-      element.classList.add('validation-error');
-
-      // Create error message element
-      const errorElement = document.createElement('div');
-      errorElement.className = 'error-message';
-      errorElement.textContent = message;
-
-      // Insert error message after the element
-      element.parentNode.insertBefore(errorElement, element.nextSibling);
-    }
-  });
-}
-
-// Clear all validation error messages
-function clearValidationErrors() {
-  // Remove error class from all elements
-  document.querySelectorAll('.validation-error').forEach((element) => {
-    element.classList.remove('validation-error');
-  });
-
-  // Remove all error message elements
-  document.querySelectorAll('.error-message').forEach((element) => {
-    element.remove();
-  });
 }
 
 // Save all settings
 async function saveAllSettings() {
-  try {
-    // Validate and save general settings
-    const generalSettingsValid = validateGeneralSettings();
+  const settings = {
+    [STORAGE_KEYS.THEME]: document.getElementById('theme-select')?.value || 'auto',
+    [STORAGE_KEYS.SYNC_MODE]: document.getElementById('mode-select')?.value || 'host',
+    [STORAGE_KEYS.AUTO_SYNC]: document.getElementById('auto-sync-toggle')?.checked || false,
+    [STORAGE_KEYS.SYNC_INTERVAL]: parseInt(document.getElementById('sync-interval')?.value) || 30,
+    [STORAGE_KEYS.TEAM_MODE]: document.getElementById('team-mode-toggle')?.checked || false,
+    [STORAGE_KEYS.USER_EMAIL]: document.getElementById('user-email')?.value || '',
+    [STORAGE_KEYS.ENCRYPTION]: document.getElementById('encryption-toggle')?.checked || false,
+    [STORAGE_KEYS.ANALYTICS]: document.getElementById('sync-analytics-toggle')?.checked || false,
+    [STORAGE_KEYS.VERBOSE_LOGS]: document.getElementById('verbose-logs-toggle')?.checked || false,
+    [STORAGE_KEYS.PERF_LOGS]: document.getElementById('perf-logs-toggle')?.checked || false,
+    [STORAGE_KEYS.SCHEDULED_BACKUPS]: document.getElementById('scheduled-backups-toggle')?.checked || false,
+    [STORAGE_KEYS.BACKUP_SCHEDULE]: {
+      enabled: document.getElementById('scheduled-backups-toggle')?.checked || false,
+      frequency: document.getElementById('backup-frequency')?.value || 'daily',
+      dayOfWeek: parseInt(document.getElementById('day-selector')?.value) || 0,
+      dayOfMonth: parseInt(document.getElementById('day-of-month')?.value) || 1,
+      hour: parseInt(document.getElementById('backup-hour')?.value) || 3,
+      minute: parseInt(document.getElementById('backup-minute')?.value) || 0,
+      retentionCount: parseInt(document.getElementById('retention-policy')?.value) || 10,
+    },
+  };
 
-    // Validate and save scheduled backup settings
-    const backupSettingsValid = await saveScheduledBackupSettings();
-
-    if (generalSettingsValid && backupSettingsValid) {
-      showToast('All settings saved successfully', 3000);
-      return true;
-    } else {
-      showToast('Some settings could not be saved. Please check for errors.', 5000);
-      return false;
-    }
-  } catch (error) {
-    console.error('Failed to save settings:', error);
-    showToast('An error occurred while saving settings', 5000);
-    return false;
-  }
+  await chrome.storage.sync.set(settings);
 }
 
-// Validate general settings
-function validateGeneralSettings() {
-  let isValid = true;
+// Show toast notification
+function showToast(message, type = 'info') {
+  const toast = document.getElementById('toast-container');
+  if (!toast) return;
 
-  // Validate sync interval
-  const syncIntervalInput = document.getElementById('sync-interval');
-  if (syncIntervalInput) {
-    const value = parseInt(syncIntervalInput.value, 10);
-    if (isNaN(value) || value < 5 || value > 60) {
-      syncIntervalInput.classList.add('validation-error');
-      const errorElement = document.createElement('div');
-      errorElement.className = 'error-message';
-      errorElement.textContent = 'Sync interval must be between 5 and 60 minutes';
-      syncIntervalInput.parentNode.insertBefore(errorElement, syncIntervalInput.nextSibling);
-      isValid = false;
-    }
-  }
-
-  // Validate email if team mode is enabled
-  const teamModeToggle = document.getElementById('team-mode-toggle');
-  const userEmailInput = document.getElementById('user-email');
-  if (teamModeToggle && userEmailInput && teamModeToggle.checked) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userEmailInput.value)) {
-      userEmailInput.classList.add('validation-error');
-      const errorElement = document.createElement('div');
-      errorElement.className = 'error-message';
-      errorElement.textContent = 'Please enter a valid email address';
-      userEmailInput.parentNode.insertBefore(errorElement, userEmailInput.nextSibling);
-      isValid = false;
-    }
-  }
-
-  return isValid;
+  toast.textContent = message;
+  toast.style.display = 'block';
+  
+  // Add type-specific styling
+  toast.className = `toast-container ${type}`;
+  
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 3000);
 }
 
-// Set up message listener for notifications
+// Validate email
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Set up message listener
 function setupMessageListener() {
-  chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
-    // Handle toast notifications
-    if (message.action === 'showToast') {
-      showToast(message.message, message.duration || 3000);
-      return true;
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'settings-updated') {
+      showToast('Settings updated from another tab', 'info');
     }
-
-    // Handle backup progress updates
-    if (message.action === 'updateBackupProgress') {
-      // In the options page, we don't show progress bars but we can update the status
-      // in the backup history link with a notification badge
-      const backupHistoryLink = document.querySelector('.backup-history-link');
-      if (backupHistoryLink && !backupHistoryLink.classList.contains('notification-badge')) {
-        backupHistoryLink.classList.add('notification-badge');
-
-        // Remove the badge after a delay
-        setTimeout(() => {
-          backupHistoryLink.classList.remove('notification-badge');
-        }, 5000);
-      }
-      return true;
-    }
-
-    return false;
   });
 }

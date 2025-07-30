@@ -14,15 +14,7 @@ jest.mock('../lib/backup/retention-policy.js', () => {
   };
 });
 
-// Mock chrome.storage.local
-global.chrome = {
-  storage: {
-    local: {
-      get: jest.fn(),
-      set: jest.fn(),
-    },
-  },
-};
+
 
 describe('Retention Policy Manager', () => {
   beforeEach(() => {
@@ -299,3 +291,4 @@ describe('Retention Policy Manager', () => {
     });
   });
 });
+

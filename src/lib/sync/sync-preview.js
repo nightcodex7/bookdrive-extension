@@ -1,119 +1,185 @@
-// sync-preview.js - Preview sync changes before applying them
+/**
+ * Sync Preview Module
+ * Shows what changes will be made before syncing
+ */
 
-import { diffBookmarks } from '../bookmarks.js';
-import { calculateDelta } from './sync-optimizer.js';
+import { exportBookmarksState } from '../bookmarks.js';
+import { getAuthToken, ensureBookDriveFolder } from '../auth/drive-auth.js';
+import { listFiles, downloadBookmarksFile } from '../drive.js';
 
 /**
- * Generate a preview of sync changes without applying them
- * @param {Array} localTree
- * @param {Array} remoteTree
- * @returns {Promise<Object>} Sync preview object
+ * Generate sync preview
+ * @param {string} mode - Sync mode
+ * @returns {Promise<Object>} Preview data
  */
-export async function generateSyncPreview(localTree, remoteTree) {
-  // Use both the original diffBookmarks and our new calculateDelta for compatibility
-  const diff = diffBookmarks(localTree, remoteTree);
-  const delta = calculateDelta(localTree, remoteTree);
+export async function generateSyncPreview(mode = 'host-to-many') {
+  try {
+    // Get auth token
+    const token = await getAuthToken(false);
+    if (!token) {
+      throw new Error('Authentication required');
+    }
 
-  // Convert delta format to match the expected preview format
-  const deltaAdded = delta.added;
-  const deltaRemoved = delta.deleted;
-  const deltaModified = delta.modified.map((item) => ({
-    local: item.source,
-    remote: item.target,
-    changes: item.changes,
-  }));
+    // Export current local bookmarks
+    const localState = await exportBookmarksState();
 
-  const preview = {
-    added: diff.added,
-    removed: diff.removed,
-    modified: diff.changed,
-    // Add the delta information for more detailed analysis
-    delta: {
-      added: deltaAdded,
-      removed: deltaRemoved,
-      modified: deltaModified,
-      unchanged: delta.unchanged,
-    },
-    summary: {
-      totalChanges: diff.added.length + diff.removed.length + diff.changed.length,
-      addedCount: diff.added.length,
-      removedCount: diff.removed.length,
-      modifiedCount: diff.changed.length,
-      // Add more detailed statistics from delta calculation
-      unchangedCount: delta.unchanged.length,
-      totalBookmarks: delta.total,
-      changePercentage: delta.total > 0 ? Math.round((delta.changes / delta.total) * 100) : 0,
-    },
-  };
+    // Get remote state
+    let remoteState = null;
+    try {
+      const folderId = await ensureBookDriveFolder(false);
+      if (folderId) {
+        const files = await listFiles(
+          folderId,
+          token,
+          `name contains 'bookmarks_sync' and mimeType='application/json'`,
+        );
+        if (files.length > 0) {
+          const latestFile = files.sort(
+            (a, b) => new Date(b.modifiedTime) - new Date(a.modifiedTime),
+          )[0];
+          remoteState = await downloadBookmarksFile(latestFile.id, token);
+        }
+      }
+    } catch (error) {
+      console.log('No remote state found for preview');
+    }
 
-  return preview;
+    // Generate preview
+    const preview = await analyzeChanges(localState, remoteState, mode);
+
+    return {
+      success: true,
+      preview,
+      localBookmarkCount: localState.bookmarks.length,
+      remoteBookmarkCount: remoteState ? remoteState.bookmarks.length : 0,
+    };
+  } catch (error) {
+    console.error('Failed to generate sync preview:', error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
 }
 
 /**
- * Format sync preview for display
- * @param {Object} preview
- * @returns {string} Formatted preview text
+ * Analyze changes between local and remote states
+ * @param {Object} localState - Local bookmark state
+ * @param {Object} remoteState - Remote bookmark state
+ * @param {string} mode - Sync mode
+ * @returns {Object} Change analysis
  */
-export function formatSyncPreview(preview) {
-  const lines = [];
-
-  // Summary section with enhanced statistics
-  lines.push(`Sync Preview - ${preview.summary.totalChanges} total changes:`);
-  lines.push(`  • ${preview.summary.addedCount} bookmarks to be added`);
-  lines.push(`  • ${preview.summary.removedCount} bookmarks to be removed`);
-  lines.push(`  • ${preview.summary.modifiedCount} bookmarks to be modified`);
-
-  // Add additional statistics if available from delta calculation
-  if (preview.summary.unchangedCount !== undefined) {
-    lines.push(`  • ${preview.summary.unchangedCount} bookmarks unchanged`);
+async function analyzeChanges(localState, remoteState, mode) {
+  if (!remoteState) {
+    return {
+      type: 'initial_sync',
+      changes: {
+        added: localState.bookmarks.length,
+        updated: 0,
+        removed: 0,
+        conflicts: 0,
+      },
+      details: {
+        newBookmarks: localState.bookmarks,
+        updatedBookmarks: [],
+        removedBookmarks: [],
+        conflicts: [],
+      },
+    };
   }
 
-  if (preview.summary.totalBookmarks !== undefined) {
-    lines.push(`\nTotal bookmarks: ${preview.summary.totalBookmarks}`);
-    lines.push(`Change percentage: ${preview.summary.changePercentage}%`);
+  const changes = {
+    added: 0,
+    updated: 0,
+    removed: 0,
+    conflicts: 0,
+  };
+
+  const details = {
+    newBookmarks: [],
+    updatedBookmarks: [],
+    removedBookmarks: [],
+    conflicts: [],
+  };
+
+  // Create maps for efficient lookup
+  const localBookmarks = new Map(localState.bookmarks.map((b) => [b.id, b]));
+  const remoteBookmarks = new Map(remoteState.bookmarks.map((b) => [b.id, b]));
+
+  // Find new bookmarks (in local but not in remote)
+  for (const [id, localBookmark] of localBookmarks) {
+    if (!remoteBookmarks.has(id)) {
+      changes.added++;
+      details.newBookmarks.push(localBookmark);
+    }
   }
 
-  // Added bookmarks section
-  if (preview.added.length > 0) {
-    lines.push('\nBookmarks to be added:');
-    preview.added.forEach((bookmark) => {
-      lines.push(`  + ${bookmark.title} ${bookmark.url ? `(${bookmark.url})` : ''}`);
-    });
-  }
-
-  // Removed bookmarks section
-  if (preview.removed.length > 0) {
-    lines.push('\nBookmarks to be removed:');
-    preview.removed.forEach((bookmark) => {
-      lines.push(`  - ${bookmark.title} ${bookmark.url ? `(${bookmark.url})` : ''}`);
-    });
-  }
-
-  // Modified bookmarks section with enhanced change details
-  if (preview.modified.length > 0) {
-    lines.push('\nBookmarks to be modified:');
-    preview.modified.forEach(({ local, remote }) => {
-      lines.push(`  ~ ${local.title} → ${remote.title}`);
-      if (local.url !== remote.url) {
-        lines.push(`    URL: ${local.url} → ${remote.url}`);
+  // Find updated bookmarks and conflicts
+  for (const [id, localBookmark] of localBookmarks) {
+    const remoteBookmark = remoteBookmarks.get(id);
+    if (remoteBookmark) {
+      if (localBookmark.dateModified !== remoteBookmark.dateModified) {
+        if (mode === 'global') {
+          // In global mode, this is a conflict
+          changes.conflicts++;
+          details.conflicts.push({
+            id,
+            local: localBookmark,
+            remote: remoteBookmark,
+          });
+        } else {
+          // In host-to-many mode, local wins
+          changes.updated++;
+          details.updatedBookmarks.push({
+            id,
+            local: localBookmark,
+            remote: remoteBookmark,
+          });
+        }
       }
-    });
+    }
   }
 
-  // Add optimization recommendations based on the sync preview
-  lines.push('\nSync Optimization Recommendations:');
-
-  if (preview.summary.totalChanges > 100) {
-    lines.push('  • Large sync detected - Consider using incremental sync');
+  // Find removed bookmarks (in remote but not in local)
+  for (const [id, remoteBookmark] of remoteBookmarks) {
+    if (!localBookmarks.has(id)) {
+      changes.removed++;
+      details.removedBookmarks.push(remoteBookmark);
+    }
   }
 
-  if (preview.summary.changePercentage < 10) {
-    lines.push('  • Small change percentage - Delta sync recommended');
+  return {
+    type: 'sync_preview',
+    changes,
+    details,
+  };
+}
+
+/**
+ * Get sync preview summary
+ * @param {Object} preview - Preview data
+ * @returns {Object} Summary
+ */
+export function getPreviewSummary(preview) {
+  const { changes } = preview;
+  const totalChanges = changes.added + changes.updated + changes.removed + changes.conflicts;
+
+  let summary = '';
+  if (totalChanges === 0) {
+    summary = 'No changes detected';
+  } else {
+    const parts = [];
+    if (changes.added > 0) parts.push(`${changes.added} new`);
+    if (changes.updated > 0) parts.push(`${changes.updated} updated`);
+    if (changes.removed > 0) parts.push(`${changes.removed} removed`);
+    if (changes.conflicts > 0) parts.push(`${changes.conflicts} conflicts`);
+    summary = parts.join(', ');
   }
 
-  if (preview.summary.addedCount > preview.summary.removedCount + preview.summary.modifiedCount) {
-    lines.push('  • Mostly additions - Consider batch processing');
-  }
-
-  return lines.join('\n');
+  return {
+    totalChanges,
+    summary,
+    hasConflicts: changes.conflicts > 0,
+    requiresAttention: changes.conflicts > 0,
+  };
 }

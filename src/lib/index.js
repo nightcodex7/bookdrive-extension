@@ -26,3 +26,6 @@ export * from './scheduling/index.js';
 
 // Backup functionality
 export * from './backup/index.js';
+
+// Feature management
+export { featureManager } from '../config/features.js';

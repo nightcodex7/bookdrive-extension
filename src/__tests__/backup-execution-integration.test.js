@@ -6,7 +6,7 @@ import {
   triggerBackup,
   checkAndTriggerRetries,
   triggerBackupRetry,
-} from '../lib/alarm-manager.js';
+} from '../lib/scheduling/alarm-manager.js';
 
 import {
   getBackupsDueForRetry,
@@ -14,41 +14,25 @@ import {
   enforceRetentionPolicy,
   BACKUP_TYPES,
   BACKUP_STATUS,
-} from '../lib/backup-metadata.js';
+} from '../lib/backup/backup-metadata.js';
 
-import { getSchedule, isBackupDue, updateBackupTime } from '../lib/scheduler.js';
+import { getSchedule, isBackupDue, updateBackupTime } from '../lib/scheduling/scheduler.js';
 
-import { canPerformOperation, RESOURCE_STATE } from '../lib/resource-monitor.js';
+import { canPerformOperation, RESOURCE_STATE } from '../lib/scheduling/resource-monitor.js';
 
 import {
   shouldDeferBackup,
   deferBackup,
   processNextMissedBackup,
-} from '../lib/adaptive-scheduler.js';
+} from '../lib/scheduling/adaptive-scheduler.js';
 
 // Mock all the modules
-jest.mock('../lib/scheduler.js');
-jest.mock('../lib/backup-metadata.js');
-jest.mock('../lib/resource-monitor.js');
-jest.mock('../lib/adaptive-scheduler.js');
+jest.mock('../lib/scheduling/scheduler.js');
+jest.mock('../lib/backup/backup-metadata.js');
+jest.mock('../lib/scheduling/resource-monitor.js');
+jest.mock('../lib/scheduling/adaptive-scheduler.js');
 
-// Mock chrome API
-global.chrome = {
-  alarms: {
-    create: jest.fn(),
-    clear: jest.fn(),
-  },
-  runtime: {
-    sendMessage: jest.fn(),
-    lastError: null,
-  },
-  storage: {
-    local: {
-      get: jest.fn(),
-      set: jest.fn(),
-    },
-  },
-};
+
 
 describe('Backup Execution Integration Tests', () => {
   beforeEach(() => {
@@ -68,11 +52,13 @@ describe('Backup Execution Integration Tests', () => {
 
     // Default scheduler mock implementations
     getSchedule.mockResolvedValue({
-      enabled: true,
-      frequency: 'daily',
-      hour: 3,
-      minute: 0,
-      nextBackupTime: new Date(2025, 6, 18, 3, 0, 0).toISOString(),
+      schedule: {
+        enabled: true,
+        frequency: 'daily',
+        hour: 3,
+        minute: 0,
+        nextBackupTime: new Date(2025, 6, 18, 3, 0, 0).toISOString(),
+      },
     });
 
     isBackupDue.mockResolvedValue(false);
@@ -325,3 +311,4 @@ describe('Backup Execution Integration Tests', () => {
     });
   });
 });
+

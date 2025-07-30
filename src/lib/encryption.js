@@ -6,7 +6,7 @@
  * @param {Uint8Array} salt
  * @returns {Promise<CryptoKey>}
  */
-async function deriveKey(passphrase, salt) {
+export async function deriveKey(passphrase, salt) {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',

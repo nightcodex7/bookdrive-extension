@@ -18,15 +18,7 @@ import {
   BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
 
-// Mock chrome.storage.local
-global.chrome = {
-  storage: {
-    local: {
-      get: jest.fn(),
-      set: jest.fn(),
-    },
-  },
-};
+
 
 describe('Backup Metadata Extended Tests', () => {
   beforeEach(() => {
@@ -518,3 +510,4 @@ describe('Backup Metadata Extended Tests', () => {
     });
   });
 });
+
