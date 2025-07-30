@@ -530,7 +530,7 @@ function createConflictModal(conflict, index) {
       </div>
     </div>
   `;
-  
+
   return modal;
 }
 
@@ -544,12 +544,12 @@ function resolveConflictByIndex(index, strategy) {
 
   const conflict = conflicts[index];
   const resolution = resolveConflicts([conflict], strategy);
-  
+
   if (resolution.resolvedCount > 0) {
     resolvedConflicts.push(index);
     updateConflictList();
     updateProgress();
-    
+
     // Show success message
     showToast(`Conflict resolved using ${strategy} strategy`, 'success');
   }
@@ -585,14 +585,14 @@ function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
-  
+
   const container = document.getElementById('toast-container') || document.body;
   container.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.classList.add('show');
   }, 100);
-  
+
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => {

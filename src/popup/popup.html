@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BookDrive</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    />
     <link rel="stylesheet" href="popup.css" />
     <style>
       /* Universal Scrollbar System - Single scrollbar for entire extension */
-      html, body {
+      html,
+      body {
         width: 500px !important;
         height: 650px !important;
         min-width: 500px !important;
@@ -23,7 +27,7 @@
         -webkit-text-size-adjust: 100% !important;
         -ms-text-size-adjust: 100% !important;
       }
-      
+
       /* Main container with universal scrollbar */
       .onboarding-screen,
       .welcome-screen,
@@ -35,7 +39,7 @@
         overflow: auto !important; /* Only this container has scrollbar */
         position: relative !important;
       }
-      
+
       /* Remove scrollbars from all other containers */
       .onboarding-container,
       .welcome-container,
@@ -45,7 +49,7 @@
       .tab-content {
         overflow: visible !important; /* Remove individual scrollbars */
       }
-      
+
       /* Ensure proper content flow without individual scrollbars */
       .popup-content {
         height: auto !important;
@@ -53,7 +57,7 @@
         padding: 1.25rem !important;
         overflow: visible !important;
       }
-      
+
       /* Ensure buttons are clickable and accessible */
       button {
         cursor: pointer !important;
@@ -64,17 +68,18 @@
         touch-action: manipulation !important;
         min-height: 44px !important;
       }
-      
+
       /* Ensure proper image rendering */
       img {
         image-rendering: -webkit-optimize-contrast !important;
         image-rendering: crisp-edges !important;
         object-fit: contain !important;
       }
-      
+
       /* Responsive design for smaller screens - but maintain extension size */
       @media (max-width: 500px) {
-        html, body {
+        html,
+        body {
           width: 500px !important;
           height: 650px !important;
           min-width: 500px !important;
@@ -82,20 +87,20 @@
           max-width: 500px !important;
           max-height: 650px !important;
         }
-        
+
         .popup-content {
           padding: 0.75rem !important;
         }
-        
+
         .popup-header {
           padding: 0.5rem 0.75rem !important;
         }
-        
+
         .popup-nav {
           padding: 0 0.75rem !important;
         }
       }
-      
+
       /* High DPI display optimizations */
       @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
         img {
@@ -144,21 +149,33 @@
             </div>
           </div>
 
-                     <div class="auth-section">
-             <button id="onboarding-signin-btn" class="google-signin-btn">
-               <svg class="google-icon" viewBox="0 0 24 24">
-                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-               </svg>
-               <span>Sign in with Google</span>
-             </button>
-             
-             <div id="browser-info" class="browser-info">
-               <!-- Browser compatibility info will be inserted here -->
-             </div>
-           </div>
+          <div class="auth-section">
+            <button id="onboarding-signin-btn" class="google-signin-btn">
+              <svg class="google-icon" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              <span>Sign in with Google</span>
+            </button>
+
+            <div id="browser-info" class="browser-info">
+              <!-- Browser compatibility info will be inserted here -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -214,7 +231,7 @@
             <button id="header-menu-btn" class="icon-btn" title="Menu">
               <span class="material-icons">more_vert</span>
             </button>
-            <div id="dropdown-menu" class="dropdown-menu" style="display: none;">
+            <div id="dropdown-menu" class="dropdown-menu" style="display: none">
               <button type="button" class="dropdown-item" id="menu-settings">
                 <span class="material-icons">settings</span>
                 <span>Settings</span>
@@ -360,18 +377,20 @@
           </div>
 
           <!-- Feature-specific options -->
-          <div id="feature-options" style="display: none;">
+          <div id="feature-options" style="display: none">
             <div class="section-title">
               <span class="material-icons">extension</span>
               Advanced Features
             </div>
-            <div class="option-group" id="conflict-resolution-option" style="display: none;">
+            <div class="option-group" id="conflict-resolution-option" style="display: none">
               <div class="option-item">
                 <input type="checkbox" id="conflict-resolution-toggle" />
-                <label for="conflict-resolution-toggle" class="option-label">Conflict Resolution</label>
+                <label for="conflict-resolution-toggle" class="option-label"
+                  >Conflict Resolution</label
+                >
               </div>
             </div>
-            <div class="option-group" id="shared-folders-option" style="display: none;">
+            <div class="option-group" id="shared-folders-option" style="display: none">
               <div class="option-item">
                 <input type="checkbox" id="shared-folders-toggle" />
                 <label for="shared-folders-toggle" class="option-label">Shared Folders</label>
@@ -443,7 +462,12 @@
           </div>
           <div class="search-section">
             <div class="search-input-group">
-              <input type="text" id="advanced-search-input" placeholder="Search bookmarks..." class="search-input">
+              <input
+                type="text"
+                id="advanced-search-input"
+                placeholder="Search bookmarks..."
+                class="search-input"
+              />
               <button class="search-btn" id="advanced-search-btn">
                 <span class="material-icons">search</span>
               </button>

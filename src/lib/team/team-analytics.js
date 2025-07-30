@@ -1,6 +1,6 @@
 /**
  * team-analytics.js - Team Dashboards and Collaborative Analytics
- * 
+ *
  * This module provides team-focused dashboards and collaborative analytics
  * for monitoring team activities, performance metrics, and collaboration insights.
  */
@@ -65,19 +65,19 @@ export async function getTeamDashboard(options = {}) {
 
     // Get team members
     const teamMembers = await getTeamMembers();
-    
+
     // Get shared folders
     const sharedFolders = await getSharedFolders();
-    
+
     // Get activity data
     const activities = await getTeamActivities(startDate, endDate);
-    
+
     // Get performance metrics
     const performance = await getTeamPerformance(startDate, endDate);
-    
+
     // Get collaboration insights
     const collaboration = await getCollaborationInsights(startDate, endDate);
-    
+
     // Get member statistics
     const memberStats = await getMemberStatistics(teamMembers, startDate, endDate);
 
@@ -86,7 +86,7 @@ export async function getTeamDashboard(options = {}) {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       lastUpdated: new Date().toISOString(),
-      
+
       // Overview metrics
       overview: {
         totalMembers: teamMembers.length,
@@ -96,14 +96,14 @@ export async function getTeamDashboard(options = {}) {
         totalActivities: activities.length,
         syncSuccessRate: performance.syncSuccessRate,
       },
-      
+
       // Activity summary
       activity: {
         recent: activities.slice(0, 10),
         summary: summarizeActivities(activities),
         trends: calculateActivityTrends(activities, period),
       },
-      
+
       // Performance metrics
       performance: {
         syncMetrics: performance.syncMetrics,
@@ -111,7 +111,7 @@ export async function getTeamDashboard(options = {}) {
         backupMetrics: performance.backupMetrics,
         trends: performance.trends,
       },
-      
+
       // Collaboration insights
       collaboration: {
         topContributors: collaboration.topContributors,
@@ -119,7 +119,7 @@ export async function getTeamDashboard(options = {}) {
         collaborationPatterns: collaboration.patterns,
         engagementMetrics: collaboration.engagement,
       },
-      
+
       // Member statistics
       members: {
         active: memberStats.activeMembers,
@@ -127,7 +127,7 @@ export async function getTeamDashboard(options = {}) {
         topContributors: memberStats.topContributors,
         activityByMember: memberStats.activityByMember,
       },
-      
+
       // Folder analytics
       folders: {
         total: sharedFolders.length,
@@ -156,19 +156,19 @@ export async function getTeamActivities(startDate, endDate) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     // Get activity log file
     const files = await listFiles(folderId, token, `name='${TEAM_ACTIVITY_LOG_FILE}'`);
-    
+
     if (files.length === 0) {
       return [];
     }
-    
+
     const activityLog = await downloadFile(files[0].id, token);
     const activities = activityLog.activities || [];
-    
+
     // Filter activities by date range
-    return activities.filter(activity => {
+    return activities.filter((activity) => {
       const activityDate = new Date(activity.timestamp);
       return activityDate >= startDate && activityDate <= endDate;
     });
@@ -189,35 +189,35 @@ export async function recordTeamActivity(type, data, userId = null) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     const activity = {
       id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
       data,
-      userId: userId || await getCurrentUserEmail(),
+      userId: userId || (await getCurrentUserEmail()),
       timestamp: new Date().toISOString(),
       deviceId: await getOrCreateDeviceId(),
     };
-    
+
     // Get existing activity log
     const files = await listFiles(folderId, token, `name='${TEAM_ACTIVITY_LOG_FILE}'`);
     let activityLog = { activities: [] };
-    
+
     if (files.length > 0) {
       activityLog = await downloadFile(files[0].id, token);
     }
-    
+
     // Add new activity
     activityLog.activities.push(activity);
-    
+
     // Keep only last 10000 activities
     if (activityLog.activities.length > 10000) {
       activityLog.activities = activityLog.activities.slice(-10000);
     }
-    
+
     // Save updated activity log
     await uploadFile(TEAM_ACTIVITY_LOG_FILE, activityLog, folderId, token);
-    
+
     console.log('Team activity recorded:', activity);
   } catch (error) {
     console.error('Failed to record team activity:', error);
@@ -233,27 +233,31 @@ export async function recordTeamActivity(type, data, userId = null) {
 export async function getTeamPerformance(startDate, endDate) {
   try {
     const activities = await getTeamActivities(startDate, endDate);
-    
+
     // Calculate sync metrics
-    const syncActivities = activities.filter(a => 
-      a.type === ACTIVITY_TYPES.SYNC_COMPLETED || a.type === ACTIVITY_TYPES.SYNC_FAILED
+    const syncActivities = activities.filter(
+      (a) => a.type === ACTIVITY_TYPES.SYNC_COMPLETED || a.type === ACTIVITY_TYPES.SYNC_FAILED,
     );
-    
-    const successfulSyncs = syncActivities.filter(a => a.type === ACTIVITY_TYPES.SYNC_COMPLETED).length;
-    const failedSyncs = syncActivities.filter(a => a.type === ACTIVITY_TYPES.SYNC_FAILED).length;
+
+    const successfulSyncs = syncActivities.filter(
+      (a) => a.type === ACTIVITY_TYPES.SYNC_COMPLETED,
+    ).length;
+    const failedSyncs = syncActivities.filter((a) => a.type === ACTIVITY_TYPES.SYNC_FAILED).length;
     const totalSyncs = successfulSyncs + failedSyncs;
-    
+
     // Calculate conflict metrics
-    const conflictActivities = activities.filter(a => a.type === ACTIVITY_TYPES.CONFLICT_RESOLVED);
-    
-    // Calculate backup metrics
-    const backupActivities = activities.filter(a => 
-      a.type === ACTIVITY_TYPES.BACKUP_CREATED || a.type === ACTIVITY_TYPES.BACKUP_RESTORED
+    const conflictActivities = activities.filter(
+      (a) => a.type === ACTIVITY_TYPES.CONFLICT_RESOLVED,
     );
-    
+
+    // Calculate backup metrics
+    const backupActivities = activities.filter(
+      (a) => a.type === ACTIVITY_TYPES.BACKUP_CREATED || a.type === ACTIVITY_TYPES.BACKUP_RESTORED,
+    );
+
     // Calculate trends
     const trends = calculatePerformanceTrends(activities, startDate, endDate);
-    
+
     return {
       syncMetrics: {
         total: totalSyncs,
@@ -269,8 +273,8 @@ export async function getTeamPerformance(startDate, endDate) {
         averageResolutionTime: calculateAverageConflictResolutionTime(conflictActivities),
       },
       backupMetrics: {
-        created: backupActivities.filter(a => a.type === ACTIVITY_TYPES.BACKUP_CREATED).length,
-        restored: backupActivities.filter(a => a.type === ACTIVITY_TYPES.BACKUP_RESTORED).length,
+        created: backupActivities.filter((a) => a.type === ACTIVITY_TYPES.BACKUP_CREATED).length,
+        restored: backupActivities.filter((a) => a.type === ACTIVITY_TYPES.BACKUP_RESTORED).length,
         totalSize: calculateTotalBackupSize(backupActivities),
       },
       trends,
@@ -296,10 +300,10 @@ export async function getCollaborationInsights(startDate, endDate) {
   try {
     const activities = await getTeamActivities(startDate, endDate);
     const teamMembers = await getTeamMembers();
-    
+
     // Calculate top contributors
     const contributorStats = {};
-    activities.forEach(activity => {
+    activities.forEach((activity) => {
       const userId = activity.userId;
       if (!contributorStats[userId]) {
         contributorStats[userId] = {
@@ -310,9 +314,9 @@ export async function getCollaborationInsights(startDate, endDate) {
           conflictsResolved: 0,
         };
       }
-      
+
       contributorStats[userId].activities++;
-      
+
       switch (activity.type) {
         case ACTIVITY_TYPES.BOOKMARK_ADDED:
           contributorStats[userId].bookmarksAdded++;
@@ -325,14 +329,14 @@ export async function getCollaborationInsights(startDate, endDate) {
           break;
       }
     });
-    
+
     const topContributors = Object.values(contributorStats)
       .sort((a, b) => b.activities - a.activities)
       .slice(0, 10);
-    
+
     // Calculate popular folders
     const folderActivity = {};
-    activities.forEach(activity => {
+    activities.forEach((activity) => {
       if (activity.data && activity.data.folderId) {
         const folderId = activity.data.folderId;
         if (!folderActivity[folderId]) {
@@ -341,18 +345,18 @@ export async function getCollaborationInsights(startDate, endDate) {
         folderActivity[folderId]++;
       }
     });
-    
+
     const popularFolders = Object.entries(folderActivity)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
       .map(([folderId, count]) => ({ folderId, activityCount: count }));
-    
+
     // Calculate collaboration patterns
     const patterns = analyzeCollaborationPatterns(activities, teamMembers);
-    
+
     // Calculate engagement metrics
     const engagement = calculateEngagementMetrics(activities, teamMembers);
-    
+
     return {
       topContributors,
       popularFolders,
@@ -380,31 +384,31 @@ export async function getCollaborationInsights(startDate, endDate) {
 export async function getMemberStatistics(teamMembers, startDate, endDate) {
   try {
     const activities = await getTeamActivities(startDate, endDate);
-    
+
     // Calculate activity by member
     const activityByMember = {};
     const memberActivityCounts = {};
-    
-    activities.forEach(activity => {
+
+    activities.forEach((activity) => {
       const userId = activity.userId;
       if (!activityByMember[userId]) {
         activityByMember[userId] = [];
       }
       activityByMember[userId].push(activity);
-      
+
       memberActivityCounts[userId] = (memberActivityCounts[userId] || 0) + 1;
     });
-    
+
     // Determine active vs inactive members
     const activeThreshold = 5; // Minimum activities to be considered active
-    const activeMembers = teamMembers.filter(member => 
-      memberActivityCounts[member.email] >= activeThreshold
+    const activeMembers = teamMembers.filter(
+      (member) => memberActivityCounts[member.email] >= activeThreshold,
     );
-    
-    const inactiveMembers = teamMembers.filter(member => 
-      memberActivityCounts[member.email] < activeThreshold
+
+    const inactiveMembers = teamMembers.filter(
+      (member) => memberActivityCounts[member.email] < activeThreshold,
     );
-    
+
     // Get top contributors
     const topContributors = Object.entries(memberActivityCounts)
       .sort(([, a], [, b]) => b - a)
@@ -412,9 +416,9 @@ export async function getMemberStatistics(teamMembers, startDate, endDate) {
       .map(([email, count]) => ({
         email,
         activityCount: count,
-        member: teamMembers.find(m => m.email === email),
+        member: teamMembers.find((m) => m.email === email),
       }));
-    
+
     return {
       activeMembers: activeMembers.length,
       inactiveMembers: inactiveMembers.length,
@@ -442,22 +446,22 @@ export async function generateTeamReport(options = {}) {
     const period = options.period || ANALYTICS_PERIODS.MONTH;
     const startDate = options.startDate || getPeriodStartDate(period);
     const endDate = options.endDate || new Date();
-    
+
     // Get dashboard data
     const dashboard = await getTeamDashboard({ period, startDate, endDate });
-    
+
     // Generate insights
     const insights = generateInsights(dashboard);
-    
+
     // Generate recommendations
     const recommendations = generateRecommendations(dashboard);
-    
+
     const report = {
       period,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       generatedAt: new Date().toISOString(),
-      
+
       summary: {
         totalMembers: dashboard.overview.totalMembers,
         activeMembers: dashboard.overview.activeMembers,
@@ -465,20 +469,20 @@ export async function generateTeamReport(options = {}) {
         syncSuccessRate: dashboard.overview.syncSuccessRate,
         totalActivities: dashboard.overview.totalActivities,
       },
-      
+
       insights,
       recommendations,
-      
+
       detailedMetrics: {
         performance: dashboard.performance,
         collaboration: dashboard.collaboration,
         members: dashboard.members,
       },
     };
-    
+
     // Save report
     await saveTeamReport(report);
-    
+
     return report;
   } catch (error) {
     console.error('Failed to generate team report:', error);
@@ -497,12 +501,12 @@ export async function exportTeamAnalytics(options = {}) {
     const period = options.period || ANALYTICS_PERIODS.MONTH;
     const startDate = options.startDate || getPeriodStartDate(period);
     const endDate = options.endDate || new Date();
-    
+
     // Get all analytics data
     const dashboard = await getTeamDashboard({ period, startDate, endDate });
     const activities = await getTeamActivities(startDate, endDate);
     const performance = await getTeamPerformance(startDate, endDate);
-    
+
     const exportData = {
       metadata: {
         exportedAt: new Date().toISOString(),
@@ -515,7 +519,7 @@ export async function exportTeamAnalytics(options = {}) {
       activities,
       performance,
     };
-    
+
     switch (format.toLowerCase()) {
       case 'json':
         return JSON.stringify(exportData, null, 2);
@@ -539,7 +543,7 @@ export async function exportTeamAnalytics(options = {}) {
  */
 function getPeriodStartDate(period) {
   const now = new Date();
-  
+
   switch (period) {
     case ANALYTICS_PERIODS.DAY:
       return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -566,14 +570,14 @@ function getPeriodStartDate(period) {
  */
 function summarizeActivities(activities) {
   const summary = {};
-  
-  activities.forEach(activity => {
+
+  activities.forEach((activity) => {
     if (!summary[activity.type]) {
       summary[activity.type] = 0;
     }
     summary[activity.type]++;
   });
-  
+
   return summary;
 }
 
@@ -586,11 +590,11 @@ function summarizeActivities(activities) {
 function calculateActivityTrends(activities, period) {
   // Group activities by time period
   const grouped = {};
-  
-  activities.forEach(activity => {
+
+  activities.forEach((activity) => {
     const date = new Date(activity.timestamp);
     let key;
-    
+
     switch (period) {
       case ANALYTICS_PERIODS.DAY:
         key = date.toISOString().split('T')[0];
@@ -606,13 +610,13 @@ function calculateActivityTrends(activities, period) {
       default:
         key = date.toISOString().split('T')[0];
     }
-    
+
     if (!grouped[key]) {
       grouped[key] = 0;
     }
     grouped[key]++;
   });
-  
+
   return grouped;
 }
 
@@ -640,11 +644,11 @@ function calculatePerformanceTrends(activities, startDate, endDate) {
  */
 function calculateAverageSyncDuration(syncActivities) {
   const durations = syncActivities
-    .filter(a => a.data && a.data.duration)
-    .map(a => a.data.duration);
-  
+    .filter((a) => a.data && a.data.duration)
+    .map((a) => a.data.duration);
+
   if (durations.length === 0) return 0;
-  
+
   return durations.reduce((sum, duration) => sum + duration, 0) / durations.length;
 }
 
@@ -655,11 +659,11 @@ function calculateAverageSyncDuration(syncActivities) {
  */
 function calculateAverageConflictResolutionTime(conflictActivities) {
   const resolutionTimes = conflictActivities
-    .filter(a => a.data && a.data.resolutionTime)
-    .map(a => a.data.resolutionTime);
-  
+    .filter((a) => a.data && a.data.resolutionTime)
+    .map((a) => a.data.resolutionTime);
+
   if (resolutionTimes.length === 0) return 0;
-  
+
   return resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length;
 }
 
@@ -670,7 +674,7 @@ function calculateAverageConflictResolutionTime(conflictActivities) {
  */
 function calculateTotalBackupSize(backupActivities) {
   return backupActivities
-    .filter(a => a.data && a.data.size)
+    .filter((a) => a.data && a.data.size)
     .reduce((sum, a) => sum + a.data.size, 0);
 }
 
@@ -700,22 +704,21 @@ function analyzeCollaborationPatterns(activities, teamMembers) {
  */
 function calculateEngagementMetrics(activities, teamMembers) {
   const memberActivity = {};
-  
-  activities.forEach(activity => {
+
+  activities.forEach((activity) => {
     const userId = activity.userId;
     if (!memberActivity[userId]) {
       memberActivity[userId] = 0;
     }
     memberActivity[userId]++;
   });
-  
+
   const totalMembers = teamMembers.length;
   const activeMembers = Object.keys(memberActivity).length;
-  
+
   return {
     engagementRate: totalMembers > 0 ? (activeMembers / totalMembers) * 100 : 0,
-    averageActivitiesPerMember: activeMembers > 0 ? 
-      activities.length / activeMembers : 0,
+    averageActivitiesPerMember: activeMembers > 0 ? activities.length / activeMembers : 0,
     memberActivity,
   };
 }
@@ -729,7 +732,7 @@ function calculateEngagementMetrics(activities, teamMembers) {
  */
 async function getPopularFolders(sharedFolders, startDate, endDate) {
   // This would analyze folder popularity based on activity
-  return sharedFolders.slice(0, 10).map(folder => ({
+  return sharedFolders.slice(0, 10).map((folder) => ({
     id: folder.id,
     name: folder.name,
     activityCount: Math.floor(Math.random() * 100), // Placeholder
@@ -788,10 +791,11 @@ function flattenBookmarksToArray(tree, bookmarks) {
  */
 function generateInsights(dashboard) {
   const insights = [];
-  
+
   // Activity insights
   if (dashboard.overview.totalActivities > 0) {
-    const avgActivitiesPerMember = dashboard.overview.totalActivities / dashboard.overview.totalMembers;
+    const avgActivitiesPerMember =
+      dashboard.overview.totalActivities / dashboard.overview.totalMembers;
     insights.push({
       type: 'activity',
       title: 'Team Activity Level',
@@ -799,7 +803,7 @@ function generateInsights(dashboard) {
       priority: avgActivitiesPerMember > 10 ? 'high' : 'medium',
     });
   }
-  
+
   // Sync insights
   if (dashboard.overview.syncSuccessRate < 90) {
     insights.push({
@@ -809,7 +813,7 @@ function generateInsights(dashboard) {
       priority: 'high',
     });
   }
-  
+
   // Collaboration insights
   if (dashboard.collaboration.topContributors.length > 0) {
     const topContributor = dashboard.collaboration.topContributors[0];
@@ -820,7 +824,7 @@ function generateInsights(dashboard) {
       priority: 'medium',
     });
   }
-  
+
   return insights;
 }
 
@@ -831,7 +835,7 @@ function generateInsights(dashboard) {
  */
 function generateRecommendations(dashboard) {
   const recommendations = [];
-  
+
   // Sync recommendations
   if (dashboard.overview.syncSuccessRate < 90) {
     recommendations.push({
@@ -841,7 +845,7 @@ function generateRecommendations(dashboard) {
       priority: 'high',
     });
   }
-  
+
   // Engagement recommendations
   const engagementRate = (dashboard.members.active / dashboard.overview.totalMembers) * 100;
   if (engagementRate < 70) {
@@ -852,7 +856,7 @@ function generateRecommendations(dashboard) {
       priority: 'medium',
     });
   }
-  
+
   // Performance recommendations
   if (dashboard.performance.syncMetrics.averageDuration > 30000) {
     recommendations.push({
@@ -862,7 +866,7 @@ function generateRecommendations(dashboard) {
       priority: 'medium',
     });
   }
-  
+
   return recommendations;
 }
 
@@ -875,7 +879,7 @@ async function saveDashboardData(dashboard) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     await uploadFile(TEAM_ANALYTICS_FILE, dashboard, folderId, token);
   } catch (error) {
     console.error('Failed to save dashboard data:', error);
@@ -891,7 +895,7 @@ async function saveTeamReport(report) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     const filename = `team_report_${new Date().toISOString().split('T')[0]}.json`;
     await uploadFile(filename, report, folderId, token);
   } catch (error) {
@@ -911,5 +915,9 @@ function convertToCSV(data) {
 }
 
 // Placeholder functions
-async function getCurrentUserEmail() { return 'user@example.com'; }
-async function getOrCreateDeviceId() { return 'device_placeholder'; } 
+async function getCurrentUserEmail() {
+  return 'user@example.com';
+}
+async function getOrCreateDeviceId() {
+  return 'device_placeholder';
+}

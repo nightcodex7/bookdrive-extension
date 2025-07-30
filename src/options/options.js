@@ -3,13 +3,41 @@
 
 // Import required modules
 import { featureManager } from '../lib/index.js';
-import { getTeamMembers, addTeamMember, removeTeamMember, updateMemberRole } from '../lib/team/team-manager.js';
-import { getEnhancedTeamConfig, setUserPermission, getUserPermissions, logDetailedActivity } from '../lib/team/enhanced-team-manager.js';
-import { getTeamDashboard, recordTeamActivity, exportTeamAnalytics } from '../lib/team/team-analytics.js';
-import { createPublicCollection, getPublicCollection, searchPublicCollections } from '../lib/public-collections.js';
-import { createAdvancedSmartFolder, getSmartFolders, bulkAddTags, bulkRemoveTags, advancedSearch } from '../lib/bookmarks.js';
+import {
+  getTeamMembers,
+  addTeamMember,
+  removeTeamMember,
+  updateMemberRole,
+} from '../lib/team/team-manager.js';
+import {
+  getEnhancedTeamConfig,
+  setUserPermission,
+  getUserPermissions,
+  logDetailedActivity,
+} from '../lib/team/enhanced-team-manager.js';
+import {
+  getTeamDashboard,
+  recordTeamActivity,
+  exportTeamAnalytics,
+} from '../lib/team/team-analytics.js';
+import {
+  createPublicCollection,
+  getPublicCollection,
+  searchPublicCollections,
+} from '../lib/public-collections.js';
+import {
+  createAdvancedSmartFolder,
+  getSmartFolders,
+  bulkAddTags,
+  bulkRemoveTags,
+  advancedSearch,
+} from '../lib/bookmarks.js';
 import { resolveConflictsAdvanced, CONFLICT_STRATEGIES } from '../lib/sync/conflict-resolver.js';
-import { AdvancedEncryptionManager, ENCRYPTION_ALGORITHMS, getRecommendedConfig } from '../lib/encryption/advanced-encryption.js';
+import {
+  AdvancedEncryptionManager,
+  ENCRYPTION_ALGORITHMS,
+  getRecommendedConfig,
+} from '../lib/encryption/advanced-encryption.js';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -154,7 +182,7 @@ function initializeConflictStrategySelector() {
     Object.entries(CONFLICT_STRATEGIES).forEach(([key, value]) => {
       const option = document.createElement('option');
       option.value = value;
-      option.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      option.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
       strategySelect.appendChild(option);
     });
   }
@@ -167,7 +195,7 @@ function initializeEncryptionAlgorithmSelector() {
     Object.entries(ENCRYPTION_ALGORITHMS).forEach(([key, value]) => {
       const option = document.createElement('option');
       option.value = value;
-      option.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      option.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
       algorithmSelect.appendChild(option);
     });
   }
@@ -302,13 +330,15 @@ function applySettingsToUI(settings) {
 
   const encryptionAlgorithm = document.getElementById('encryption-algorithm');
   if (encryptionAlgorithm) {
-    encryptionAlgorithm.value = settings[STORAGE_KEYS.ENCRYPTION_ALGORITHM] || ENCRYPTION_ALGORITHMS.AES_GCM;
+    encryptionAlgorithm.value =
+      settings[STORAGE_KEYS.ENCRYPTION_ALGORITHM] || ENCRYPTION_ALGORITHMS.AES_GCM;
   }
 
   // Conflict strategy
   const conflictStrategy = document.getElementById('conflict-strategy');
   if (conflictStrategy) {
-    conflictStrategy.value = settings[STORAGE_KEYS.CONFLICT_STRATEGY] || CONFLICT_STRATEGIES.INTELLIGENT_MERGE;
+    conflictStrategy.value =
+      settings[STORAGE_KEYS.CONFLICT_STRATEGY] || CONFLICT_STRATEGIES.INTELLIGENT_MERGE;
   }
 
   // Scheduled backups
@@ -367,7 +397,9 @@ function updateTeamMembersList() {
     return;
   }
 
-  const membersHtml = currentTeamMembers.map(member => `
+  const membersHtml = currentTeamMembers
+    .map(
+      (member) => `
     <div class="team-member-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--md-spacing-sm); border: 1px solid var(--md-outline); border-radius: var(--md-radius-sm); margin-bottom: var(--md-spacing-sm);">
       <div>
         <strong>${member.email}</strong>
@@ -377,7 +409,9 @@ function updateTeamMembersList() {
         <span class="material-icons">delete</span>
       </button>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 
   teamMembersList.innerHTML = membersHtml;
 }
@@ -392,7 +426,9 @@ function updateSmartFoldersList() {
     return;
   }
 
-  const foldersHtml = currentSmartFolders.map(folder => `
+  const foldersHtml = currentSmartFolders
+    .map(
+      (folder) => `
     <div class="smart-folder-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--md-spacing-sm); border: 1px solid var(--md-outline); border-radius: var(--md-radius-sm); margin-bottom: var(--md-spacing-sm);">
       <div>
         <strong>${folder.name}</strong>
@@ -402,7 +438,9 @@ function updateSmartFoldersList() {
         <span class="material-icons">edit</span>
       </button>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 
   smartFoldersList.innerHTML = foldersHtml;
 }
@@ -417,7 +455,9 @@ function updatePublicCollectionsList() {
     return;
   }
 
-  const collectionsHtml = currentPublicCollections.map(collection => `
+  const collectionsHtml = currentPublicCollections
+    .map(
+      (collection) => `
     <div class="collection-item" style="display: flex; justify-content: space-between; align-items: center; padding: var(--md-spacing-sm); border: 1px solid var(--md-outline); border-radius: var(--md-radius-sm); margin-bottom: var(--md-spacing-sm);">
       <div>
         <strong>${collection.name}</strong>
@@ -428,7 +468,9 @@ function updatePublicCollectionsList() {
         <span class="material-icons">edit</span>
       </button>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 
   collectionsList.innerHTML = collectionsHtml;
 }
@@ -613,7 +655,7 @@ async function handleViewAnalytics() {
   try {
     const dashboard = await getTeamDashboard();
     showToast('Analytics dashboard loaded successfully!', 'success');
-    
+
     // Open analytics page
     window.open('../analytics/analytics.html', '_blank');
   } catch (error) {
@@ -626,7 +668,7 @@ async function handleViewAnalytics() {
 async function handleExportLogs() {
   try {
     const analytics = await exportTeamAnalytics({ format: 'csv' });
-    
+
     // Create and download file
     const blob = new Blob([analytics], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -637,7 +679,7 @@ async function handleExportLogs() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     showToast('Analytics exported successfully!', 'success');
   } catch (error) {
     console.error('Failed to export logs:', error);
@@ -653,9 +695,9 @@ async function handleClearLogs() {
       await chrome.storage.local.remove([
         'bookDriveSyncLogs',
         'bookDriveErrorLogs',
-        'bookDrivePerformanceLogs'
+        'bookDrivePerformanceLogs',
       ]);
-      
+
       showToast('Logs cleared successfully!', 'success');
     } catch (error) {
       console.error('Failed to clear logs:', error);
@@ -690,15 +732,15 @@ async function handleEnableEncryption() {
     const testData = 'test';
     const encrypted = await encryptionManager.encrypt(testData, passphrase, { algorithm });
     const decrypted = await encryptionManager.decrypt(encrypted, passphrase);
-    
+
     if (decrypted === testData) {
       // Save encryption settings
       await chrome.storage.sync.set({
         [STORAGE_KEYS.ENCRYPTION]: true,
         [STORAGE_KEYS.ENCRYPTION_PASSPHRASE]: passphrase,
-        [STORAGE_KEYS.ENCRYPTION_ALGORITHM]: algorithm
+        [STORAGE_KEYS.ENCRYPTION_ALGORITHM]: algorithm,
       });
-      
+
       showToast('Encryption enabled successfully!', 'success');
       updateEncryptionStatus(true);
     } else {
@@ -732,17 +774,17 @@ async function handleChangePassphrase() {
     const testData = 'test';
     const encrypted = await encryptionManager.encrypt(testData, currentPassphrase);
     const decrypted = await encryptionManager.decrypt(encrypted, currentPassphrase);
-    
+
     if (decrypted === testData) {
       // Test new passphrase
       const newEncrypted = await encryptionManager.encrypt(testData, newPassphrase);
       const newDecrypted = await encryptionManager.decrypt(newEncrypted, newPassphrase);
-      
+
       if (newDecrypted === testData) {
         await chrome.storage.sync.set({
-          [STORAGE_KEYS.ENCRYPTION_PASSPHRASE]: newPassphrase
+          [STORAGE_KEYS.ENCRYPTION_PASSPHRASE]: newPassphrase,
         });
-        
+
         showToast('Passphrase changed successfully!', 'success');
       } else {
         showToast('New passphrase test failed', 'error');
@@ -766,13 +808,13 @@ async function handleDisableEncryption() {
     const testData = 'test';
     const encrypted = await encryptionManager.encrypt(testData, passphrase);
     const decrypted = await encryptionManager.decrypt(encrypted, passphrase);
-    
+
     if (decrypted === testData) {
       await chrome.storage.sync.set({
         [STORAGE_KEYS.ENCRYPTION]: false,
-        [STORAGE_KEYS.ENCRYPTION_PASSPHRASE]: ''
+        [STORAGE_KEYS.ENCRYPTION_PASSPHRASE]: '',
       });
-      
+
       showToast('Encryption disabled successfully!', 'success');
       updateEncryptionStatus(false);
     } else {
@@ -845,9 +887,9 @@ async function handleCreatePublicCollection() {
       description,
       visibility,
       tags: [],
-      category: 'general'
+      category: 'general',
     };
-    
+
     await createPublicCollection(collectionData);
     await loadPublicCollections(); // Reload collections
     document.getElementById('collection-name').value = '';
@@ -864,7 +906,7 @@ async function handleResolveConflicts() {
   try {
     // Get conflicts from storage or API
     const conflicts = []; // This would be populated with actual conflicts
-    
+
     if (conflicts.length === 0) {
       showToast('No conflicts found to resolve', 'info');
       return;
@@ -872,7 +914,7 @@ async function handleResolveConflicts() {
 
     const strategy = document.getElementById('conflict-strategy').value;
     const resolved = await resolveConflictsAdvanced(conflicts, strategy);
-    
+
     showToast(`Resolved ${resolved.length} conflicts successfully!`, 'success');
   } catch (error) {
     console.error('Failed to resolve conflicts:', error);
@@ -885,7 +927,7 @@ function handlePassphraseInput(event) {
   const passphrase = event.target.value;
   const strengthIndicator = document.getElementById('passphrase-strength');
   const confirmSection = document.getElementById('confirm-passphrase-section');
-  
+
   if (passphrase.length > 0) {
     const strength = calculatePassphraseStrength(passphrase);
     updatePassphraseStrengthIndicator(strength);
@@ -900,7 +942,7 @@ function handlePassphraseInput(event) {
 function handleConfirmPassphraseInput(event) {
   const passphrase = document.getElementById('encryption-passphrase').value;
   const confirmPassphrase = event.target.value;
-  
+
   if (confirmPassphrase.length > 0) {
     if (passphrase === confirmPassphrase) {
       event.target.classList.remove('validation-error');
@@ -917,14 +959,14 @@ function handleConfirmPassphraseInput(event) {
 // Calculate passphrase strength
 function calculatePassphraseStrength(passphrase) {
   let score = 0;
-  
+
   if (passphrase.length >= 8) score += 1;
   if (passphrase.length >= 12) score += 1;
   if (/[a-z]/.test(passphrase)) score += 1;
   if (/[A-Z]/.test(passphrase)) score += 1;
   if (/[0-9]/.test(passphrase)) score += 1;
   if (/[^A-Za-z0-9]/.test(passphrase)) score += 1;
-  
+
   if (score <= 2) return 'weak';
   if (score <= 4) return 'medium';
   if (score <= 5) return 'strong';
@@ -935,28 +977,32 @@ function calculatePassphraseStrength(passphrase) {
 function updatePassphraseStrengthIndicator(strength) {
   const strengthIndicator = document.getElementById('passphrase-strength');
   if (!strengthIndicator) return;
-  
+
   const strengthText = {
-    'weak': 'Weak',
-    'medium': 'Medium',
-    'strong': 'Strong',
-    'very-strong': 'Very Strong'
+    weak: 'Weak',
+    medium: 'Medium',
+    strong: 'Strong',
+    'very-strong': 'Very Strong',
   };
-  
+
   const strengthColor = {
-    'weak': 'var(--md-error)',
-    'medium': 'var(--md-secondary)',
-    'strong': 'var(--md-tertiary)',
-    'very-strong': 'var(--md-primary)'
+    weak: 'var(--md-error)',
+    medium: 'var(--md-secondary)',
+    strong: 'var(--md-tertiary)',
+    'very-strong': 'var(--md-primary)',
   };
-  
+
   strengthIndicator.innerHTML = `
     <div style="display: flex; align-items: center; gap: var(--md-spacing-sm); margin-top: var(--md-spacing-xs);">
       <span style="color: ${strengthColor[strength]}; font-weight: 500;">${strengthText[strength]}</span>
       <div style="display: flex; gap: 2px;">
-        ${[1, 2, 3, 4, 5].map(i => `
+        ${[1, 2, 3, 4, 5]
+          .map(
+            (i) => `
           <div style="width: 20px; height: 4px; background: ${i <= (strength === 'weak' ? 1 : strength === 'medium' ? 2 : strength === 'strong' ? 4 : 5) ? strengthColor[strength] : 'var(--md-outline)'}; border-radius: 2px;"></div>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
     </div>
   `;
@@ -967,7 +1013,7 @@ function updatePassphraseStrengthIndicator(strength) {
 function updateEncryptionStatus(enabled) {
   const statusBadge = document.getElementById('encryption-status');
   if (!statusBadge) return;
-  
+
   if (enabled) {
     statusBadge.className = 'status-badge enabled';
     statusBadge.innerHTML = '<span class="material-icons">lock</span> Encryption Enabled';
@@ -1001,11 +1047,14 @@ async function saveAllSettings() {
     [STORAGE_KEYS.TEAM_MODE]: document.getElementById('team-mode-toggle')?.checked || false,
     [STORAGE_KEYS.USER_EMAIL]: document.getElementById('user-email')?.value || '',
     [STORAGE_KEYS.ENCRYPTION]: document.getElementById('encryption-toggle')?.checked || false,
-    [STORAGE_KEYS.ENCRYPTION_ALGORITHM]: document.getElementById('encryption-algorithm')?.value || ENCRYPTION_ALGORITHMS.AES_GCM,
-    [STORAGE_KEYS.SYNC_ANALYTICS]: document.getElementById('sync-analytics-toggle')?.checked || false,
+    [STORAGE_KEYS.ENCRYPTION_ALGORITHM]:
+      document.getElementById('encryption-algorithm')?.value || ENCRYPTION_ALGORITHMS.AES_GCM,
+    [STORAGE_KEYS.SYNC_ANALYTICS]:
+      document.getElementById('sync-analytics-toggle')?.checked || false,
     [STORAGE_KEYS.VERBOSE_LOGS]: document.getElementById('verbose-logs-toggle')?.checked || false,
     [STORAGE_KEYS.PERF_LOGS]: document.getElementById('perf-logs-toggle')?.checked || false,
-    [STORAGE_KEYS.CONFLICT_STRATEGY]: document.getElementById('conflict-strategy')?.value || CONFLICT_STRATEGIES.INTELLIGENT_MERGE,
+    [STORAGE_KEYS.CONFLICT_STRATEGY]:
+      document.getElementById('conflict-strategy')?.value || CONFLICT_STRATEGIES.INTELLIGENT_MERGE,
     [STORAGE_KEYS.SCHEDULED_BACKUPS]:
       document.getElementById('scheduled-backups-toggle')?.checked || false,
     [STORAGE_KEYS.BACKUP_SCHEDULE]: {
@@ -1055,7 +1104,7 @@ function setupMessageListener() {
 }
 
 // Global functions for HTML onclick handlers
-window.removeTeamMember = async function(email) {
+window.removeTeamMember = async function (email) {
   try {
     await removeTeamMember(email);
     await loadTeamData();
@@ -1066,10 +1115,10 @@ window.removeTeamMember = async function(email) {
   }
 };
 
-window.editSmartFolder = function(folderId) {
+window.editSmartFolder = function (folderId) {
   showToast('Smart folder editor coming soon!', 'info');
 };
 
-window.editPublicCollection = function(collectionId) {
+window.editPublicCollection = function (collectionId) {
   showToast('Public collection editor coming soon!', 'info');
 };

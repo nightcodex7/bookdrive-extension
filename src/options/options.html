@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <title>BookDrive Advanced Settings</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+    />
     <style>
       /* Material Design 3 Variables */
       :root {
@@ -12,22 +15,22 @@
         --md-primary-container: #e8f0fe;
         --md-on-primary: #ffffff;
         --md-on-primary-container: #174ea6;
-        
+
         --md-secondary: #5f6368;
         --md-secondary-container: #f1f3f4;
         --md-on-secondary: #ffffff;
         --md-on-secondary-container: #3c4043;
-        
+
         --md-tertiary: #34a853;
         --md-tertiary-container: #e6f4ea;
         --md-on-tertiary: #ffffff;
         --md-on-tertiary-container: #137333;
-        
+
         --md-error: #d93025;
         --md-error-container: #fce8e6;
         --md-on-error: #ffffff;
         --md-on-error-container: #a50e0e;
-        
+
         --md-surface: #ffffff;
         --md-surface-container: #f8f9fa;
         --md-surface-container-high: #f1f3f4;
@@ -35,58 +38,59 @@
         --md-surface-variant: #f1f3f4;
         --md-on-surface: #202124;
         --md-on-surface-variant: #5f6368;
-        
+
         --md-outline: #dadce0;
         --md-outline-variant: #e8eaed;
-        
+
         --md-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
         --md-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
         --md-elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-        
-        --md-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+        --md-font-family:
+          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --md-font-size-small: 0.75rem;
         --md-font-size-body: 0.875rem;
         --md-font-size-title: 1.25rem;
         --md-font-size-headline: 1.5rem;
-        
+
         --md-spacing-xs: 0.25rem;
         --md-spacing-sm: 0.5rem;
         --md-spacing-md: 0.75rem;
         --md-spacing-lg: 1.25rem;
         --md-spacing-xl: 1.75rem;
         --md-spacing-xxl: 2.25rem;
-        
+
         --md-radius-sm: 0.5rem;
         --md-radius-md: 0.75rem;
         --md-radius-lg: 1rem;
-        
+
         --md-transition-fast: 0.15s ease-out;
         --md-transition-normal: 0.25s ease-out;
         --md-transition-slow: 0.35s ease-out;
       }
 
       /* Dark Theme */
-      [data-theme="dark"] {
+      [data-theme='dark'] {
         --md-primary: #8ab4f8;
         --md-primary-container: #174ea6;
         --md-on-primary: #202124;
         --md-on-primary-container: #e8f0fe;
-        
+
         --md-secondary: #9aa0a6;
         --md-secondary-container: #3c4043;
         --md-on-secondary: #202124;
         --md-on-secondary-container: #f1f3f4;
-        
+
         --md-tertiary: #81c995;
         --md-tertiary-container: #137333;
         --md-on-tertiary: #202124;
         --md-on-tertiary-container: #e6f4ea;
-        
+
         --md-error: #f28b82;
         --md-error-container: #a50e0e;
         --md-on-error: #202124;
         --md-on-error-container: #fce8e6;
-        
+
         --md-surface: #202124;
         --md-surface-container: #2d2e30;
         --md-surface-container-high: #3c4043;
@@ -94,7 +98,7 @@
         --md-surface-variant: #3c4043;
         --md-on-surface: #e8eaed;
         --md-on-surface-variant: #9aa0a6;
-        
+
         --md-outline: #5f6368;
         --md-outline-variant: #3c4043;
       }
@@ -113,7 +117,9 @@
         padding: var(--md-spacing-xl);
         max-width: 800px;
         margin: 0 auto;
-        transition: background-color var(--md-transition-normal), color var(--md-transition-normal);
+        transition:
+          background-color var(--md-transition-normal),
+          color var(--md-transition-normal);
       }
 
       .header {
@@ -256,7 +262,7 @@
 
       .toggle-slider:before {
         position: absolute;
-        content: "";
+        content: '';
         height: 26px;
         width: 26px;
         left: 4px;
@@ -440,11 +446,11 @@
         body {
           padding: var(--md-spacing-lg);
         }
-        
+
         .btn-group {
           flex-direction: column;
         }
-        
+
         .btn {
           width: 100%;
           justify-content: center;
@@ -473,15 +479,22 @@
             </div>
             <h2 class="card-title">Appearance</h2>
           </div>
-          
+
           <div class="form-group">
             <label for="theme-select" class="form-label">Theme</label>
-            <select id="theme-select" name="theme" class="form-control" aria-describedby="theme-desc">
+            <select
+              id="theme-select"
+              name="theme"
+              class="form-control"
+              aria-describedby="theme-desc"
+            >
               <option value="auto">Auto (System)</option>
               <option value="light">Light</option>
               <option value="dark">Dark</option>
             </select>
-            <div id="theme-desc" class="help-text">Choose your preferred theme. Auto follows your system settings.</div>
+            <div id="theme-desc" class="help-text">
+              Choose your preferred theme. Auto follows your system settings.
+            </div>
           </div>
         </div>
 
@@ -493,14 +506,16 @@
             </div>
             <h2 class="card-title">Sync Configuration</h2>
           </div>
-          
+
           <div class="form-group">
             <label for="mode-select" class="form-label">Sync Mode</label>
             <select id="mode-select" name="mode" class="form-control" aria-describedby="mode-desc">
               <option value="host">Host-to-Many</option>
               <option value="global">Global Sync</option>
             </select>
-            <div id="mode-desc" class="help-text">Choose how bookmarks are synchronized across devices</div>
+            <div id="mode-desc" class="help-text">
+              Choose how bookmarks are synchronized across devices
+            </div>
           </div>
 
           <div class="form-group">
@@ -526,7 +541,9 @@
               class="form-control"
               aria-describedby="interval-desc"
             />
-            <div id="interval-desc" class="help-text">Set the interval in minutes for automatic sync (5-1440 minutes)</div>
+            <div id="interval-desc" class="help-text">
+              Set the interval in minutes for automatic sync (5-1440 minutes)
+            </div>
           </div>
         </div>
 
@@ -538,7 +555,7 @@
             </div>
             <h2 class="card-title">Team Mode</h2>
           </div>
-          
+
           <div class="form-group">
             <div class="toggle-container">
               <label class="toggle-switch">
@@ -547,10 +564,12 @@
               </label>
               <span class="toggle-label">Enable Team Mode (Multi-User)</span>
             </div>
-            <div class="help-text">Allow multiple users to collaborate on bookmark synchronization</div>
+            <div class="help-text">
+              Allow multiple users to collaborate on bookmark synchronization
+            </div>
           </div>
 
-          <div id="team-options" style="display: none;">
+          <div id="team-options" style="display: none">
             <div class="form-group">
               <label for="user-email" class="form-label">Your Email (for Team Mode)</label>
               <input
@@ -563,24 +582,26 @@
               />
               <div id="email-desc" class="help-text">Required for team mode identification</div>
             </div>
-            
+
             <div class="form-group">
               <label class="form-label">Team Members</label>
               <div id="team-members-list" class="help-text">No team members added yet</div>
-              
-              <div class="btn-group" style="margin-top: var(--md-spacing-md);">
+
+              <div class="btn-group" style="margin-top: var(--md-spacing-md)">
                 <input
                   type="email"
                   id="new-member-email"
                   placeholder="member@example.com"
                   class="form-control"
-                  style="flex: 1;"
+                  style="flex: 1"
                 />
-                <select id="new-member-role" class="form-control" style="width: auto;">
+                <select id="new-member-role" class="form-control" style="width: auto">
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
                 </select>
-                <button type="button" id="add-member-btn" class="btn btn-secondary">Add Member</button>
+                <button type="button" id="add-member-btn" class="btn btn-secondary">
+                  Add Member
+                </button>
               </div>
             </div>
           </div>
@@ -594,7 +615,7 @@
             </div>
             <h2 class="card-title">Analytics & Logging</h2>
           </div>
-          
+
           <div class="form-group">
             <div class="toggle-container">
               <label class="toggle-switch">
@@ -652,7 +673,7 @@
             </div>
             <h2 class="card-title">Encryption</h2>
           </div>
-          
+
           <div class="form-group">
             <div class="toggle-container">
               <label class="toggle-switch">
@@ -661,25 +682,34 @@
               </label>
               <span class="toggle-label">Enable End-to-End Encryption</span>
             </div>
-            <div class="help-text">When enabled, your bookmark data will be encrypted before being stored in Google Drive</div>
+            <div class="help-text">
+              When enabled, your bookmark data will be encrypted before being stored in Google Drive
+            </div>
           </div>
 
-          <div id="encryption-options" style="display: none;">
+          <div id="encryption-options" style="display: none">
             <div class="form-group">
               <div id="encryption-status" class="status-badge disabled">
                 <span class="material-icons">lock</span>
                 Encryption Disabled
               </div>
             </div>
-            
+
             <div class="form-group">
               <label for="encryption-algorithm" class="form-label">Encryption Algorithm</label>
-              <select id="encryption-algorithm" name="encryptionAlgorithm" class="form-control" aria-describedby="algorithm-desc">
+              <select
+                id="encryption-algorithm"
+                name="encryptionAlgorithm"
+                class="form-control"
+                aria-describedby="algorithm-desc"
+              >
                 <!-- Will be populated with JavaScript -->
               </select>
-              <div id="algorithm-desc" class="help-text">Choose the encryption algorithm to use</div>
+              <div id="algorithm-desc" class="help-text">
+                Choose the encryption algorithm to use
+              </div>
             </div>
-            
+
             <div class="form-group">
               <label for="encryption-passphrase" class="form-label">Encryption Passphrase</label>
               <input
@@ -690,14 +720,16 @@
                 class="form-control"
                 aria-describedby="passphrase-desc"
               />
-              <div id="passphrase-desc" class="help-text">Enter a strong passphrase for encryption</div>
-              
-              <div class="passphrase-strength" id="passphrase-strength" style="display: none;">
+              <div id="passphrase-desc" class="help-text">
+                Enter a strong passphrase for encryption
+              </div>
+
+              <div class="passphrase-strength" id="passphrase-strength" style="display: none">
                 <!-- Passphrase strength indicator will be displayed here -->
               </div>
             </div>
 
-            <div class="form-group" id="confirm-passphrase-section" style="display: none;">
+            <div class="form-group" id="confirm-passphrase-section" style="display: none">
               <label for="confirm-passphrase" class="form-label">Confirm Passphrase</label>
               <input
                 type="password"
@@ -713,11 +745,21 @@
                 <span class="material-icons">lock</span>
                 Enable Encryption
               </button>
-              <button type="button" id="change-passphrase-btn" class="btn btn-secondary" style="display: none;">
+              <button
+                type="button"
+                id="change-passphrase-btn"
+                class="btn btn-secondary"
+                style="display: none"
+              >
                 <span class="material-icons">edit</span>
                 Change Passphrase
               </button>
-              <button type="button" id="disable-encryption-btn" class="btn btn-danger" style="display: none;">
+              <button
+                type="button"
+                id="disable-encryption-btn"
+                class="btn btn-danger"
+                style="display: none"
+              >
                 <span class="material-icons">lock_open</span>
                 Disable Encryption
               </button>
@@ -733,13 +775,22 @@
             </div>
             <h2 class="card-title">Conflict Resolution</h2>
           </div>
-          
+
           <div class="form-group">
-            <label for="conflict-strategy" class="form-label">Default Conflict Resolution Strategy</label>
-            <select id="conflict-strategy" name="conflictStrategy" class="form-control" aria-describedby="strategy-desc">
+            <label for="conflict-strategy" class="form-label"
+              >Default Conflict Resolution Strategy</label
+            >
+            <select
+              id="conflict-strategy"
+              name="conflictStrategy"
+              class="form-control"
+              aria-describedby="strategy-desc"
+            >
               <!-- Will be populated with JavaScript -->
             </select>
-            <div id="strategy-desc" class="help-text">Choose how conflicts should be resolved by default</div>
+            <div id="strategy-desc" class="help-text">
+              Choose how conflicts should be resolved by default
+            </div>
           </div>
 
           <div class="btn-group">
@@ -758,7 +809,7 @@
             </div>
             <h2 class="card-title">Smart Folders</h2>
           </div>
-          
+
           <div class="form-group">
             <label for="smart-folder-name" class="form-label">Smart Folder Name</label>
             <input
@@ -769,7 +820,9 @@
               class="form-control"
               aria-describedby="smart-folder-desc"
             />
-            <div id="smart-folder-desc" class="help-text">Create a new smart folder with custom rules</div>
+            <div id="smart-folder-desc" class="help-text">
+              Create a new smart folder with custom rules
+            </div>
           </div>
 
           <div class="form-group">
@@ -782,7 +835,9 @@
               rows="4"
               aria-describedby="rules-desc"
             ></textarea>
-            <div id="rules-desc" class="help-text">Define rules for the smart folder in JSON format</div>
+            <div id="rules-desc" class="help-text">
+              Define rules for the smart folder in JSON format
+            </div>
           </div>
 
           <div class="btn-group">
@@ -792,7 +847,7 @@
             </button>
           </div>
 
-          <div class="form-group" style="margin-top: var(--md-spacing-lg);">
+          <div class="form-group" style="margin-top: var(--md-spacing-lg)">
             <label class="form-label">Existing Smart Folders</label>
             <div id="smart-folders-list" class="help-text">Loading smart folders...</div>
           </div>
@@ -806,7 +861,7 @@
             </div>
             <h2 class="card-title">Public Collections</h2>
           </div>
-          
+
           <div class="form-group">
             <label for="collection-name" class="form-label">Collection Name</label>
             <input
@@ -830,12 +885,19 @@
               rows="3"
               aria-describedby="description-desc"
             ></textarea>
-            <div id="description-desc" class="help-text">Describe what this collection contains</div>
+            <div id="description-desc" class="help-text">
+              Describe what this collection contains
+            </div>
           </div>
 
           <div class="form-group">
             <label for="collection-visibility" class="form-label">Visibility</label>
-            <select id="collection-visibility" name="collectionVisibility" class="form-control" aria-describedby="visibility-desc">
+            <select
+              id="collection-visibility"
+              name="collectionVisibility"
+              class="form-control"
+              aria-describedby="visibility-desc"
+            >
               <option value="private">Private</option>
               <option value="unlisted">Unlisted</option>
               <option value="public">Public</option>
@@ -851,7 +913,7 @@
             </button>
           </div>
 
-          <div class="form-group" style="margin-top: var(--md-spacing-lg);">
+          <div class="form-group" style="margin-top: var(--md-spacing-lg)">
             <label class="form-label">Existing Collections</label>
             <div id="public-collections-list" class="help-text">Loading collections...</div>
           </div>
@@ -865,7 +927,7 @@
             </div>
             <h2 class="card-title">Scheduled Backups</h2>
           </div>
-          
+
           <div class="form-group">
             <div class="toggle-container">
               <label class="toggle-switch">
@@ -874,13 +936,20 @@
               </label>
               <span class="toggle-label">Enable Scheduled Backups</span>
             </div>
-            <div class="help-text">When enabled, backups will be created automatically according to your schedule</div>
+            <div class="help-text">
+              When enabled, backups will be created automatically according to your schedule
+            </div>
           </div>
 
           <div id="scheduled-backup-options">
             <div class="form-group">
               <label for="backup-frequency" class="form-label">Backup Frequency</label>
-              <select id="backup-frequency" name="backupFrequency" class="form-control" aria-describedby="frequency-desc">
+              <select
+                id="backup-frequency"
+                name="backupFrequency"
+                class="form-control"
+                aria-describedby="frequency-desc"
+              >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="bi-weekly">Bi-weekly</option>
@@ -889,10 +958,15 @@
               <div id="frequency-desc" class="help-text">How often backups should be created</div>
             </div>
 
-            <div id="day-selector-container" style="display: none;">
+            <div id="day-selector-container" style="display: none">
               <div class="form-group">
                 <label for="day-selector" class="form-label">Day</label>
-                <select id="day-selector" name="daySelector" class="form-control" aria-describedby="day-desc">
+                <select
+                  id="day-selector"
+                  name="daySelector"
+                  class="form-control"
+                  aria-describedby="day-desc"
+                >
                   <option value="0">Sunday</option>
                   <option value="1">Monday</option>
                   <option value="2">Tuesday</option>
@@ -901,44 +975,73 @@
                   <option value="5">Friday</option>
                   <option value="6">Saturday</option>
                 </select>
-                <div id="day-desc" class="help-text">The day of the week when weekly or bi-weekly backups will be created</div>
+                <div id="day-desc" class="help-text">
+                  The day of the week when weekly or bi-weekly backups will be created
+                </div>
               </div>
             </div>
 
-            <div id="day-of-month-container" style="display: none;">
+            <div id="day-of-month-container" style="display: none">
               <div class="form-group">
                 <label for="day-of-month" class="form-label">Day of Month</label>
-                <select id="day-of-month" name="dayOfMonth" class="form-control" aria-describedby="day-of-month-desc">
+                <select
+                  id="day-of-month"
+                  name="dayOfMonth"
+                  class="form-control"
+                  aria-describedby="day-of-month-desc"
+                >
                   <!-- Will be populated with JavaScript -->
                 </select>
-                <div id="day-of-month-desc" class="help-text">The day of the month when monthly backups will be created</div>
+                <div id="day-of-month-desc" class="help-text">
+                  The day of the month when monthly backups will be created
+                </div>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Time</label>
-              <div style="display: flex; gap: var(--md-spacing-sm); align-items: center;">
-                <select id="backup-hour" name="backupHour" class="form-control" style="width: auto;" aria-describedby="time-desc">
+              <div style="display: flex; gap: var(--md-spacing-sm); align-items: center">
+                <select
+                  id="backup-hour"
+                  name="backupHour"
+                  class="form-control"
+                  style="width: auto"
+                  aria-describedby="time-desc"
+                >
                   <!-- Will be populated with JavaScript -->
                 </select>
                 <span>:</span>
-                <select id="backup-minute" name="backupMinute" class="form-control" style="width: auto;">
+                <select
+                  id="backup-minute"
+                  name="backupMinute"
+                  class="form-control"
+                  style="width: auto"
+                >
                   <!-- Will be populated with JavaScript -->
                 </select>
               </div>
-              <div id="time-desc" class="help-text">The time when backups will be created (24-hour format)</div>
+              <div id="time-desc" class="help-text">
+                The time when backups will be created (24-hour format)
+              </div>
             </div>
 
             <div class="form-group">
               <label for="retention-policy" class="form-label">Retention Policy</label>
-              <select id="retention-policy" name="retentionPolicy" class="form-control" aria-describedby="retention-desc">
+              <select
+                id="retention-policy"
+                name="retentionPolicy"
+                class="form-control"
+                aria-describedby="retention-desc"
+              >
                 <option value="5">Keep 5 backups</option>
                 <option value="10">Keep 10 backups</option>
                 <option value="20">Keep 20 backups</option>
                 <option value="50">Keep 50 backups</option>
                 <option value="-1">Keep unlimited backups</option>
               </select>
-              <div id="retention-desc" class="help-text">When the limit is reached, the oldest scheduled backup will be automatically removed</div>
+              <div id="retention-desc" class="help-text">
+                When the limit is reached, the oldest scheduled backup will be automatically removed
+              </div>
             </div>
 
             <div class="btn-group">
@@ -953,7 +1056,7 @@
         <!-- Save Button -->
         <div class="settings-card">
           <div class="btn-group">
-            <button type="submit" class="btn btn-primary" style="flex: 1;">
+            <button type="submit" class="btn btn-primary" style="flex: 1">
               <span class="material-icons">save</span>
               Save Settings
             </button>

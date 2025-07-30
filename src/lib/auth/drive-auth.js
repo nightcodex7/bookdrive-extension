@@ -1,7 +1,7 @@
 // OAuth2 Configuration
 const OAUTH2_CONFIG = {
-  client_id: 'YOUR_OAUTH2_CLIENT_ID.apps.googleusercontent.com', // Will be replaced from manifest
-  client_secret: 'YOUR_OAUTH2_CLIENT_SECRET', // Client secret for OAuth2 flow
+  client_id: '334418543802-7nrfirqu0eofke7v822mscng2ouhlsfj.apps.googleusercontent.com', // Will be replaced from manifest
+  client_secret: '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', // Client secret for OAuth2 flow
   redirect_uri: chrome.identity
     ? chrome.identity.getRedirectURL()
     : 'https://YOUR_EXTENSION_ID.chromiumapp.org/',

@@ -1,6 +1,6 @@
 /**
  * advanced-encryption.js - Additional Encryption Options
- * 
+ *
  * This module provides additional encryption algorithms and options
  * beyond the basic AES-GCM implementation.
  */
@@ -95,19 +95,19 @@ export class AdvancedEncryptionManager {
   async encrypt(data, passphrase, options = {}) {
     try {
       const config = { ...ENCRYPTION_CONFIG[this.algorithm], ...options };
-      
+
       // Generate salt
       const salt = crypto.getRandomValues(new Uint8Array(this.saltLength));
-      
+
       // Derive key
       const key = await this.deriveKey(passphrase, salt, config);
-      
+
       // Generate IV/nonce
       const iv = crypto.getRandomValues(new Uint8Array(config.ivLength));
-      
+
       // Encrypt data
       const encryptedData = await this.performEncryption(data, key, iv, config);
-      
+
       return {
         algorithm: this.algorithm,
         keyDerivation: this.keyDerivation,
@@ -136,39 +136,39 @@ export class AdvancedEncryptionManager {
   async decrypt(encryptedData, passphrase) {
     try {
       const { algorithm, keyDerivation, hashAlgorithm, iterations, salt, iv, data } = encryptedData;
-      
+
       // Update algorithm if different
       if (algorithm && algorithm !== this.algorithm) {
         this.algorithm = algorithm;
       }
-      
+
       // Update key derivation if different
       if (keyDerivation && keyDerivation !== this.keyDerivation) {
         this.keyDerivation = keyDerivation;
       }
-      
+
       // Update hash algorithm if different
       if (hashAlgorithm && hashAlgorithm !== this.hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
       }
-      
+
       // Update iterations if different
       if (iterations && iterations !== this.iterations) {
         this.iterations = iterations;
       }
-      
+
       const config = ENCRYPTION_CONFIG[this.algorithm];
-      
+
       // Decode salt and IV
-      const saltBytes = Uint8Array.from(atob(salt), c => c.charCodeAt(0));
-      const ivBytes = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
-      
+      const saltBytes = Uint8Array.from(atob(salt), (c) => c.charCodeAt(0));
+      const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+
       // Derive key
       const key = await this.deriveKey(passphrase, saltBytes, config);
-      
+
       // Decrypt data
       const decryptedData = await this.performDecryption(data, key, ivBytes, config);
-      
+
       return decryptedData;
     } catch (error) {
       console.error('Advanced decryption failed:', error);
@@ -186,7 +186,7 @@ export class AdvancedEncryptionManager {
   async deriveKey(passphrase, salt, config) {
     const encoder = new TextEncoder();
     const passphraseData = encoder.encode(passphrase);
-    
+
     switch (this.keyDerivation) {
       case KEY_DERIVATION_FUNCTIONS.PBKDF2:
         return await this.deriveKeyPBKDF2(passphraseData, salt, config);
@@ -209,13 +209,9 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<CryptoKey>} Derived key
    */
   async deriveKeyPBKDF2(passphraseData, salt, config) {
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      passphraseData,
-      'PBKDF2',
-      false,
-      ['deriveKey'],
-    );
+    const keyMaterial = await crypto.subtle.importKey('raw', passphraseData, 'PBKDF2', false, [
+      'deriveKey',
+    ]);
 
     return crypto.subtle.deriveKey(
       {
@@ -239,13 +235,9 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<CryptoKey>} Derived key
    */
   async deriveKeyHKDF(passphraseData, salt, config) {
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      passphraseData,
-      'HKDF',
-      false,
-      ['deriveKey'],
-    );
+    const keyMaterial = await crypto.subtle.importKey('raw', passphraseData, 'HKDF', false, [
+      'deriveKey',
+    ]);
 
     return crypto.subtle.deriveKey(
       {
@@ -271,13 +263,9 @@ export class AdvancedEncryptionManager {
   async deriveKeyArgon2(passphraseData, salt, config) {
     // Note: Web Crypto API doesn't support Argon2 directly
     // This is a simulation using PBKDF2 with higher iterations
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      passphraseData,
-      'PBKDF2',
-      false,
-      ['deriveKey'],
-    );
+    const keyMaterial = await crypto.subtle.importKey('raw', passphraseData, 'PBKDF2', false, [
+      'deriveKey',
+    ]);
 
     return crypto.subtle.deriveKey(
       {
@@ -303,13 +291,9 @@ export class AdvancedEncryptionManager {
   async deriveKeyScrypt(passphraseData, salt, config) {
     // Note: Web Crypto API doesn't support Scrypt directly
     // This is a simulation using PBKDF2 with higher iterations
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      passphraseData,
-      'PBKDF2',
-      false,
-      ['deriveKey'],
-    );
+    const keyMaterial = await crypto.subtle.importKey('raw', passphraseData, 'PBKDF2', false, [
+      'deriveKey',
+    ]);
 
     return crypto.subtle.deriveKey(
       {
@@ -399,11 +383,7 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<string>} Encrypted data
    */
   async encryptAESGCM(data, key, iv) {
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      data,
-    );
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
     return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
   }
 
@@ -415,12 +395,8 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<Uint8Array>} Decrypted data
    */
   async decryptAESGCM(encryptedData, key, iv) {
-    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
-    return await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      encryptedBytes,
-    );
+    const encryptedBytes = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
+    return await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedBytes);
   }
 
   /**
@@ -431,11 +407,7 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<string>} Encrypted data
    */
   async encryptAESCBC(data, key, iv) {
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-CBC', iv },
-      key,
-      data,
-    );
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-CBC', iv }, key, data);
     return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
   }
 
@@ -447,12 +419,8 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<Uint8Array>} Decrypted data
    */
   async decryptAESCBC(encryptedData, key, iv) {
-    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
-    return await crypto.subtle.decrypt(
-      { name: 'AES-CBC', iv },
-      key,
-      encryptedBytes,
-    );
+    const encryptedBytes = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
+    return await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, encryptedBytes);
   }
 
   /**
@@ -479,7 +447,7 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<Uint8Array>} Decrypted data
    */
   async decryptAESCTR(encryptedData, key, iv) {
-    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    const encryptedBytes = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
     return await crypto.subtle.decrypt(
       { name: 'AES-CTR', counter: iv, length: 128 },
       key,
@@ -522,11 +490,7 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<string>} Encrypted data
    */
   async encryptRSAOAEP(data, key) {
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'RSA-OAEP' },
-      key,
-      data,
-    );
+    const encrypted = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, data);
     return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
   }
 
@@ -537,12 +501,8 @@ export class AdvancedEncryptionManager {
    * @returns {Promise<Uint8Array>} Decrypted data
    */
   async decryptRSAOAEP(encryptedData, key) {
-    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
-    return await crypto.subtle.decrypt(
-      { name: 'RSA-OAEP' },
-      key,
-      encryptedBytes,
-    );
+    const encryptedBytes = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
+    return await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, key, encryptedBytes);
   }
 
   /**
@@ -583,7 +543,7 @@ export class AdvancedEncryptionManager {
 export async function generateKeyPair(algorithm = ENCRYPTION_ALGORITHMS.RSA_OAEP, options = {}) {
   try {
     let keyPair;
-    
+
     switch (algorithm) {
       case ENCRYPTION_ALGORITHMS.RSA_OAEP:
         keyPair = await crypto.subtle.generateKey(
@@ -597,7 +557,7 @@ export async function generateKeyPair(algorithm = ENCRYPTION_ALGORITHMS.RSA_OAEP
           ['encrypt', 'decrypt'],
         );
         break;
-        
+
       case ENCRYPTION_ALGORITHMS.ECDH:
         keyPair = await crypto.subtle.generateKey(
           {
@@ -608,11 +568,11 @@ export async function generateKeyPair(algorithm = ENCRYPTION_ALGORITHMS.RSA_OAEP
           ['deriveKey', 'deriveBits'],
         );
         break;
-        
+
       default:
         throw new Error(`Unsupported key pair algorithm: ${algorithm}`);
     }
-    
+
     return {
       publicKey: keyPair.publicKey,
       privateKey: keyPair.privateKey,
@@ -634,7 +594,7 @@ export async function generateKeyPair(algorithm = ENCRYPTION_ALGORITHMS.RSA_OAEP
 export async function exportKey(key, format = 'jwk') {
   try {
     const exported = await crypto.subtle.exportKey(format, key);
-    
+
     if (format === 'jwk') {
       return JSON.stringify(exported);
     } else if (format === 'raw') {
@@ -644,7 +604,7 @@ export async function exportKey(key, format = 'jwk') {
     } else if (format === 'spki') {
       return btoa(String.fromCharCode(...new Uint8Array(exported)));
     }
-    
+
     throw new Error(`Unsupported export format: ${format}`);
   } catch (error) {
     console.error('Failed to export key:', error);
@@ -663,19 +623,19 @@ export async function exportKey(key, format = 'jwk') {
 export async function importKey(keyData, format, algorithm, usages) {
   try {
     let keyMaterial;
-    
+
     if (format === 'jwk') {
       keyMaterial = JSON.parse(keyData);
     } else if (format === 'raw') {
-      keyMaterial = Uint8Array.from(atob(keyData), c => c.charCodeAt(0));
+      keyMaterial = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
     } else if (format === 'pkcs8') {
-      keyMaterial = Uint8Array.from(atob(keyData), c => c.charCodeAt(0));
+      keyMaterial = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
     } else if (format === 'spki') {
-      keyMaterial = Uint8Array.from(atob(keyData), c => c.charCodeAt(0));
+      keyMaterial = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
     } else {
       throw new Error(`Unsupported import format: ${format}`);
     }
-    
+
     return await crypto.subtle.importKey(format, keyMaterial, algorithm, false, usages);
   } catch (error) {
     console.error('Failed to import key:', error);
@@ -691,32 +651,32 @@ export async function importKey(keyData, format, algorithm, usages) {
 export function validateEncryptionConfig(config) {
   const errors = [];
   const warnings = [];
-  
+
   // Check algorithm
   if (!Object.values(ENCRYPTION_ALGORITHMS).includes(config.algorithm)) {
     errors.push(`Unsupported encryption algorithm: ${config.algorithm}`);
   }
-  
+
   // Check key derivation
   if (!Object.values(KEY_DERIVATION_FUNCTIONS).includes(config.keyDerivation)) {
     errors.push(`Unsupported key derivation function: ${config.keyDerivation}`);
   }
-  
+
   // Check hash algorithm
   if (!Object.values(HASH_ALGORITHMS).includes(config.hashAlgorithm)) {
     errors.push(`Unsupported hash algorithm: ${config.hashAlgorithm}`);
   }
-  
+
   // Check iterations
   if (config.iterations < 10000) {
     warnings.push('Low iteration count may reduce security');
   }
-  
+
   // Check salt length
   if (config.saltLength < 16) {
     warnings.push('Short salt length may reduce security');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -760,6 +720,6 @@ export function getRecommendedConfig(securityLevel = 'high') {
       saltLength: 64,
     },
   };
-  
+
   return configs[securityLevel] || configs.high;
-} 
+}

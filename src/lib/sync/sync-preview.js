@@ -192,7 +192,7 @@ export function getPreviewSummary(preview) {
 export function createSyncPreviewInterface(preview) {
   const container = document.createElement('div');
   container.className = 'sync-preview-interface';
-  
+
   if (!preview.success) {
     container.innerHTML = `
       <div class="preview-error">
@@ -205,7 +205,7 @@ export function createSyncPreviewInterface(preview) {
   }
 
   const { changes, details } = preview.preview;
-  
+
   container.innerHTML = `
     <div class="preview-header">
       <h2>Sync Preview</h2>
@@ -247,7 +247,9 @@ export function createSyncPreviewInterface(preview) {
       <div class="detail-section">
         <h3>New Bookmarks (${details.newBookmarks.length})</h3>
         <div class="bookmark-list">
-          ${details.newBookmarks.map(bookmark => `
+          ${details.newBookmarks
+            .map(
+              (bookmark) => `
             <div class="bookmark-item new">
               <div class="bookmark-info">
                 <div class="bookmark-title">${bookmark.title || 'Untitled'}</div>
@@ -255,14 +257,18 @@ export function createSyncPreviewInterface(preview) {
               </div>
               <div class="bookmark-action">Will be added</div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
       </div>
       
       <div class="detail-section">
         <h3>Updated Bookmarks (${details.updatedBookmarks.length})</h3>
         <div class="bookmark-list">
-          ${details.updatedBookmarks.map(update => `
+          ${details.updatedBookmarks
+            .map(
+              (update) => `
             <div class="bookmark-item updated">
               <div class="bookmark-info">
                 <div class="bookmark-title">${update.local.title || 'Untitled'}</div>
@@ -272,14 +278,18 @@ export function createSyncPreviewInterface(preview) {
                 ${getChangeDescription(update.local, update.remote)}
               </div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
       </div>
       
       <div class="detail-section">
         <h3>Removed Bookmarks (${details.removedBookmarks.length})</h3>
         <div class="bookmark-list">
-          ${details.removedBookmarks.map(bookmark => `
+          ${details.removedBookmarks
+            .map(
+              (bookmark) => `
             <div class="bookmark-item removed">
               <div class="bookmark-info">
                 <div class="bookmark-title">${bookmark.title || 'Untitled'}</div>
@@ -287,15 +297,21 @@ export function createSyncPreviewInterface(preview) {
               </div>
               <div class="bookmark-action">Will be removed</div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
       </div>
       
-      ${details.conflicts.length > 0 ? `
+      ${
+        details.conflicts.length > 0
+          ? `
         <div class="detail-section">
           <h3>Conflicts (${details.conflicts.length})</h3>
           <div class="bookmark-list">
-            ${details.conflicts.map(conflict => `
+            ${details.conflicts
+              .map(
+                (conflict) => `
               <div class="bookmark-item conflict">
                 <div class="bookmark-info">
                   <div class="bookmark-title">${conflict.local.title || conflict.remote.title || 'Untitled'}</div>
@@ -303,10 +319,14 @@ export function createSyncPreviewInterface(preview) {
                 </div>
                 <div class="bookmark-action">Needs resolution</div>
               </div>
-            `).join('')}
+            `,
+              )
+              .join('')}
           </div>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
     </div>
     
     <div class="preview-actions">
@@ -314,7 +334,7 @@ export function createSyncPreviewInterface(preview) {
       <button class="preview-btn primary" id="preview-confirm">Confirm Sync</button>
     </div>
   `;
-  
+
   return container;
 }
 
@@ -326,7 +346,7 @@ export function createSyncPreviewInterface(preview) {
  */
 function getChangeDescription(local, remote) {
   const changes = [];
-  
+
   if (local.title !== remote.title) {
     changes.push('Title changed');
   }
@@ -336,7 +356,7 @@ function getChangeDescription(local, remote) {
   if (local.parentId !== remote.parentId) {
     changes.push('Folder changed');
   }
-  
+
   return changes.length > 0 ? changes.join(', ') : 'Metadata updated';
 }
 
@@ -349,26 +369,26 @@ export function showSyncPreviewModal(preview) {
   return new Promise((resolve) => {
     const modal = document.createElement('div');
     modal.className = 'sync-preview-modal';
-    
+
     const previewInterface = createSyncPreviewInterface(preview);
     modal.appendChild(previewInterface);
-    
+
     document.body.appendChild(modal);
-    
+
     // Add event listeners
     const cancelBtn = modal.querySelector('#preview-cancel');
     const confirmBtn = modal.querySelector('#preview-confirm');
-    
+
     cancelBtn.addEventListener('click', () => {
       document.body.removeChild(modal);
       resolve(false);
     });
-    
+
     confirmBtn.addEventListener('click', () => {
       document.body.removeChild(modal);
       resolve(true);
     });
-    
+
     // Close on backdrop click
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {

@@ -545,7 +545,7 @@ body {
   color: var(--md-on-surface);
 }
 
-.checkbox-item input[type="checkbox"] {
+.checkbox-item input[type='checkbox'] {
   width: auto;
   margin: 0;
 }
@@ -784,6 +784,10 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-} 
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

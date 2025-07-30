@@ -1,136 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BookDrive Analytics</title>
-  <link rel="stylesheet" href="analytics.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <div class="analytics-container">
-    <header class="analytics-header">
-      <h1>📊 Sync Analytics</h1>
-      <div class="header-actions">
-        <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
-        <button id="export-btn" class="btn btn-secondary">📤 Export</button>
-        <button id="clear-btn" class="btn btn-danger">🗑️ Clear Data</button>
-      </div>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BookDrive Analytics</title>
+    <link rel="stylesheet" href="analytics.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="analytics-container">
+      <header class="analytics-header">
+        <h1>📊 Sync Analytics</h1>
+        <div class="header-actions">
+          <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
+          <button id="export-btn" class="btn btn-secondary">📤 Export</button>
+          <button id="clear-btn" class="btn btn-danger">🗑️ Clear Data</button>
+        </div>
+      </header>
 
-    <div class="analytics-content">
-      <!-- Overview Cards -->
-      <div class="overview-cards">
-        <div class="card">
-          <div class="card-icon">🔄</div>
-          <div class="card-content">
-            <h3>Total Syncs</h3>
-            <p id="total-syncs">0</p>
+      <div class="analytics-content">
+        <!-- Overview Cards -->
+        <div class="overview-cards">
+          <div class="card">
+            <div class="card-icon">🔄</div>
+            <div class="card-content">
+              <h3>Total Syncs</h3>
+              <p id="total-syncs">0</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">✅</div>
+            <div class="card-content">
+              <h3>Success Rate</h3>
+              <p id="success-rate">0%</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">⚡</div>
+            <div class="card-content">
+              <h3>Avg Sync Time</h3>
+              <p id="avg-sync-time">0s</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-icon">📅</div>
+            <div class="card-content">
+              <h3>Last Sync</h3>
+              <p id="last-sync">Never</p>
+            </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-icon">✅</div>
-          <div class="card-content">
-            <h3>Success Rate</h3>
-            <p id="success-rate">0%</p>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-icon">⚡</div>
-          <div class="card-content">
-            <h3>Avg Sync Time</h3>
-            <p id="avg-sync-time">0s</p>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-icon">📅</div>
-          <div class="card-content">
-            <h3>Last Sync</h3>
-            <p id="last-sync">Never</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Timeline Chart -->
-      <div class="chart-section">
-        <h2>Sync Timeline</h2>
-        <div class="chart-container">
-          <canvas id="timeline-chart"></canvas>
-        </div>
-        <div class="chart-controls">
-          <label for="timeline-range">Time Range:</label>
-          <select id="timeline-range">
-            <option value="7">Last 7 days</option>
-            <option value="30" selected>Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Performance Metrics -->
-      <div class="metrics-section">
-        <h2>Performance Metrics</h2>
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <h3>Sync Performance</h3>
-            <div class="metric-item">
-              <span>Fast Syncs (&lt;5s):</span>
-              <span id="fast-syncs">0</span>
-            </div>
-            <div class="metric-item">
-              <span>Medium Syncs (5-30s):</span>
-              <span id="medium-syncs">0</span>
-            </div>
-            <div class="metric-item">
-              <span>Slow Syncs (&gt;30s):</span>
-              <span id="slow-syncs">0</span>
-            </div>
+        <!-- Timeline Chart -->
+        <div class="chart-section">
+          <h2>Sync Timeline</h2>
+          <div class="chart-container">
+            <canvas id="timeline-chart"></canvas>
           </div>
-          <div class="metric-card">
-            <h3>Error Analysis</h3>
-            <div class="metric-item">
-              <span>Network Errors:</span>
-              <span id="network-errors">0</span>
-            </div>
-            <div class="metric-item">
-              <span>Auth Errors:</span>
-              <span id="auth-errors">0</span>
-            </div>
-            <div class="metric-item">
-              <span>Other Errors:</span>
-              <span id="other-errors">0</span>
-            </div>
+          <div class="chart-controls">
+            <label for="timeline-range">Time Range:</label>
+            <select id="timeline-range">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
           </div>
         </div>
-      </div>
 
-      <!-- Recent Activity -->
-      <div class="activity-section">
-        <h2>Recent Activity</h2>
-        <div class="activity-filters">
-          <label for="activity-filter">Filter:</label>
-          <select id="activity-filter">
-            <option value="all">All Events</option>
-            <option value="sync">Sync Events</option>
-            <option value="backup">Backup Events</option>
-            <option value="error">Error Events</option>
-          </select>
+        <!-- Performance Metrics -->
+        <div class="metrics-section">
+          <h2>Performance Metrics</h2>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <h3>Sync Performance</h3>
+              <div class="metric-item">
+                <span>Fast Syncs (&lt;5s):</span>
+                <span id="fast-syncs">0</span>
+              </div>
+              <div class="metric-item">
+                <span>Medium Syncs (5-30s):</span>
+                <span id="medium-syncs">0</span>
+              </div>
+              <div class="metric-item">
+                <span>Slow Syncs (&gt;30s):</span>
+                <span id="slow-syncs">0</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <h3>Error Analysis</h3>
+              <div class="metric-item">
+                <span>Network Errors:</span>
+                <span id="network-errors">0</span>
+              </div>
+              <div class="metric-item">
+                <span>Auth Errors:</span>
+                <span id="auth-errors">0</span>
+              </div>
+              <div class="metric-item">
+                <span>Other Errors:</span>
+                <span id="other-errors">0</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="activity-list" id="activity-list">
-          <!-- Activity items will be populated here -->
-        </div>
-      </div>
 
-      <!-- Recommendations -->
-      <div class="recommendations-section">
-        <h2>Recommendations</h2>
-        <div class="recommendations-list" id="recommendations-list">
-          <!-- Recommendations will be populated here -->
+        <!-- Recent Activity -->
+        <div class="activity-section">
+          <h2>Recent Activity</h2>
+          <div class="activity-filters">
+            <label for="activity-filter">Filter:</label>
+            <select id="activity-filter">
+              <option value="all">All Events</option>
+              <option value="sync">Sync Events</option>
+              <option value="backup">Backup Events</option>
+              <option value="error">Error Events</option>
+            </select>
+          </div>
+          <div class="activity-list" id="activity-list">
+            <!-- Activity items will be populated here -->
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="recommendations-section">
+          <h2>Recommendations</h2>
+          <div class="recommendations-list" id="recommendations-list">
+            <!-- Recommendations will be populated here -->
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script src="analytics.js"></script>
-</body>
-</html> 
+    <script src="analytics.js"></script>
+  </body>
+</html>

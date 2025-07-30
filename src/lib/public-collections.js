@@ -1,6 +1,6 @@
 /**
  * public-collections.js - Public Collections Infrastructure
- * 
+ *
  * This module provides functionality for creating, managing, and sharing
  * public bookmark collections that can be accessed by anyone with the link.
  */
@@ -125,7 +125,7 @@ export async function getPublicCollection(collectionId, options = {}) {
     }
 
     // Check access permissions
-    if (!await hasCollectionAccess(metadata, options)) {
+    if (!(await hasCollectionAccess(metadata, options))) {
       throw new Error('Access denied to collection');
     }
 
@@ -177,7 +177,7 @@ export async function updatePublicCollection(collectionId, updates, options = {}
     }
 
     // Check edit permissions
-    if (!await hasCollectionPermission(existingCollection, COLLECTION_PERMISSIONS.EDIT)) {
+    if (!(await hasCollectionPermission(existingCollection, COLLECTION_PERMISSIONS.EDIT))) {
       throw new Error('Edit permission denied');
     }
 
@@ -238,7 +238,7 @@ export async function deletePublicCollection(collectionId, options = {}) {
     }
 
     // Check admin permissions
-    if (!await hasCollectionPermission(existingCollection, COLLECTION_PERMISSIONS.ADMIN)) {
+    if (!(await hasCollectionPermission(existingCollection, COLLECTION_PERMISSIONS.ADMIN))) {
       throw new Error('Admin permission required to delete collection');
     }
 
@@ -288,7 +288,7 @@ export async function addBookmarksToCollection(collectionId, bookmarks, options 
     }
 
     // Check edit permissions
-    if (!await hasCollectionPermission(collection, COLLECTION_PERMISSIONS.EDIT)) {
+    if (!(await hasCollectionPermission(collection, COLLECTION_PERMISSIONS.EDIT))) {
       throw new Error('Edit permission denied');
     }
 
@@ -341,7 +341,7 @@ export async function removeBookmarksFromCollection(collectionId, bookmarkIds, o
     }
 
     // Check edit permissions
-    if (!await hasCollectionPermission(collection, COLLECTION_PERMISSIONS.EDIT)) {
+    if (!(await hasCollectionPermission(collection, COLLECTION_PERMISSIONS.EDIT))) {
       throw new Error('Edit permission denied');
     }
 
@@ -380,14 +380,14 @@ export async function searchPublicCollections(criteria, options = {}) {
     const collections = await getAllPublicCollections();
 
     // Filter based on criteria
-    const filteredCollections = collections.filter(collection => {
+    const filteredCollections = collections.filter((collection) => {
       // Text search
       if (criteria.text) {
         const text = criteria.text.toLowerCase();
         const nameMatch = collection.name.toLowerCase().includes(text);
         const descMatch = collection.description.toLowerCase().includes(text);
-        const tagMatch = collection.tags.some(tag => tag.toLowerCase().includes(text));
-        
+        const tagMatch = collection.tags.some((tag) => tag.toLowerCase().includes(text));
+
         if (!nameMatch && !descMatch && !tagMatch) {
           return false;
         }
@@ -411,9 +411,11 @@ export async function searchPublicCollections(criteria, options = {}) {
       // Date range filter
       if (criteria.dateRange) {
         const createdDate = new Date(collection.createdAt);
-        const startDate = criteria.dateRange.start ? new Date(criteria.dateRange.start) : new Date(0);
+        const startDate = criteria.dateRange.start
+          ? new Date(criteria.dateRange.start)
+          : new Date(0);
         const endDate = criteria.dateRange.end ? new Date(criteria.dateRange.end) : new Date();
-        
+
         if (createdDate < startDate || createdDate > endDate) {
           return false;
         }
@@ -427,7 +429,7 @@ export async function searchPublicCollections(criteria, options = {}) {
       filteredCollections.sort((a, b) => {
         const aValue = getCollectionValue(a, options.sortBy);
         const bValue = getCollectionValue(b, options.sortBy);
-        
+
         if (options.sortOrder === 'desc') {
           return bValue > aValue ? 1 : -1;
         } else {
@@ -474,16 +476,19 @@ export async function forkPublicCollection(collectionId, forkOptions = {}) {
     }
 
     // Create forked collection
-    const forkedCollection = await createPublicCollection({
-      name: forkOptions.name || `${originalCollection.name} (Fork)`,
-      description: forkOptions.description || originalCollection.description,
-      visibility: forkOptions.visibility || COLLECTION_VISIBILITY.PRIVATE,
-      tags: [...(originalCollection.tags || []), 'forked'],
-      category: originalCollection.category,
-    }, {
-      ...forkOptions,
-      forkedFrom: collectionId,
-    });
+    const forkedCollection = await createPublicCollection(
+      {
+        name: forkOptions.name || `${originalCollection.name} (Fork)`,
+        description: forkOptions.description || originalCollection.description,
+        visibility: forkOptions.visibility || COLLECTION_VISIBILITY.PRIVATE,
+        tags: [...(originalCollection.tags || []), 'forked'],
+        category: originalCollection.category,
+      },
+      {
+        ...forkOptions,
+        forkedFrom: collectionId,
+      },
+    );
 
     // Copy bookmarks
     if (originalCollection.bookmarks && originalCollection.bookmarks.length > 0) {
@@ -516,7 +521,7 @@ export async function getCollectionStats(collectionId) {
     // Calculate statistics
     const stats = {
       totalBookmarks: bookmarkCount,
-      uniqueDomains: new Set(bookmarks.map(b => extractDomain(b.url))).size,
+      uniqueDomains: new Set(bookmarks.map((b) => extractDomain(b.url))).size,
       averageBookmarksPerDay: calculateAverageBookmarksPerDay(collection.createdAt, bookmarkCount),
       topTags: calculateTopTags(bookmarks),
       accessTrends: await getCollectionAccessTrends(collectionId),
@@ -541,7 +546,7 @@ async function saveCollectionMetadata(collection) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     const filename = `${COLLECTION_METADATA_PREFIX}${collection.id}.json`;
     await uploadFile(filename, collection, folderId, token);
   } catch (error) {
@@ -559,14 +564,14 @@ async function getCollectionMetadata(collectionId) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     const filename = `${COLLECTION_METADATA_PREFIX}${collectionId}.json`;
     const files = await listFiles(folderId, token, `name='${filename}'`);
-    
+
     if (files.length === 0) {
       return null;
     }
-    
+
     return await downloadFile(files[0].id, token);
   } catch (error) {
     console.error('Failed to get collection metadata:', error);
@@ -583,10 +588,10 @@ async function deleteCollectionMetadata(collectionId) {
   try {
     const token = await getAuthToken(false);
     const folderId = await ensureBookDriveFolder(false);
-    
+
     const filename = `${COLLECTION_METADATA_PREFIX}${collectionId}.json`;
     const files = await listFiles(folderId, token, `name='${filename}'`);
-    
+
     if (files.length > 0) {
       // Note: This would require implementing file deletion in drive.js
       console.log('Collection metadata deleted:', collectionId);
@@ -604,27 +609,27 @@ async function deleteCollectionMetadata(collectionId) {
  */
 async function hasCollectionAccess(collection, options = {}) {
   const userEmail = await getCurrentUserEmail();
-  
+
   // Public collections are accessible to everyone
   if (collection.visibility === COLLECTION_VISIBILITY.PUBLIC) {
     return true;
   }
-  
+
   // Unlisted collections require the share link
   if (collection.visibility === COLLECTION_VISIBILITY.UNLISTED) {
     return options.shareToken || collection.createdBy === userEmail;
   }
-  
+
   // Private collections only accessible to creator
   if (collection.visibility === COLLECTION_VISIBILITY.PRIVATE) {
     return collection.createdBy === userEmail;
   }
-  
+
   // Team collections require team membership
   if (collection.visibility === COLLECTION_VISIBILITY.TEAM) {
     return await isTeamMember(userEmail);
   }
-  
+
   return false;
 }
 
@@ -636,12 +641,12 @@ async function hasCollectionAccess(collection, options = {}) {
  */
 async function hasCollectionPermission(collection, permission) {
   const userEmail = await getCurrentUserEmail();
-  
+
   // Creator has all permissions
   if (collection.createdBy === userEmail) {
     return true;
   }
-  
+
   // Check specific permissions
   return collection.permissions.includes(permission);
 }
@@ -745,16 +750,34 @@ function getCollectionValue(collection, field) {
 }
 
 // Placeholder functions that would need to be implemented
-async function getCollectionBookmarks(collectionId, options) { return []; }
-async function addBookmarkToCollection(collectionId, bookmark, options) { return bookmark; }
-async function removeBookmarksFromCollectionStorage(collectionId, bookmarkIds) { return bookmarkIds.length; }
-async function getCollectionBookmarkCount(collectionId) { return 0; }
-async function updateCollectionBookmarkCount(collectionId, count) { }
-async function updateCollectionAccessStats(collectionId) { }
-async function getAllPublicCollections() { return []; }
-async function updatePublicCollectionsList(collection) { }
-async function removeFromPublicCollectionsList(collectionId) { }
-async function getCollectionAccessTrends(collectionId) { return {}; }
-async function calculateCollectionPopularity(collectionId) { return 0; }
-function calculateAverageBookmarksPerDay(createdAt, bookmarkCount) { return 0; }
-function calculateTopTags(bookmarks) { return []; } 
+async function getCollectionBookmarks(collectionId, options) {
+  return [];
+}
+async function addBookmarkToCollection(collectionId, bookmark, options) {
+  return bookmark;
+}
+async function removeBookmarksFromCollectionStorage(collectionId, bookmarkIds) {
+  return bookmarkIds.length;
+}
+async function getCollectionBookmarkCount(collectionId) {
+  return 0;
+}
+async function updateCollectionBookmarkCount(collectionId, count) {}
+async function updateCollectionAccessStats(collectionId) {}
+async function getAllPublicCollections() {
+  return [];
+}
+async function updatePublicCollectionsList(collection) {}
+async function removeFromPublicCollectionsList(collectionId) {}
+async function getCollectionAccessTrends(collectionId) {
+  return {};
+}
+async function calculateCollectionPopularity(collectionId) {
+  return 0;
+}
+function calculateAverageBookmarksPerDay(createdAt, bookmarkCount) {
+  return 0;
+}
+function calculateTopTags(bookmarks) {
+  return [];
+}

@@ -661,8 +661,12 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty States */
@@ -685,7 +689,7 @@ body {
 
 .empty-state p {
   font-size: var(--md-font-size-body);
-} 
+}
 
 /* Conflict Modal */
 .conflict-modal {
@@ -979,4 +983,4 @@ body {
 .empty-state p {
   margin: 0;
   font-size: var(--md-font-size-small);
-} 
+}

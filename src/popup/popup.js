@@ -401,7 +401,7 @@ function setupEventListeners() {
   document.addEventListener('click', (event) => {
     const dropdown = document.getElementById('dropdown-menu');
     const headerMenuBtn = document.getElementById('header-menu-btn');
-    
+
     if (dropdown && !dropdown.contains(event.target) && !headerMenuBtn.contains(event.target)) {
       hideDropdownMenu();
     }

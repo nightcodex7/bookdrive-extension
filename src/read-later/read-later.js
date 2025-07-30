@@ -129,7 +129,7 @@ function setupEventListeners() {
 async function loadSavedArticles() {
   try {
     showLoading(true);
-    
+
     const filters = {
       status: currentFilters.status || undefined,
       tags: currentFilters.tags ? [currentFilters.tags] : undefined,
@@ -137,14 +137,14 @@ async function loadSavedArticles() {
     };
 
     savedArticles = await getSavedPages(filters);
-    
+
     // Apply sorting
     sortArticles();
-    
+
     // Update UI
     updateArticlesList();
     updateTagFilter();
-    
+
     showLoading(false);
   } catch (error) {
     console.error('Failed to load saved articles:', error);
@@ -177,7 +177,7 @@ function sortArticles() {
 function updateArticlesList() {
   const articlesList = document.getElementById('articles-list');
   const emptyState = document.getElementById('empty-state');
-  
+
   if (!articlesList) return;
 
   if (savedArticles.length === 0) {
@@ -193,7 +193,9 @@ function updateArticlesList() {
     emptyState.style.display = 'none';
   }
 
-  articlesList.innerHTML = savedArticles.map(article => `
+  articlesList.innerHTML = savedArticles
+    .map(
+      (article) => `
     <div class="article-item" data-id="${article.id}">
       <img src="${article.favicon || '../assets/icon16.png'}" alt="" class="article-favicon" onerror="this.src='../assets/icon16.png'">
       <div class="article-content">
@@ -218,11 +220,13 @@ function updateArticlesList() {
         </button>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 
   // Add click handlers for article items
   const articleItems = document.querySelectorAll('.article-item');
-  articleItems.forEach(item => {
+  articleItems.forEach((item) => {
     item.addEventListener('click', (e) => {
       if (!e.target.closest('.article-action-btn')) {
         const articleId = item.dataset.id;
@@ -241,20 +245,22 @@ function updateTagFilter() {
 
   // Get all unique tags
   const allTags = new Set();
-  savedArticles.forEach(article => {
-    article.tags.forEach(tag => allTags.add(tag));
+  savedArticles.forEach((article) => {
+    article.tags.forEach((tag) => allTags.add(tag));
   });
 
   // Update tag filter options
   const currentValue = tagFilter.value;
   tagFilter.innerHTML = '<option value="">All Tags</option>';
-  
-  Array.from(allTags).sort().forEach(tag => {
-    const option = document.createElement('option');
-    option.value = tag;
-    option.textContent = tag;
-    tagFilter.appendChild(option);
-  });
+
+  Array.from(allTags)
+    .sort()
+    .forEach((tag) => {
+      const option = document.createElement('option');
+      option.value = tag;
+      option.textContent = tag;
+      tagFilter.appendChild(option);
+    });
 
   tagFilter.value = currentValue;
 }
@@ -265,7 +271,7 @@ function updateTagFilter() {
 async function updateStatistics() {
   try {
     const stats = await getReadingStats();
-    
+
     document.getElementById('total-count').textContent = stats.total;
     document.getElementById('unread-count').textContent = stats.unread;
     document.getElementById('read-count').textContent = stats.read;
@@ -289,7 +295,7 @@ async function handleAddCurrentPage() {
     // Pre-fill the add modal
     document.getElementById('article-title').value = tab.title || '';
     document.getElementById('article-url').value = tab.url || '';
-    
+
     openAddModal();
   } catch (error) {
     console.error('Failed to get current tab:', error);
@@ -340,16 +346,16 @@ async function handleSaveArticle() {
 
     const options = {
       title,
-      tags: tags ? tags.split(',').map(t => t.trim()) : [],
+      tags: tags ? tags.split(',').map((t) => t.trim()) : [],
       notes,
     };
 
     await saveForLater(url, options);
-    
+
     closeAddModal();
     await loadSavedArticles();
     await updateStatistics();
-    
+
     showToast('Article saved successfully', 'success');
   } catch (error) {
     console.error('Failed to save article:', error);
@@ -362,7 +368,7 @@ async function handleSaveArticle() {
  */
 function handleArticleAction(articleId, action) {
   event.stopPropagation();
-  
+
   switch (action) {
     case 'view':
       openArticleModal(articleId);
@@ -380,13 +386,15 @@ function handleArticleAction(articleId, action) {
  * Open article modal
  */
 function openArticleModal(articleId) {
-  const article = savedArticles.find(a => a.id === articleId);
+  const article = savedArticles.find((a) => a.id === articleId);
   if (!article) return;
 
   // Populate modal
   document.getElementById('modal-title').textContent = article.title;
   document.getElementById('modal-date').textContent = formatDate(article.savedAt);
-  document.getElementById('modal-reading-time').textContent = article.readingTime ? formatReadingTime(article.readingTime) : 'Unknown';
+  document.getElementById('modal-reading-time').textContent = article.readingTime
+    ? formatReadingTime(article.readingTime)
+    : 'Unknown';
   document.getElementById('modal-tags').textContent = article.tags.join(', ') || 'No tags';
   document.getElementById('modal-excerpt').textContent = article.excerpt || 'No excerpt available';
 
@@ -416,7 +424,7 @@ function openAddModal() {
  */
 function closeAddModal() {
   document.getElementById('add-article-modal').style.display = 'none';
-  
+
   // Clear form
   document.getElementById('article-title').value = '';
   document.getElementById('article-url').value = '';
@@ -429,8 +437,8 @@ function closeAddModal() {
  */
 function handleOpenArticle() {
   const articleId = document.getElementById('article-modal').dataset.articleId;
-  const article = savedArticles.find(a => a.id === articleId);
-  
+  const article = savedArticles.find((a) => a.id === articleId);
+
   if (article) {
     chrome.tabs.create({ url: article.url });
     closeArticleModal();
@@ -442,7 +450,7 @@ function handleOpenArticle() {
  */
 async function handleMarkAsRead() {
   const articleId = document.getElementById('article-modal').dataset.articleId;
-  
+
   try {
     await updateSavedPageStatus(articleId, 'read');
     closeArticleModal();
@@ -459,7 +467,7 @@ async function handleMarkAsRead() {
  * Handle edit article
  */
 function handleEditArticle(articleId) {
-  const article = savedArticles.find(a => a.id === articleId);
+  const article = savedArticles.find((a) => a.id === articleId);
   if (!article) return;
 
   // Pre-fill the add modal
@@ -497,7 +505,7 @@ async function handleDeleteArticle(articleId) {
 function showLoading(loading) {
   const loadingState = document.getElementById('loading-state');
   const articlesList = document.getElementById('articles-list');
-  
+
   if (loading) {
     if (loadingState) loadingState.style.display = 'block';
     if (articlesList) articlesList.style.display = 'none';
@@ -514,15 +522,15 @@ function showToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
-  
+
   const container = document.getElementById('toast-container');
   if (container) {
     container.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.classList.add('show');
     }, 100);
-    
+
     setTimeout(() => {
       toast.classList.remove('show');
       setTimeout(() => {
@@ -557,7 +565,7 @@ function formatDate(dateString) {
  */
 function formatReadingTime(minutes) {
   if (!minutes) return '0m';
-  
+
   if (minutes < 60) {
     return `${minutes}m`;
   } else {
@@ -580,4 +588,4 @@ function escapeHtml(text) {
 document.addEventListener('DOMContentLoaded', initializeReadLater);
 
 // Make functions globally available for onclick handlers
-window.handleArticleAction = handleArticleAction; 
+window.handleArticleAction = handleArticleAction;

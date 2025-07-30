@@ -5,9 +5,10 @@
 
 // Core functionality
 export * from './bookmarks.js';
-export * from './encryption.js';
+export * from './encryption/index.js';
 export * from './notification-manager.js';
 export * from './drive.js';
+export * from './public-collections.js';
 
 // Storage and Drive
 export * from './storage/index.js';

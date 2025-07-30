@@ -54,14 +54,14 @@ export const CONFLICT_CONFIG = {
     preferLongerTitle: true,
     preserveBothURLs: false,
   },
-  
+
   // Timestamp-based resolution
   TIMESTAMP_BASED: {
     timeThreshold: 300000, // 5 minutes in milliseconds
     preferNewer: true,
     considerUserActivity: true,
   },
-  
+
   // Content-aware resolution
   CONTENT_AWARE: {
     detectDuplicates: true,
@@ -69,7 +69,7 @@ export const CONFLICT_CONFIG = {
     preferCompleteData: true,
     validateURLs: true,
   },
-  
+
   // Auto-resolve settings
   AUTO_RESOLVE: {
     enableForLowSeverity: true,
@@ -218,7 +218,11 @@ function mergeBookmarks(local, remote) {
  * @param {Object} options - Advanced options
  * @returns {Object} Resolution result
  */
-export async function resolveConflictsAdvanced(conflicts, strategy = CONFLICT_STRATEGIES.INTELLIGENT_MERGE, options = {}) {
+export async function resolveConflictsAdvanced(
+  conflicts,
+  strategy = CONFLICT_STRATEGIES.INTELLIGENT_MERGE,
+  options = {},
+) {
   const resolved = [];
   const unresolved = [];
   const resolutionHistory = [];
@@ -232,11 +236,11 @@ export async function resolveConflictsAdvanced(conflicts, strategy = CONFLICT_ST
 
   // Categorize conflicts by severity and type
   const categorizedConflicts = await categorizeConflicts(conflicts);
-  
+
   for (const conflict of conflicts) {
     const conflictInfo = await analyzeConflict(conflict);
     const resolution = await resolveConflictAdvanced(conflict, strategy, options, conflictInfo);
-    
+
     if (resolution.resolved) {
       resolved.push(resolution.bookmark);
       stats.resolvedCount++;
@@ -244,7 +248,7 @@ export async function resolveConflictsAdvanced(conflicts, strategy = CONFLICT_ST
       unresolved.push(conflict);
       stats.unresolvedCount++;
     }
-    
+
     resolutionHistory.push({
       conflictId: conflict.id,
       strategy: resolution.strategy,
@@ -275,11 +279,11 @@ export async function resolveConflictsAdvanced(conflicts, strategy = CONFLICT_ST
  */
 async function analyzeConflict(conflict) {
   const { local, remote } = conflict;
-  
+
   // Determine conflict type
   let type = CONFLICT_TYPES.MIXED;
   let severity = CONFLICT_SEVERITY.MEDIUM;
-  
+
   // Check for deletion conflicts
   if (!local && remote) {
     type = CONFLICT_TYPES.DELETION_CONFLICT;
@@ -289,38 +293,44 @@ async function analyzeConflict(conflict) {
     severity = CONFLICT_SEVERITY.HIGH;
   }
   // Check for title-only conflicts
-  else if (local.title !== remote.title && 
-           local.url === remote.url && 
-           local.parentId === remote.parentId) {
+  else if (
+    local.title !== remote.title &&
+    local.url === remote.url &&
+    local.parentId === remote.parentId
+  ) {
     type = CONFLICT_TYPES.TITLE_ONLY;
     severity = CONFLICT_SEVERITY.LOW;
   }
   // Check for URL-only conflicts
-  else if (local.url !== remote.url && 
-           local.title === remote.title && 
-           local.parentId === remote.parentId) {
+  else if (
+    local.url !== remote.url &&
+    local.title === remote.title &&
+    local.parentId === remote.parentId
+  ) {
     type = CONFLICT_TYPES.URL_ONLY;
     severity = CONFLICT_SEVERITY.MEDIUM;
   }
   // Check for folder-only conflicts
-  else if (local.parentId !== remote.parentId && 
-           local.title === remote.title && 
-           local.url === remote.url) {
+  else if (
+    local.parentId !== remote.parentId &&
+    local.title === remote.title &&
+    local.url === remote.url
+  ) {
     type = CONFLICT_TYPES.FOLDER_ONLY;
     severity = CONFLICT_SEVERITY.LOW;
   }
-  
+
   // Check for duplicates
   if (await isDuplicateConflict(conflict)) {
     type = CONFLICT_TYPES.DUPLICATE;
     severity = CONFLICT_SEVERITY.LOW;
   }
-  
+
   // Adjust severity based on content analysis
   if (await hasCriticalChanges(conflict)) {
     severity = CONFLICT_SEVERITY.CRITICAL;
   }
-  
+
   return {
     type,
     severity,
@@ -340,23 +350,23 @@ async function analyzeConflict(conflict) {
  */
 async function resolveConflictAdvanced(conflict, strategy, options, conflictInfo) {
   const { local, remote } = conflict;
-  
+
   switch (strategy) {
     case CONFLICT_STRATEGIES.INTELLIGENT_MERGE:
       return await intelligentMerge(conflict, options, conflictInfo);
-      
+
     case CONFLICT_STRATEGIES.TIMESTAMP_BASED:
       return await timestampBasedResolution(conflict, options, conflictInfo);
-      
+
     case CONFLICT_STRATEGIES.CONTENT_AWARE:
       return await contentAwareResolution(conflict, options, conflictInfo);
-      
+
     case CONFLICT_STRATEGIES.USER_PREFERENCE:
       return await userPreferenceResolution(conflict, options, conflictInfo);
-      
+
     case CONFLICT_STRATEGIES.AUTO_RESOLVE:
       return await autoResolve(conflict, options, conflictInfo);
-      
+
     default:
       return resolveConflict(conflict, strategy);
   }
@@ -372,30 +382,32 @@ async function resolveConflictAdvanced(conflict, strategy, options, conflictInfo
 async function intelligentMerge(conflict, options, conflictInfo) {
   const { local, remote } = conflict;
   const config = { ...CONFLICT_CONFIG.INTELLIGENT_MERGE, ...options };
-  
+
   try {
     const mergedBookmark = { ...local };
-    
+
     // Merge titles intelligently
     if (config.mergeTitles && local.title !== remote.title) {
       if (config.preferLongerTitle) {
-        mergedBookmark.title = local.title.length > remote.title.length ? local.title : remote.title;
+        mergedBookmark.title =
+          local.title.length > remote.title.length ? local.title : remote.title;
       } else {
         // Combine titles if they're complementary
         const combinedTitle = `${local.title} | ${remote.title}`;
-        if (combinedTitle.length <= 100) { // Reasonable length limit
+        if (combinedTitle.length <= 100) {
+          // Reasonable length limit
           mergedBookmark.title = combinedTitle;
         } else {
           mergedBookmark.title = local.title; // Fallback to local
         }
       }
     }
-    
+
     // Merge notes if available
     if (config.preserveLocalNotes) {
       const localNotes = await getBookmarkNotes(local.id);
       const remoteNotes = await getBookmarkNotes(remote.id);
-      
+
       if (localNotes && remoteNotes && localNotes !== remoteNotes) {
         mergedBookmark.notes = `${localNotes}\n\n---\n\n${remoteNotes}`;
       } else if (localNotes) {
@@ -404,28 +416,30 @@ async function intelligentMerge(conflict, options, conflictInfo) {
         mergedBookmark.notes = remoteNotes;
       }
     }
-    
+
     // Merge tags
     if (config.preserveRemoteTags) {
       const localTags = await getBookmarkTags(local.id);
       const remoteTags = await getBookmarkTags(remote.id);
-      
+
       const allTags = [...new Set([...localTags, ...remoteTags])];
       mergedBookmark.tags = allTags;
     }
-    
+
     // Handle URL conflicts
     if (local.url !== remote.url) {
       if (config.preserveBothURLs) {
         // Store both URLs in notes or metadata
         const urlNote = `Original URL: ${local.url}\nAlternative URL: ${remote.url}`;
-        mergedBookmark.notes = mergedBookmark.notes ? `${mergedBookmark.notes}\n\n${urlNote}` : urlNote;
+        mergedBookmark.notes = mergedBookmark.notes
+          ? `${mergedBookmark.notes}\n\n${urlNote}`
+          : urlNote;
         mergedBookmark.url = local.url; // Keep local as primary
       } else {
         // Validate URLs and choose the better one
         const localUrlValid = await validateURL(local.url);
         const remoteUrlValid = await validateURL(remote.url);
-        
+
         if (localUrlValid && !remoteUrlValid) {
           mergedBookmark.url = local.url;
         } else if (!localUrlValid && remoteUrlValid) {
@@ -435,7 +449,7 @@ async function intelligentMerge(conflict, options, conflictInfo) {
         }
       }
     }
-    
+
     // Update metadata
     mergedBookmark.lastModified = Date.now();
     mergedBookmark.mergeInfo = {
@@ -443,7 +457,7 @@ async function intelligentMerge(conflict, options, conflictInfo) {
       strategy: 'intelligent_merge',
       conflictType: conflictInfo.type,
     };
-    
+
     return {
       resolved: true,
       bookmark: mergedBookmark,
@@ -471,15 +485,15 @@ async function intelligentMerge(conflict, options, conflictInfo) {
 async function timestampBasedResolution(conflict, options, conflictInfo) {
   const { local, remote } = conflict;
   const config = { ...CONFLICT_CONFIG.TIMESTAMP_BASED, ...options };
-  
+
   try {
     const localTime = new Date(local.dateAdded || local.lastModified || 0);
     const remoteTime = new Date(remote.dateAdded || remote.lastModified || 0);
     const timeDiff = Math.abs(localTime.getTime() - remoteTime.getTime());
-    
+
     let selectedBookmark;
     let reason;
-    
+
     if (timeDiff <= config.timeThreshold) {
       // Changes are close in time, consider user activity
       if (config.considerUserActivity) {
@@ -487,19 +501,27 @@ async function timestampBasedResolution(conflict, options, conflictInfo) {
         selectedBookmark = userActivity.preferLocal ? local : remote;
         reason = 'Selected based on user activity patterns';
       } else {
-        selectedBookmark = config.preferNewer ? 
-          (localTime > remoteTime ? local : remote) : 
-          (localTime < remoteTime ? local : remote);
+        selectedBookmark = config.preferNewer
+          ? localTime > remoteTime
+            ? local
+            : remote
+          : localTime < remoteTime
+            ? local
+            : remote;
         reason = `Selected ${config.preferNewer ? 'newer' : 'older'} version based on timestamp`;
       }
     } else {
       // Significant time difference, use timestamp-based selection
-      selectedBookmark = config.preferNewer ? 
-        (localTime > remoteTime ? local : remote) : 
-        (localTime < remoteTime ? local : remote);
+      selectedBookmark = config.preferNewer
+        ? localTime > remoteTime
+          ? local
+          : remote
+        : localTime < remoteTime
+          ? local
+          : remote;
       reason = `Selected ${config.preferNewer ? 'newer' : 'older'} version (${timeDiff}ms difference)`;
     }
-    
+
     selectedBookmark.lastModified = Date.now();
     selectedBookmark.resolveInfo = {
       resolvedAt: new Date().toISOString(),
@@ -507,7 +529,7 @@ async function timestampBasedResolution(conflict, options, conflictInfo) {
       reason,
       conflictType: conflictInfo.type,
     };
-    
+
     return {
       resolved: true,
       bookmark: selectedBookmark,
@@ -535,17 +557,17 @@ async function timestampBasedResolution(conflict, options, conflictInfo) {
 async function contentAwareResolution(conflict, options, conflictInfo) {
   const { local, remote } = conflict;
   const config = { ...CONFLICT_CONFIG.CONTENT_AWARE, ...options };
-  
+
   try {
     let selectedBookmark;
     let reason;
-    
+
     // Check for duplicates
     if (config.detectDuplicates && conflictInfo.similarity >= config.similarityThreshold) {
       // Treat as duplicate, keep the more complete version
       const localCompleteness = await calculateCompleteness(local);
       const remoteCompleteness = await calculateCompleteness(remote);
-      
+
       selectedBookmark = localCompleteness >= remoteCompleteness ? local : remote;
       reason = `Selected more complete version (similarity: ${conflictInfo.similarity.toFixed(2)})`;
     }
@@ -553,7 +575,7 @@ async function contentAwareResolution(conflict, options, conflictInfo) {
     else if (config.validateURLs) {
       const localUrlValid = await validateURL(local.url);
       const remoteUrlValid = await validateURL(remote.url);
-      
+
       if (localUrlValid && !remoteUrlValid) {
         selectedBookmark = local;
         reason = 'Selected local version (valid URL)';
@@ -587,7 +609,7 @@ async function contentAwareResolution(conflict, options, conflictInfo) {
       selectedBookmark = local; // Default to local
       reason = 'Selected local version (default)';
     }
-    
+
     selectedBookmark.lastModified = Date.now();
     selectedBookmark.resolveInfo = {
       resolvedAt: new Date().toISOString(),
@@ -596,7 +618,7 @@ async function contentAwareResolution(conflict, options, conflictInfo) {
       conflictType: conflictInfo.type,
       similarity: conflictInfo.similarity,
     };
-    
+
     return {
       resolved: true,
       bookmark: selectedBookmark,
@@ -625,31 +647,32 @@ async function userPreferenceResolution(conflict, options, conflictInfo) {
   try {
     // Get user preferences for conflict resolution
     const userPreferences = await getUserConflictPreferences();
-    
+
     let selectedBookmark;
     let reason;
-    
+
     switch (conflictInfo.type) {
       case CONFLICT_TYPES.TITLE_ONLY:
         selectedBookmark = userPreferences.preferLocalTitles ? conflict.local : conflict.remote;
         reason = `Selected ${userPreferences.preferLocalTitles ? 'local' : 'remote'} title based on user preference`;
         break;
-        
+
       case CONFLICT_TYPES.URL_ONLY:
         selectedBookmark = userPreferences.preferLocalURLs ? conflict.local : conflict.remote;
         reason = `Selected ${userPreferences.preferLocalURLs ? 'local' : 'remote'} URL based on user preference`;
         break;
-        
+
       case CONFLICT_TYPES.FOLDER_ONLY:
         selectedBookmark = userPreferences.preferLocalFolders ? conflict.local : conflict.remote;
         reason = `Selected ${userPreferences.preferLocalFolders ? 'local' : 'remote'} folder based on user preference`;
         break;
-        
+
       default:
-        selectedBookmark = userPreferences.defaultPreference === 'local' ? conflict.local : conflict.remote;
+        selectedBookmark =
+          userPreferences.defaultPreference === 'local' ? conflict.local : conflict.remote;
         reason = `Selected ${userPreferences.defaultPreference} version based on user preference`;
     }
-    
+
     selectedBookmark.lastModified = Date.now();
     selectedBookmark.resolveInfo = {
       resolvedAt: new Date().toISOString(),
@@ -657,7 +680,7 @@ async function userPreferenceResolution(conflict, options, conflictInfo) {
       reason,
       conflictType: conflictInfo.type,
     };
-    
+
     return {
       resolved: true,
       bookmark: selectedBookmark,
@@ -684,7 +707,7 @@ async function userPreferenceResolution(conflict, options, conflictInfo) {
  */
 async function autoResolve(conflict, options, conflictInfo) {
   const config = { ...CONFLICT_CONFIG.AUTO_RESOLVE, ...options };
-  
+
   try {
     // Check if auto-resolve is enabled for this severity
     const autoResolveEnabled = {
@@ -693,7 +716,7 @@ async function autoResolve(conflict, options, conflictInfo) {
       [CONFLICT_SEVERITY.HIGH]: config.enableForHighSeverity,
       [CONFLICT_SEVERITY.CRITICAL]: config.enableForCriticalSeverity,
     }[conflictInfo.severity];
-    
+
     if (!autoResolveEnabled) {
       return {
         resolved: false,
@@ -702,7 +725,7 @@ async function autoResolve(conflict, options, conflictInfo) {
         strategy: CONFLICT_STRATEGIES.AUTO_RESOLVE,
       };
     }
-    
+
     // Check auto-resolve limits
     const autoResolveCount = await getAutoResolveCount();
     if (autoResolveCount >= config.maxAutoResolvePerSync) {
@@ -713,14 +736,14 @@ async function autoResolve(conflict, options, conflictInfo) {
         strategy: CONFLICT_STRATEGIES.AUTO_RESOLVE,
       };
     }
-    
+
     // Use intelligent merge for auto-resolve
     const resolution = await intelligentMerge(conflict, options, conflictInfo);
-    
+
     if (resolution.resolved) {
       await incrementAutoResolveCount();
     }
-    
+
     return {
       ...resolution,
       strategy: CONFLICT_STRATEGIES.AUTO_RESOLVE,
@@ -906,13 +929,13 @@ async function categorizeConflicts(conflicts) {
  */
 async function isDuplicateConflict(conflict) {
   const { local, remote } = conflict;
-  
+
   // Check if URLs are similar
   const urlSimilarity = calculateStringSimilarity(local.url, remote.url);
-  
+
   // Check if titles are similar
   const titleSimilarity = calculateStringSimilarity(local.title, remote.title);
-  
+
   // Consider it a duplicate if both URL and title are very similar
   return urlSimilarity > 0.9 && titleSimilarity > 0.8;
 }
@@ -924,12 +947,12 @@ async function isDuplicateConflict(conflict) {
  */
 async function hasCriticalChanges(conflict) {
   const { local, remote } = conflict;
-  
+
   // Check for deletion conflicts
   if (!local || !remote) {
     return true;
   }
-  
+
   // Check for major URL changes
   if (local.url && remote.url) {
     const localDomain = extractDomain(local.url);
@@ -938,7 +961,7 @@ async function hasCriticalChanges(conflict) {
       return true;
     }
   }
-  
+
   // Check for significant title changes
   if (local.title && remote.title) {
     const titleSimilarity = calculateStringSimilarity(local.title, remote.title);
@@ -946,7 +969,7 @@ async function hasCriticalChanges(conflict) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -958,33 +981,33 @@ async function hasCriticalChanges(conflict) {
  */
 async function getChangeSummary(source, target) {
   const changes = {};
-  
+
   if (source.title !== target.title) {
     changes.title = { from: target.title, to: source.title };
   }
-  
+
   if (source.url !== target.url) {
     changes.url = { from: target.url, to: source.url };
   }
-  
+
   if (source.parentId !== target.parentId) {
     changes.folder = { from: target.parentId, to: source.parentId };
   }
-  
+
   // Check for notes changes
   const sourceNotes = await getBookmarkNotes(source.id);
   const targetNotes = await getBookmarkNotes(target.id);
   if (sourceNotes !== targetNotes) {
     changes.notes = { from: targetNotes, to: sourceNotes };
   }
-  
+
   // Check for tags changes
   const sourceTags = await getBookmarkTags(source.id);
   const targetTags = await getBookmarkTags(target.id);
   if (JSON.stringify(sourceTags) !== JSON.stringify(targetTags)) {
     changes.tags = { from: targetTags, to: sourceTags };
   }
-  
+
   return changes;
 }
 
@@ -997,27 +1020,27 @@ async function getChangeSummary(source, target) {
 async function calculateSimilarity(local, remote) {
   let similarity = 0;
   let totalWeight = 0;
-  
+
   // Title similarity (weight: 0.3)
   if (local.title && remote.title) {
     const titleSimilarity = calculateStringSimilarity(local.title, remote.title);
     similarity += titleSimilarity * 0.3;
     totalWeight += 0.3;
   }
-  
+
   // URL similarity (weight: 0.4)
   if (local.url && remote.url) {
     const urlSimilarity = calculateStringSimilarity(local.url, remote.url);
     similarity += urlSimilarity * 0.4;
     totalWeight += 0.4;
   }
-  
+
   // Folder similarity (weight: 0.2)
   if (local.parentId === remote.parentId) {
     similarity += 0.2;
     totalWeight += 0.2;
   }
-  
+
   // Notes similarity (weight: 0.1)
   const localNotes = await getBookmarkNotes(local.id);
   const remoteNotes = await getBookmarkNotes(remote.id);
@@ -1026,7 +1049,7 @@ async function calculateSimilarity(local, remote) {
     similarity += notesSimilarity * 0.1;
     totalWeight += 0.1;
   }
-  
+
   return totalWeight > 0 ? similarity / totalWeight : 0;
 }
 
@@ -1040,14 +1063,14 @@ function calculateStringSimilarity(str1, str2) {
   if (!str1 || !str2) {
     return 0;
   }
-  
+
   const maxLength = Math.max(str1.length, str2.length);
   if (maxLength === 0) {
     return 1;
   }
-  
+
   const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
-  return 1 - (distance / maxLength);
+  return 1 - distance / maxLength;
 }
 
 /**
@@ -1058,15 +1081,15 @@ function calculateStringSimilarity(str1, str2) {
  */
 function levenshteinDistance(str1, str2) {
   const matrix = [];
-  
+
   for (let i = 0; i <= str2.length; i++) {
     matrix[i] = [i];
   }
-  
+
   for (let j = 0; j <= str1.length; j++) {
     matrix[0][j] = j;
   }
-  
+
   for (let i = 1; i <= str2.length; i++) {
     for (let j = 1; j <= str1.length; j++) {
       if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -1075,12 +1098,12 @@ function levenshteinDistance(str1, str2) {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1,
           matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
+          matrix[i - 1][j] + 1,
         );
       }
     }
   }
-  
+
   return matrix[str2.length][str1.length];
 }
 
@@ -1092,33 +1115,33 @@ function levenshteinDistance(str1, str2) {
 async function calculateCompleteness(bookmark) {
   let score = 0;
   let totalWeight = 0;
-  
+
   // Title (weight: 0.3)
   if (bookmark.title && bookmark.title.trim()) {
     score += 0.3;
   }
   totalWeight += 0.3;
-  
+
   // URL (weight: 0.4)
   if (bookmark.url && bookmark.url.trim()) {
     score += 0.4;
   }
   totalWeight += 0.4;
-  
+
   // Notes (weight: 0.2)
   const notes = await getBookmarkNotes(bookmark.id);
   if (notes && notes.trim()) {
     score += 0.2;
   }
   totalWeight += 0.2;
-  
+
   // Tags (weight: 0.1)
   const tags = await getBookmarkTags(bookmark.id);
   if (tags && tags.length > 0) {
     score += 0.1;
   }
   totalWeight += 0.1;
-  
+
   return totalWeight > 0 ? score / totalWeight : 0;
 }
 
@@ -1157,11 +1180,13 @@ function extractDomain(url) {
 async function getUserActivity() {
   try {
     const result = await chrome.storage.local.get('user_activity_patterns');
-    return result.user_activity_patterns || {
-      preferLocal: true,
-      lastSyncTime: Date.now(),
-      syncFrequency: 'daily',
-    };
+    return (
+      result.user_activity_patterns || {
+        preferLocal: true,
+        lastSyncTime: Date.now(),
+        syncFrequency: 'daily',
+      }
+    );
   } catch (error) {
     console.error('Failed to get user activity:', error);
     return { preferLocal: true };
@@ -1175,12 +1200,14 @@ async function getUserActivity() {
 async function getUserConflictPreferences() {
   try {
     const result = await chrome.storage.local.get('conflict_preferences');
-    return result.conflict_preferences || {
-      preferLocalTitles: true,
-      preferLocalURLs: true,
-      preferLocalFolders: true,
-      defaultPreference: 'local',
-    };
+    return (
+      result.conflict_preferences || {
+        preferLocalTitles: true,
+        preferLocalURLs: true,
+        preferLocalFolders: true,
+        defaultPreference: 'local',
+      }
+    );
   } catch (error) {
     console.error('Failed to get conflict preferences:', error);
     return {
@@ -1201,10 +1228,10 @@ async function saveResolutionHistory(history) {
   try {
     const result = await chrome.storage.local.get('conflict_resolution_history');
     const existingHistory = result.conflict_resolution_history || [];
-    
+
     // Keep only last 1000 entries
     const updatedHistory = [...existingHistory, ...history].slice(-1000);
-    
+
     await chrome.storage.local.set({
       conflict_resolution_history: updatedHistory,
     });

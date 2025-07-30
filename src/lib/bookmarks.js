@@ -489,7 +489,7 @@ export async function removeBookmarkTags(bookmarkId, tags) {
 
     const bookmarkNode = bookmark[0];
     const existingTags = await getBookmarkTags(bookmarkNode);
-    const newTags = existingTags.filter(tag => !tags.includes(tag));
+    const newTags = existingTags.filter((tag) => !tags.includes(tag));
 
     const tagData = {
       bookmarkId,
@@ -671,8 +671,8 @@ export async function updateSmartFolder(folderId, rules, options = {}) {
   try {
     const result = await chrome.storage.local.get('smart_folders');
     const smartFolders = result.smart_folders || [];
-    
-    const folderIndex = smartFolders.findIndex(folder => folder.id === folderId);
+
+    const folderIndex = smartFolders.findIndex((folder) => folder.id === folderId);
     if (folderIndex === -1) {
       throw new Error('Smart folder not found');
     }
@@ -719,27 +719,28 @@ export async function getSmartFolderBookmarks(rules, options = {}) {
   try {
     const allBookmarks = await chrome.bookmarks.getTree();
     const flatBookmarks = flattenBookmarksToArray(allBookmarks, []);
-    
+
     const matchingBookmarks = [];
     for (const bookmark of flatBookmarks) {
-      const matches = await Promise.all(rules.map(rule => matchesAdvancedRule(bookmark, rule)));
-      
+      const matches = await Promise.all(rules.map((rule) => matchesAdvancedRule(bookmark, rule)));
+
       // Apply logical operators (AND by default)
-      const shouldInclude = options.logicalOperator === 'OR' ? 
-        matches.some(match => match) : 
-        matches.every(match => match);
-      
+      const shouldInclude =
+        options.logicalOperator === 'OR'
+          ? matches.some((match) => match)
+          : matches.every((match) => match);
+
       if (shouldInclude) {
         matchingBookmarks.push(bookmark);
       }
     }
-    
+
     // Apply sorting
     if (options.sortBy) {
       matchingBookmarks.sort((a, b) => {
         const aValue = getBookmarkValue(a, options.sortBy);
         const bValue = getBookmarkValue(b, options.sortBy);
-        
+
         if (options.sortOrder === 'desc') {
           return bValue > aValue ? 1 : -1;
         } else {
@@ -747,12 +748,12 @@ export async function getSmartFolderBookmarks(rules, options = {}) {
         }
       });
     }
-    
+
     // Apply limit
     if (options.limit) {
       return matchingBookmarks.slice(0, options.limit);
     }
-    
+
     return matchingBookmarks;
   } catch (error) {
     console.error('Failed to get smart folder bookmarks:', error);
@@ -768,77 +769,77 @@ export async function getSmartFolderBookmarks(rules, options = {}) {
  */
 async function matchesAdvancedRule(bookmark, rule) {
   const { type, operator, value, field } = rule;
-  
+
   try {
     switch (type) {
       case SMART_FOLDER_RULES.TAG_MATCH:
         const bookmarkTags = await getBookmarkTags(bookmark.id);
         return applyOperator(bookmarkTags, operator, value);
-        
+
       case SMART_FOLDER_RULES.TITLE_CONTAINS:
         return applyOperator(bookmark.title, operator, value);
-        
+
       case SMART_FOLDER_RULES.URL_CONTAINS:
         return applyOperator(bookmark.url, operator, value);
-        
+
       case SMART_FOLDER_RULES.DATE_ADDED:
         const addedDate = new Date(bookmark.dateAdded);
         return applyDateOperator(addedDate, operator, value);
-        
+
       case SMART_FOLDER_RULES.DATE_MODIFIED:
         const modifiedDate = new Date(bookmark.dateGroupModified || bookmark.dateAdded);
         return applyDateOperator(modifiedDate, operator, value);
-        
+
       case SMART_FOLDER_RULES.FOLDER:
         return applyOperator(bookmark.parentId, operator, value);
-        
+
       case SMART_FOLDER_RULES.REGEX_MATCH:
         const regex = new RegExp(value, 'i');
         return regex.test(bookmark[field] || '');
-        
+
       case SMART_FOLDER_RULES.DOMAIN_MATCH:
         const domain = extractDomain(bookmark.url);
         return applyOperator(domain, operator, value);
-        
+
       case SMART_FOLDER_RULES.HAS_NOTES:
         const notes = await getBookmarkNotes(bookmark.id);
-        return operator === SMART_FOLDER_OPERATORS.IS_NOT_EMPTY ? 
-          notes && notes.trim() !== '' : 
-          !notes || notes.trim() === '';
-        
+        return operator === SMART_FOLDER_OPERATORS.IS_NOT_EMPTY
+          ? notes && notes.trim() !== ''
+          : !notes || notes.trim() === '';
+
       case SMART_FOLDER_RULES.HAS_TAGS:
         const tags = await getBookmarkTags(bookmark.id);
-        return operator === SMART_FOLDER_OPERATORS.IS_NOT_EMPTY ? 
-          tags && tags.length > 0 : 
-          !tags || tags.length === 0;
-        
+        return operator === SMART_FOLDER_OPERATORS.IS_NOT_EMPTY
+          ? tags && tags.length > 0
+          : !tags || tags.length === 0;
+
       case SMART_FOLDER_RULES.NO_TAGS:
         const bookmarkTags2 = await getBookmarkTags(bookmark.id);
         return !bookmarkTags2 || bookmarkTags2.length === 0;
-        
+
       case SMART_FOLDER_RULES.FAVORITE:
         return bookmark.url && bookmark.url.startsWith('chrome://bookmarks/');
-        
+
       case SMART_FOLDER_RULES.RECENTLY_ADDED:
         const daysAgo = parseInt(value) || 7;
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
         return new Date(bookmark.dateAdded) >= cutoffDate;
-        
+
       case SMART_FOLDER_RULES.RECENTLY_MODIFIED:
         const daysAgo2 = parseInt(value) || 7;
         const cutoffDate2 = new Date();
         cutoffDate2.setDate(cutoffDate2.getDate() - daysAgo2);
         return new Date(bookmark.dateGroupModified || bookmark.dateAdded) >= cutoffDate2;
-        
+
       case SMART_FOLDER_RULES.SYNC_STATUS:
         // This would need to be implemented based on sync state
         return true; // Placeholder
-        
+
       case SMART_FOLDER_RULES.ENCRYPTION_STATUS:
         // This would need to be implemented based on encryption state
         return true; // Placeholder
-        
+
       default:
         return false;
     }
@@ -859,35 +860,35 @@ function applyOperator(actual, operator, expected) {
   if (Array.isArray(actual)) {
     return applyArrayOperator(actual, operator, expected);
   }
-  
+
   const actualStr = String(actual || '').toLowerCase();
   const expectedStr = String(expected || '').toLowerCase();
-  
+
   switch (operator) {
     case SMART_FOLDER_OPERATORS.EQUALS:
       return actualStr === expectedStr;
-      
+
     case SMART_FOLDER_OPERATORS.NOT_EQUALS:
       return actualStr !== expectedStr;
-      
+
     case SMART_FOLDER_OPERATORS.CONTAINS:
       return actualStr.includes(expectedStr);
-      
+
     case SMART_FOLDER_OPERATORS.NOT_CONTAINS:
       return !actualStr.includes(expectedStr);
-      
+
     case SMART_FOLDER_OPERATORS.STARTS_WITH:
       return actualStr.startsWith(expectedStr);
-      
+
     case SMART_FOLDER_OPERATORS.ENDS_WITH:
       return actualStr.endsWith(expectedStr);
-      
+
     case SMART_FOLDER_OPERATORS.IS_EMPTY:
       return !actualStr || actualStr.trim() === '';
-      
+
     case SMART_FOLDER_OPERATORS.IS_NOT_EMPTY:
       return actualStr && actualStr.trim() !== '';
-      
+
     default:
       return false;
   }
@@ -902,28 +903,28 @@ function applyOperator(actual, operator, expected) {
  */
 function applyArrayOperator(actual, operator, expected) {
   const expectedArray = Array.isArray(expected) ? expected : [expected];
-  
+
   switch (operator) {
     case SMART_FOLDER_OPERATORS.IN:
-      return expectedArray.some(item => 
-        actual.some(actualItem => 
-          String(actualItem).toLowerCase() === String(item).toLowerCase()
-        )
+      return expectedArray.some((item) =>
+        actual.some(
+          (actualItem) => String(actualItem).toLowerCase() === String(item).toLowerCase(),
+        ),
       );
-      
+
     case SMART_FOLDER_OPERATORS.NOT_IN:
-      return !expectedArray.some(item => 
-        actual.some(actualItem => 
-          String(actualItem).toLowerCase() === String(item).toLowerCase()
-        )
+      return !expectedArray.some((item) =>
+        actual.some(
+          (actualItem) => String(actualItem).toLowerCase() === String(item).toLowerCase(),
+        ),
       );
-      
+
     case SMART_FOLDER_OPERATORS.IS_EMPTY:
       return !actual || actual.length === 0;
-      
+
     case SMART_FOLDER_OPERATORS.IS_NOT_EMPTY:
       return actual && actual.length > 0;
-      
+
     default:
       return applyOperator(actual.join(', '), operator, expected);
   }
@@ -938,17 +939,17 @@ function applyArrayOperator(actual, operator, expected) {
  */
 function applyDateOperator(actual, operator, expected) {
   const expectedDate = new Date(expected);
-  
+
   switch (operator) {
     case SMART_FOLDER_OPERATORS.EQUALS:
       return actual.getTime() === expectedDate.getTime();
-      
+
     case SMART_FOLDER_OPERATORS.GREATER_THAN:
       return actual > expectedDate;
-      
+
     case SMART_FOLDER_OPERATORS.LESS_THAN:
       return actual < expectedDate;
-      
+
     case SMART_FOLDER_OPERATORS.BETWEEN:
       if (Array.isArray(expected) && expected.length === 2) {
         const startDate = new Date(expected[0]);
@@ -956,7 +957,7 @@ function applyDateOperator(actual, operator, expected) {
         return actual >= startDate && actual <= endDate;
       }
       return false;
-      
+
     default:
       return false;
   }
@@ -1008,12 +1009,12 @@ async function scheduleSmartFolderUpdate(folderId) {
   try {
     const result = await chrome.storage.local.get('smart_folder_updates');
     const updates = result.smart_folder_updates || {};
-    
+
     updates[folderId] = {
       lastUpdate: Date.now(),
       nextUpdate: Date.now() + 300000, // 5 minutes
     };
-    
+
     await chrome.storage.local.set({ smart_folder_updates: updates });
   } catch (error) {
     console.error('Failed to schedule smart folder update:', error);
@@ -1032,13 +1033,11 @@ async function scheduleSmartFolderUpdate(folderId) {
  */
 export async function bulkAddTags(bookmarkIds, tags) {
   try {
-    const results = await Promise.allSettled(
-      bookmarkIds.map(id => addBookmarkTags(id, tags))
-    );
-    
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
-    
+    const results = await Promise.allSettled(bookmarkIds.map((id) => addBookmarkTags(id, tags)));
+
+    const successful = results.filter((result) => result.status === 'fulfilled').length;
+    const failed = results.filter((result) => result.status === 'rejected').length;
+
     return {
       success: true,
       successful,
@@ -1059,13 +1058,11 @@ export async function bulkAddTags(bookmarkIds, tags) {
  */
 export async function bulkRemoveTags(bookmarkIds, tags) {
   try {
-    const results = await Promise.allSettled(
-      bookmarkIds.map(id => removeBookmarkTags(id, tags))
-    );
-    
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
-    
+    const results = await Promise.allSettled(bookmarkIds.map((id) => removeBookmarkTags(id, tags)));
+
+    const successful = results.filter((result) => result.status === 'fulfilled').length;
+    const failed = results.filter((result) => result.status === 'rejected').length;
+
     return {
       success: true,
       successful,
@@ -1087,12 +1084,12 @@ export async function bulkRemoveTags(bookmarkIds, tags) {
 export async function bulkMoveBookmarks(bookmarkIds, targetFolderId) {
   try {
     const results = await Promise.allSettled(
-      bookmarkIds.map(id => chrome.bookmarks.move(id, { parentId: targetFolderId }))
+      bookmarkIds.map((id) => chrome.bookmarks.move(id, { parentId: targetFolderId })),
     );
-    
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
-    
+
+    const successful = results.filter((result) => result.status === 'fulfilled').length;
+    const failed = results.filter((result) => result.status === 'rejected').length;
+
     return {
       success: true,
       successful,
@@ -1112,13 +1109,11 @@ export async function bulkMoveBookmarks(bookmarkIds, targetFolderId) {
  */
 export async function bulkDeleteBookmarks(bookmarkIds) {
   try {
-    const results = await Promise.allSettled(
-      bookmarkIds.map(id => chrome.bookmarks.remove(id))
-    );
-    
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
-    
+    const results = await Promise.allSettled(bookmarkIds.map((id) => chrome.bookmarks.remove(id)));
+
+    const successful = results.filter((result) => result.status === 'fulfilled').length;
+    const failed = results.filter((result) => result.status === 'rejected').length;
+
     return {
       success: true,
       successful,
@@ -1145,21 +1140,21 @@ export async function advancedSearch(criteria, options = {}) {
   try {
     const allBookmarks = await chrome.bookmarks.getTree();
     const flatBookmarks = flattenBookmarksToArray(allBookmarks, []);
-    
+
     const matchingBookmarks = [];
-    
+
     for (const bookmark of flatBookmarks) {
       if (await matchesSearchCriteria(bookmark, criteria)) {
         matchingBookmarks.push(bookmark);
       }
     }
-    
+
     // Apply sorting
     if (options.sortBy) {
       matchingBookmarks.sort((a, b) => {
         const aValue = getBookmarkValue(a, options.sortBy);
         const bValue = getBookmarkValue(b, options.sortBy);
-        
+
         if (options.sortOrder === 'desc') {
           return bValue > aValue ? 1 : -1;
         } else {
@@ -1167,13 +1162,13 @@ export async function advancedSearch(criteria, options = {}) {
         }
       });
     }
-    
+
     // Apply pagination
     if (options.limit) {
       const start = options.offset || 0;
       return matchingBookmarks.slice(start, start + options.limit);
     }
-    
+
     return matchingBookmarks;
   } catch (error) {
     console.error('Advanced search failed:', error);
@@ -1189,7 +1184,7 @@ export async function advancedSearch(criteria, options = {}) {
  */
 async function matchesSearchCriteria(bookmark, criteria) {
   const conditions = [];
-  
+
   // Text search
   if (criteria.text) {
     const text = criteria.text.toLowerCase();
@@ -1197,59 +1192,59 @@ async function matchesSearchCriteria(bookmark, criteria) {
     const urlMatch = bookmark.url && bookmark.url.toLowerCase().includes(text);
     const notes = await getBookmarkNotes(bookmark.id);
     const notesMatch = notes && notes.toLowerCase().includes(text);
-    
+
     conditions.push(titleMatch || urlMatch || notesMatch);
   }
-  
+
   // Tag search
   if (criteria.tags && criteria.tags.length > 0) {
     const bookmarkTags = await getBookmarkTags(bookmark.id);
-    const tagMatch = criteria.tags.some(tag => 
-      bookmarkTags.some(bookmarkTag => 
-        bookmarkTag.toLowerCase().includes(tag.toLowerCase())
-      )
+    const tagMatch = criteria.tags.some((tag) =>
+      bookmarkTags.some((bookmarkTag) => bookmarkTag.toLowerCase().includes(tag.toLowerCase())),
     );
     conditions.push(tagMatch);
   }
-  
+
   // Date range search
   if (criteria.dateRange) {
     const { start, end, field = 'dateAdded' } = criteria.dateRange;
     const bookmarkDate = new Date(bookmark[field] || 0);
     const startDate = start ? new Date(start) : new Date(0);
     const endDate = end ? new Date(end) : new Date();
-    
+
     conditions.push(bookmarkDate >= startDate && bookmarkDate <= endDate);
   }
-  
+
   // Folder search
   if (criteria.folderId) {
     conditions.push(bookmark.parentId === criteria.folderId);
   }
-  
+
   // URL pattern search
   if (criteria.urlPattern) {
     const regex = new RegExp(criteria.urlPattern, 'i');
     conditions.push(regex.test(bookmark.url || ''));
   }
-  
+
   // Has notes
   if (criteria.hasNotes !== undefined) {
     const notes = await getBookmarkNotes(bookmark.id);
-    conditions.push(criteria.hasNotes ? (notes && notes.trim() !== '') : (!notes || notes.trim() === ''));
+    conditions.push(
+      criteria.hasNotes ? notes && notes.trim() !== '' : !notes || notes.trim() === '',
+    );
   }
-  
+
   // Has tags
   if (criteria.hasTags !== undefined) {
     const tags = await getBookmarkTags(bookmark.id);
-    conditions.push(criteria.hasTags ? (tags && tags.length > 0) : (!tags || tags.length === 0));
+    conditions.push(criteria.hasTags ? tags && tags.length > 0 : !tags || tags.length === 0);
   }
-  
+
   // Apply logical operator
   const operator = criteria.operator || 'AND';
-  return operator === 'OR' ? 
-    conditions.some(condition => condition) : 
-    conditions.every(condition => condition);
+  return operator === 'OR'
+    ? conditions.some((condition) => condition)
+    : conditions.every((condition) => condition);
 }
 
 /**
@@ -1264,7 +1259,7 @@ export async function getAllTags() {
 
     for (const bookmark of flatBookmarks) {
       const tags = await getBookmarkTags(bookmark);
-      tags.forEach(tag => allTags.add(tag));
+      tags.forEach((tag) => allTags.add(tag));
     }
 
     return Array.from(allTags).sort();
@@ -1282,7 +1277,7 @@ export async function getBookmarkStats() {
   try {
     const allBookmarks = await chrome.bookmarks.getTree();
     const flatBookmarks = flattenBookmarksToArray(allBookmarks, []);
-    
+
     const stats = {
       total: flatBookmarks.length,
       byFolder: {},
@@ -1315,13 +1310,13 @@ export async function getBookmarkStats() {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     stats.recentlyAdded = flatBookmarks
-      .filter(bookmark => new Date(bookmark.dateAdded) > weekAgo)
+      .filter((bookmark) => new Date(bookmark.dateAdded) > weekAgo)
       .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
       .slice(0, 10);
 
     // Recently modified (last 7 days)
     stats.recentlyModified = flatBookmarks
-      .filter(bookmark => {
+      .filter((bookmark) => {
         const modifiedDate = new Date(bookmark.dateGroupModified || bookmark.dateAdded);
         return modifiedDate > weekAgo;
       })
@@ -1403,7 +1398,7 @@ export async function exportBookmarks(format, options = {}) {
 function exportToHTML(bookmarks, options) {
   const title = options.title || 'Bookmarks';
   const date = new Date().toLocaleDateString();
-  
+
   let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.
      It will be read and overwritten.
@@ -1439,7 +1434,7 @@ function exportToJSON(bookmarks, options) {
     version: '1.0',
     exportedAt: new Date().toISOString(),
     title: options.title || 'Bookmarks Export',
-    bookmarks: bookmarks.map(bookmark => ({
+    bookmarks: bookmarks.map((bookmark) => ({
       id: bookmark.id,
       title: bookmark.title,
       url: bookmark.url,
@@ -1468,7 +1463,7 @@ function exportToCSV(bookmarks, options) {
       const url = `"${bookmark.url}"`;
       const dateAdded = new Date(bookmark.dateAdded).toLocaleDateString();
       const folder = `"${getFolderPath(bookmark.parentId)}"`;
-      
+
       csv += `${title},${url},${dateAdded},${folder}\n`;
     }
   }
@@ -1512,8 +1507,8 @@ function exportToPocket(bookmarks, options) {
 function exportToRaindrop(bookmarks, options) {
   const raindropData = {
     items: bookmarks
-      .filter(bookmark => bookmark.url)
-      .map(bookmark => ({
+      .filter((bookmark) => bookmark.url)
+      .map((bookmark) => ({
         title: bookmark.title,
         link: bookmark.url,
         created: new Date(bookmark.dateAdded).toISOString(),
@@ -1533,8 +1528,8 @@ function exportToRaindrop(bookmarks, options) {
  */
 function exportToPinboard(bookmarks, options) {
   const pinboardData = bookmarks
-    .filter(bookmark => bookmark.url)
-    .map(bookmark => ({
+    .filter((bookmark) => bookmark.url)
+    .map((bookmark) => ({
       href: bookmark.url,
       description: bookmark.title,
       extended: '',
@@ -1587,7 +1582,7 @@ export async function importBookmarks(data, format, options = {}) {
     }
 
     if (options.folderId) {
-      bookmarks = bookmarks.map(bookmark => ({
+      bookmarks = bookmarks.map((bookmark) => ({
         ...bookmark,
         parentId: options.folderId,
       }));
@@ -1595,11 +1590,11 @@ export async function importBookmarks(data, format, options = {}) {
 
     // Import bookmarks
     const results = await Promise.allSettled(
-      bookmarks.map(bookmark => chrome.bookmarks.create(bookmark))
+      bookmarks.map((bookmark) => chrome.bookmarks.create(bookmark)),
     );
 
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
+    const successful = results.filter((result) => result.status === 'fulfilled').length;
+    const failed = results.filter((result) => result.status === 'rejected').length;
 
     return {
       success: true,
@@ -1622,8 +1617,8 @@ function parseHTMLImport(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const links = doc.querySelectorAll('a[href]');
-  
-  return Array.from(links).map(link => ({
+
+  return Array.from(links).map((link) => ({
     title: link.textContent.trim() || link.href,
     url: link.href,
     dateAdded: Date.now(),
@@ -1637,15 +1632,15 @@ function parseHTMLImport(html) {
  */
 function parseJSONImport(json) {
   const data = JSON.parse(json);
-  
+
   if (data.bookmarks) {
-    return data.bookmarks.map(bookmark => ({
+    return data.bookmarks.map((bookmark) => ({
       title: bookmark.title,
       url: bookmark.url,
       dateAdded: bookmark.dateAdded || Date.now(),
     }));
   }
-  
+
   return [];
 }
 
@@ -1656,14 +1651,14 @@ function parseJSONImport(json) {
  */
 function parseCSVImport(csv) {
   const lines = csv.split('\n');
-  const headers = lines[0].split(',').map(h => h.trim());
+  const headers = lines[0].split(',').map((h) => h.trim());
   const bookmarks = [];
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const values = line.split(',').map(v => v.replace(/^"|"$/g, ''));
+    const values = line.split(',').map((v) => v.replace(/^"|"$/g, ''));
     const bookmark = {};
 
     headers.forEach((header, index) => {
@@ -1692,7 +1687,7 @@ function parsePocketImport(json) {
   const bookmarks = [];
 
   if (data.list) {
-    Object.values(data.list).forEach(item => {
+    Object.values(data.list).forEach((item) => {
       if (item.given_url) {
         bookmarks.push({
           title: item.given_title || item.resolved_title || item.given_url,
@@ -1716,7 +1711,7 @@ function parseRaindropImport(json) {
   const bookmarks = [];
 
   if (data.items) {
-    data.items.forEach(item => {
+    data.items.forEach((item) => {
       if (item.link) {
         bookmarks.push({
           title: item.title || item.link,
@@ -1739,7 +1734,7 @@ function parsePinboardImport(json) {
   const data = JSON.parse(json);
   const bookmarks = [];
 
-  data.forEach(item => {
+  data.forEach((item) => {
     if (item.href) {
       bookmarks.push({
         title: item.description || item.href,
@@ -1759,7 +1754,7 @@ function parsePinboardImport(json) {
  */
 function deduplicateBookmarks(bookmarks) {
   const seen = new Set();
-  return bookmarks.filter(bookmark => {
+  return bookmarks.filter((bookmark) => {
     if (seen.has(bookmark.url)) {
       return false;
     }
@@ -1842,20 +1837,19 @@ export async function getSavedPages(filters = {}) {
 
     // Apply filters
     if (filters.status) {
-      items = items.filter(item => item.status === filters.status);
+      items = items.filter((item) => item.status === filters.status);
     }
 
     if (filters.tags && filters.tags.length > 0) {
-      items = items.filter(item => 
-        filters.tags.some(tag => item.tags.includes(tag))
-      );
+      items = items.filter((item) => filters.tags.some((tag) => item.tags.includes(tag)));
     }
 
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      items = items.filter(item => 
-        item.title.toLowerCase().includes(searchTerm) ||
-        item.excerpt.toLowerCase().includes(searchTerm)
+      items = items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(searchTerm) ||
+          item.excerpt.toLowerCase().includes(searchTerm),
       );
     }
 
@@ -1879,8 +1873,8 @@ export async function updateSavedPageStatus(itemId, status) {
   try {
     const result = await chrome.storage.local.get('read_later_items');
     const items = result.read_later_items || [];
-    
-    const itemIndex = items.findIndex(item => item.id === itemId);
+
+    const itemIndex = items.findIndex((item) => item.id === itemId);
     if (itemIndex === -1) {
       throw new Error('Item not found');
     }
@@ -1905,10 +1899,10 @@ export async function deleteSavedPage(itemId) {
   try {
     const result = await chrome.storage.local.get('read_later_items');
     const items = result.read_later_items || [];
-    
-    const filteredItems = items.filter(item => item.id !== itemId);
+
+    const filteredItems = items.filter((item) => item.id !== itemId);
     await chrome.storage.local.set({ read_later_items: filteredItems });
-    
+
     return true;
   } catch (error) {
     console.error('Failed to delete saved page:', error);
@@ -1926,8 +1920,8 @@ export async function addTagsToSavedPage(itemId, tags) {
   try {
     const result = await chrome.storage.local.get('read_later_items');
     const items = result.read_later_items || [];
-    
-    const itemIndex = items.findIndex(item => item.id === itemId);
+
+    const itemIndex = items.findIndex((item) => item.id === itemId);
     if (itemIndex === -1) {
       throw new Error('Item not found');
     }
@@ -1953,20 +1947,20 @@ export async function getReadingStats() {
   try {
     const result = await chrome.storage.local.get('read_later_items');
     const items = result.read_later_items || [];
-    
+
     const stats = {
       total: items.length,
-      unread: items.filter(item => item.status === 'unread').length,
-      read: items.filter(item => item.status === 'read').length,
-      archived: items.filter(item => item.status === 'archived').length,
+      unread: items.filter((item) => item.status === 'unread').length,
+      read: items.filter((item) => item.status === 'read').length,
+      archived: items.filter((item) => item.status === 'archived').length,
       totalReadingTime: items.reduce((sum, item) => sum + (item.readingTime || 0), 0),
       totalWordCount: items.reduce((sum, item) => sum + (item.wordCount || 0), 0),
       byTag: {},
     };
 
     // Group by tags
-    items.forEach(item => {
-      item.tags.forEach(tag => {
+    items.forEach((item) => {
+      item.tags.forEach((tag) => {
         if (!stats.byTag[tag]) {
           stats.byTag[tag] = 0;
         }
@@ -2036,8 +2030,8 @@ export async function getAnnotations(bookmarkId) {
   try {
     const result = await chrome.storage.local.get('bookmark_annotations');
     const annotations = result.bookmark_annotations || [];
-    
-    return annotations.filter(annotation => annotation.bookmarkId === bookmarkId);
+
+    return annotations.filter((annotation) => annotation.bookmarkId === bookmarkId);
   } catch (error) {
     console.error('Failed to get annotations:', error);
     return [];
@@ -2054,8 +2048,8 @@ export async function updateAnnotation(annotationId, updates) {
   try {
     const result = await chrome.storage.local.get('bookmark_annotations');
     const annotations = result.bookmark_annotations || [];
-    
-    const annotationIndex = annotations.findIndex(a => a.id === annotationId);
+
+    const annotationIndex = annotations.findIndex((a) => a.id === annotationId);
     if (annotationIndex === -1) {
       throw new Error('Annotation not found');
     }
@@ -2083,10 +2077,10 @@ export async function deleteAnnotation(annotationId) {
   try {
     const result = await chrome.storage.local.get('bookmark_annotations');
     const annotations = result.bookmark_annotations || [];
-    
-    const filteredAnnotations = annotations.filter(a => a.id !== annotationId);
+
+    const filteredAnnotations = annotations.filter((a) => a.id !== annotationId);
     await chrome.storage.local.set({ bookmark_annotations: filteredAnnotations });
-    
+
     return true;
   } catch (error) {
     console.error('Failed to delete annotation:', error);
@@ -2106,18 +2100,18 @@ export async function getAllAnnotations(filters = {}) {
 
     // Apply filters
     if (filters.type) {
-      annotations = annotations.filter(a => a.type === filters.type);
+      annotations = annotations.filter((a) => a.type === filters.type);
     }
 
     if (filters.bookmarkId) {
-      annotations = annotations.filter(a => a.bookmarkId === filters.bookmarkId);
+      annotations = annotations.filter((a) => a.bookmarkId === filters.bookmarkId);
     }
 
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      annotations = annotations.filter(a => 
-        a.text.toLowerCase().includes(searchTerm) ||
-        a.notes.toLowerCase().includes(searchTerm)
+      annotations = annotations.filter(
+        (a) =>
+          a.text.toLowerCase().includes(searchTerm) || a.notes.toLowerCase().includes(searchTerm),
       );
     }
 
@@ -2141,7 +2135,7 @@ export async function exportAnnotations(bookmarkId, format = 'json') {
   try {
     const annotations = await getAnnotations(bookmarkId);
     const bookmark = await chrome.bookmarks.get(bookmarkId);
-    
+
     if (!bookmark || bookmark.length === 0) {
       throw new Error('Bookmark not found');
     }
@@ -2150,14 +2144,18 @@ export async function exportAnnotations(bookmarkId, format = 'json') {
 
     switch (format) {
       case 'json':
-        return JSON.stringify({
-          bookmark: {
-            title: bookmarkData.title,
-            url: bookmarkData.url,
+        return JSON.stringify(
+          {
+            bookmark: {
+              title: bookmarkData.title,
+              url: bookmarkData.url,
+            },
+            annotations,
+            exportedAt: new Date().toISOString(),
           },
-          annotations,
-          exportedAt: new Date().toISOString(),
-        }, null, 2);
+          null,
+          2,
+        );
 
       case 'html':
         return generateAnnotationsHTML(bookmarkData, annotations);
@@ -2207,7 +2205,7 @@ function generateAnnotationsHTML(bookmark, annotations) {
   if (annotations.length === 0) {
     html += '<p><em>No annotations found for this bookmark.</em></p>';
   } else {
-    annotations.forEach(annotation => {
+    annotations.forEach((annotation) => {
       html += `
   <div class="annotation ${annotation.type}">
     <div class="annotation-text">${escapeHtml(annotation.text)}</div>
@@ -2264,7 +2262,7 @@ export async function getAnnotationStats() {
   try {
     const result = await chrome.storage.local.get('bookmark_annotations');
     const annotations = result.bookmark_annotations || [];
-    
+
     const stats = {
       total: annotations.length,
       byType: {
@@ -2277,12 +2275,12 @@ export async function getAnnotationStats() {
     };
 
     // Count by type
-    annotations.forEach(annotation => {
+    annotations.forEach((annotation) => {
       stats.byType[annotation.type] = (stats.byType[annotation.type] || 0) + 1;
     });
 
     // Count by bookmark
-    annotations.forEach(annotation => {
+    annotations.forEach((annotation) => {
       if (!stats.byBookmark[annotation.bookmarkId]) {
         stats.byBookmark[annotation.bookmarkId] = 0;
       }
@@ -2292,9 +2290,9 @@ export async function getAnnotationStats() {
     // Recent annotations (last 7 days)
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    
+
     stats.recent = annotations
-      .filter(annotation => new Date(annotation.createdAt) > weekAgo)
+      .filter((annotation) => new Date(annotation.createdAt) > weekAgo)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 10);
 
@@ -2319,11 +2317,12 @@ export async function searchAnnotations(query) {
   try {
     const result = await chrome.storage.local.get('bookmark_annotations');
     const annotations = result.bookmark_annotations || [];
-    
+
     const searchTerm = query.toLowerCase();
-    return annotations.filter(annotation => 
-      annotation.text.toLowerCase().includes(searchTerm) ||
-      annotation.notes.toLowerCase().includes(searchTerm)
+    return annotations.filter(
+      (annotation) =>
+        annotation.text.toLowerCase().includes(searchTerm) ||
+        annotation.notes.toLowerCase().includes(searchTerm),
     );
   } catch (error) {
     console.error('Failed to search annotations:', error);
@@ -2354,11 +2353,11 @@ export async function deleteSmartFolder(folderId) {
   try {
     const result = await chrome.storage.local.get('smart_folders');
     const smartFolders = result.smart_folders || [];
-    
-    const filteredFolders = smartFolders.filter(folder => folder.id !== folderId);
-    
+
+    const filteredFolders = smartFolders.filter((folder) => folder.id !== folderId);
+
     await chrome.storage.local.set({ smart_folders: filteredFolders });
-    
+
     return {
       success: true,
       message: 'Smart folder deleted successfully',
@@ -2378,8 +2377,8 @@ export async function getSmartFolderById(folderId) {
   try {
     const result = await chrome.storage.local.get('smart_folders');
     const smartFolders = result.smart_folders || [];
-    
-    return smartFolders.find(folder => folder.id === folderId) || null;
+
+    return smartFolders.find((folder) => folder.id === folderId) || null;
   } catch (error) {
     console.error('Failed to get smart folder by ID:', error);
     return null;
@@ -2397,15 +2396,15 @@ export async function updateSmartFolderCount(folderId) {
     if (!folder) {
       throw new Error('Smart folder not found');
     }
-    
+
     const bookmarks = await getSmartFolderBookmarks(folder.rules);
     const count = bookmarks.length;
-    
+
     await updateSmartFolder(folderId, folder.rules, {
       ...folder.options,
       bookmarkCount: count,
     });
-    
+
     return count;
   } catch (error) {
     console.error('Failed to update smart folder count:', error);
@@ -2423,13 +2422,16 @@ export async function searchBookmarks(filters) {
     const criteria = {
       text: filters.text,
       tags: filters.tags,
-      dateRange: filters.dateFrom || filters.dateTo ? {
-        start: filters.dateFrom,
-        end: filters.dateTo,
-      } : undefined,
+      dateRange:
+        filters.dateFrom || filters.dateTo
+          ? {
+              start: filters.dateFrom,
+              end: filters.dateTo,
+            }
+          : undefined,
       folderId: filters.folderId,
     };
-    
+
     return await advancedSearch(criteria);
   } catch (error) {
     console.error('Failed to search bookmarks:', error);

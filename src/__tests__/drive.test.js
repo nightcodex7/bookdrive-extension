@@ -1,6 +1,32 @@
 import { downloadBookmarksFile, uploadBookmarksFile } from '../lib/drive';
 import { getAuthToken } from '../lib/auth/drive-auth.js';
 
+// Mock chrome API
+global.chrome = {
+  storage: {
+    local: {
+      get: jest.fn(),
+      set: jest.fn(),
+    },
+    sync: {
+      get: jest.fn(),
+      set: jest.fn(),
+    },
+  },
+  identity: {
+    getAuthToken: jest.fn(),
+    removeCachedAuthToken: jest.fn(),
+    getRedirectURL: jest.fn(),
+  },
+  runtime: {
+    id: 'test-extension-id',
+    getManifest: jest.fn(() => ({ oauth2: { client_id: 'test-client-id' } })),
+  },
+};
+
+// Mock fetch
+global.fetch = jest.fn();
+
 describe('Drive Module', () => {
   let mockStorage;
 
@@ -10,6 +36,7 @@ describe('Drive Module', () => {
       bookDriveAuthToken: 'test-token',
       bookDriveTokenExpiry: new Date(Date.now() + 3600000).toISOString(),
       bookDriveRefreshToken: 'test-refresh-token',
+      bookDriveAuthMethod: 'chrome_identity',
     };
 
     // Mock navigator.userAgent to ensure getBrowserType() returns 'chrome'
