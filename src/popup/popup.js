@@ -300,46 +300,31 @@ function setupEventListeners() {
       }
     });
 
-    // Dropdown menu items with improved handling
-    const menuSettings = document.getElementById('menu-settings');
-    if (menuSettings) {
-      menuSettings.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideDropdownMenu();
-        handleOpenOptions();
-      });
-    }
-
-    const menuThemeToggle = document.getElementById('menu-theme-toggle');
-    if (menuThemeToggle) {
-      menuThemeToggle.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideDropdownMenu();
-        handleThemeToggle();
-      });
-    }
-
-    const menuAccount = document.getElementById('menu-account');
-    if (menuAccount) {
-      menuAccount.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideDropdownMenu();
-        showAccountInfo();
-      });
-    }
-
-    const menuSignOut = document.getElementById('menu-sign-out');
-    if (menuSignOut) {
-      menuSignOut.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideDropdownMenu();
-        handleSignOut();
-      });
-    }
+    // Dropdown menu items - using event delegation
+    dropdownMenu.addEventListener('click', (e) => {
+      const target = e.target.closest('.dropdown-item');
+      if (!target) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      hideDropdownMenu();
+      
+      const action = target.id;
+      switch (action) {
+        case 'menu-settings':
+          handleOpenOptions();
+          break;
+        case 'menu-theme-toggle':
+          handleThemeToggle();
+          break;
+        case 'menu-account':
+          showAccountInfo();
+          break;
+        case 'menu-sign-out':
+          handleSignOut();
+          break;
+      }
+    });
   }
 
   // Sync buttons
@@ -937,14 +922,10 @@ function showDropdownMenu() {
   const dropdownMenu = document.getElementById('dropdown-menu');
   if (dropdownMenu) {
     dropdownMenu.style.display = 'block';
-    dropdownMenu.style.opacity = '0';
-    dropdownMenu.style.transform = 'scale(0.95) translateY(-10px)';
-    
     // Animate in
     requestAnimationFrame(() => {
-      dropdownMenu.style.transition = 'all 0.2s ease-out';
       dropdownMenu.style.opacity = '1';
-      dropdownMenu.style.transform = 'scale(1) translateY(0)';
+      dropdownMenu.style.transform = 'scale(1)';
     });
   }
 }
@@ -952,13 +933,12 @@ function showDropdownMenu() {
 function hideDropdownMenu() {
   const dropdownMenu = document.getElementById('dropdown-menu');
   if (dropdownMenu) {
-    dropdownMenu.style.transition = 'all 0.15s ease-in';
     dropdownMenu.style.opacity = '0';
-    dropdownMenu.style.transform = 'scale(0.95) translateY(-10px)';
+    dropdownMenu.style.transform = 'scale(0.95)';
     
     setTimeout(() => {
       dropdownMenu.style.display = 'none';
-    }, 150);
+    }, 150); // Match transition duration
   }
 }
 
