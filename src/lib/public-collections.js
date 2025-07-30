@@ -750,34 +750,34 @@ function getCollectionValue(collection, field) {
 }
 
 // Placeholder functions that would need to be implemented
-async function getCollectionBookmarks(collectionId, options) {
+async function getCollectionBookmarks(_collectionId, _options) {
   return [];
 }
-async function addBookmarkToCollection(collectionId, bookmark, options) {
+async function addBookmarkToCollection(_collectionId, bookmark, _options) {
   return bookmark;
 }
-async function removeBookmarksFromCollectionStorage(collectionId, bookmarkIds) {
+async function removeBookmarksFromCollectionStorage(_collectionId, bookmarkIds) {
   return bookmarkIds.length;
 }
-async function getCollectionBookmarkCount(collectionId) {
+async function getCollectionBookmarkCount(_collectionId) {
   return 0;
 }
-async function updateCollectionBookmarkCount(collectionId, count) {}
-async function updateCollectionAccessStats(collectionId) {}
+async function updateCollectionBookmarkCount(_collectionId, _count) {}
+async function updateCollectionAccessStats(_collectionId) {}
 async function getAllPublicCollections() {
   return [];
 }
-async function updatePublicCollectionsList(collection) {}
-async function removeFromPublicCollectionsList(collectionId) {}
-async function getCollectionAccessTrends(collectionId) {
+async function updatePublicCollectionsList(_collection) {}
+async function removeFromPublicCollectionsList(_collectionId) {}
+async function getCollectionAccessTrends(_collectionId) {
   return {};
 }
-async function calculateCollectionPopularity(collectionId) {
+async function calculateCollectionPopularity(_collectionId) {
   return 0;
 }
-function calculateAverageBookmarksPerDay(createdAt, bookmarkCount) {
+function calculateAverageBookmarksPerDay(_createdAt, _bookmarkCount) {
   return 0;
 }
-function calculateTopTags(bookmarks) {
+function calculateTopTags(_bookmarks) {
   return [];
 }

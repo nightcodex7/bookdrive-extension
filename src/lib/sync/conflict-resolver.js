@@ -349,7 +349,7 @@ async function analyzeConflict(conflict) {
  * @returns {Object} Resolution result
  */
 async function resolveConflictAdvanced(conflict, strategy, options, conflictInfo) {
-  const { local, remote } = conflict;
+  // const { local, remote } = conflict; // Variables used in switch cases
 
   switch (strategy) {
     case CONFLICT_STRATEGIES.INTELLIGENT_MERGE:

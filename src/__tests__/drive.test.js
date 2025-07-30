@@ -24,13 +24,13 @@ global.chrome = {
   },
 };
 
-    // Mock fetch
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: jest.fn().mockResolvedValue({}),
-      text: jest.fn().mockResolvedValue(''),
-    });
+// Mock fetch
+global.fetch = jest.fn().mockResolvedValue({
+  ok: true,
+  status: 200,
+  json: jest.fn().mockResolvedValue({}),
+  text: jest.fn().mockResolvedValue(''),
+});
 
 describe('Drive Module', () => {
   let mockStorage;

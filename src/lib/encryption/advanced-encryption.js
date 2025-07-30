@@ -183,7 +183,7 @@ export class AdvancedEncryptionManager {
    * @param {Object} config - Configuration
    * @returns {Promise<CryptoKey>} Derived key
    */
-  async deriveKey(passphrase, salt, config) {
+  async deriveKey(passphrase, salt, _config) {
     const encoder = new TextEncoder();
     const passphraseData = encoder.encode(passphrase);
 
@@ -348,7 +348,7 @@ export class AdvancedEncryptionManager {
    * @param {Object} config - Configuration
    * @returns {Promise<any>} Decrypted data
    */
-  async performDecryption(encryptedData, key, iv, config) {
+  async performDecryption(encryptedData, key, iv, _config) {
     const decoder = new TextDecoder();
 
     switch (this.algorithm) {

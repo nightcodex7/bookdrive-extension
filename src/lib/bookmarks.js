@@ -1397,7 +1397,6 @@ export async function exportBookmarks(format, options = {}) {
  */
 function exportToHTML(bookmarks, options) {
   const title = options.title || 'Bookmarks';
-  const date = new Date().toLocaleDateString();
 
   let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.
@@ -1453,7 +1452,7 @@ function exportToJSON(bookmarks, options) {
  * @param {Object} options - Export options
  * @returns {string} CSV content
  */
-function exportToCSV(bookmarks, options) {
+function exportToCSV(bookmarks, _options) {
   const headers = ['Title', 'URL', 'Date Added', 'Folder'];
   let csv = headers.join(',') + '\n';
 
@@ -1477,7 +1476,7 @@ function exportToCSV(bookmarks, options) {
  * @param {Object} options - Export options
  * @returns {string} Pocket JSON content
  */
-function exportToPocket(bookmarks, options) {
+function exportToPocket(bookmarks, _options) {
   const pocketData = {
     list: {},
   };
@@ -1504,7 +1503,7 @@ function exportToPocket(bookmarks, options) {
  * @param {Object} options - Export options
  * @returns {string} Raindrop JSON content
  */
-function exportToRaindrop(bookmarks, options) {
+function exportToRaindrop(bookmarks, _options) {
   const raindropData = {
     items: bookmarks
       .filter((bookmark) => bookmark.url)
@@ -1526,7 +1525,7 @@ function exportToRaindrop(bookmarks, options) {
  * @param {Object} options - Export options
  * @returns {string} Pinboard JSON content
  */
-function exportToPinboard(bookmarks, options) {
+function exportToPinboard(bookmarks, _options) {
   const pinboardData = bookmarks
     .filter((bookmark) => bookmark.url)
     .map((bookmark) => ({
