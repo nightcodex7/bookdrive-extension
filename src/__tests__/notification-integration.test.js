@@ -15,8 +15,6 @@ import {
 
 import { handleAlarm, triggerBackup } from '../lib/scheduling/alarm-manager.js';
 
-
-
 // Mock window.Notification
 const originalNotification = global.Notification;
 let notificationMock;

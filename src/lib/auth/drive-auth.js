@@ -5,7 +5,8 @@ const OAUTH2_CONFIG = {
   redirect_uri: chrome.identity
     ? chrome.identity.getRedirectURL()
     : 'https://YOUR_EXTENSION_ID.chromiumapp.org/',
-  scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
+  scope:
+    'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
   auth_url: 'https://accounts.google.com/o/oauth2/v2/auth',
   token_url: 'https://oauth2.googleapis.com/token',
   userinfo_url: 'https://www.googleapis.com/oauth2/v3/userinfo',
@@ -111,9 +112,9 @@ async function getAuthTokenChrome(interactive = false) {
     });
 
     // Store token and method
-    await chrome.storage.local.set({ 
-      [STORAGE_KEYS.AUTH_TOKEN]: token, 
-      [STORAGE_KEYS.AUTH_METHOD]: 'chrome_identity' 
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.AUTH_TOKEN]: token,
+      [STORAGE_KEYS.AUTH_METHOD]: 'chrome_identity',
     });
     return token;
   } catch (error) {
@@ -149,18 +150,21 @@ async function getAuthTokenFallback(interactive = false) {
 
     // Open auth window
     const windowId = await new Promise((resolve, reject) => {
-      chrome.windows.create({
-        url: authUrl.toString(),
-        type: 'popup',
-        width: 500,
-        height: 600
-      }, (window) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else {
-          resolve(window.id);
-        }
-      });
+      chrome.windows.create(
+        {
+          url: authUrl.toString(),
+          type: 'popup',
+          width: 500,
+          height: 600,
+        },
+        (window) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(window.id);
+          }
+        },
+      );
     });
 
     // Wait for auth code
@@ -174,7 +178,7 @@ async function getAuthTokenFallback(interactive = false) {
       [STORAGE_KEYS.AUTH_TOKEN]: tokens.access_token,
       [STORAGE_KEYS.REFRESH_TOKEN]: tokens.refresh_token,
       [STORAGE_KEYS.TOKEN_EXPIRY]: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-      [STORAGE_KEYS.AUTH_METHOD]: 'oauth2_fallback'
+      [STORAGE_KEYS.AUTH_METHOD]: 'oauth2_fallback',
     });
 
     return tokens.access_token;
@@ -195,7 +199,7 @@ async function waitForAuthCode(windowId, state) {
     const listener = (tabId, changeInfo, tab) => {
       if (changeInfo.status === 'complete' && tab.url) {
         const url = new URL(tab.url);
-        
+
         // Check if this is our redirect URI
         if (url.origin === new URL(getRedirectUri()).origin) {
           const code = url.searchParams.get('code');
@@ -321,7 +325,7 @@ export async function getAuthToken(interactive = false) {
       STORAGE_KEYS.AUTH_TOKEN,
       STORAGE_KEYS.TOKEN_EXPIRY,
       STORAGE_KEYS.REFRESH_TOKEN,
-      STORAGE_KEYS.AUTH_METHOD
+      STORAGE_KEYS.AUTH_METHOD,
     ]);
 
     if (stored[STORAGE_KEYS.AUTH_TOKEN] && stored[STORAGE_KEYS.TOKEN_EXPIRY]) {
@@ -331,7 +335,10 @@ export async function getAuthToken(interactive = false) {
       }
 
       // Token expired, try to refresh
-      if (stored[STORAGE_KEYS.REFRESH_TOKEN] && stored[STORAGE_KEYS.AUTH_METHOD] === 'oauth2_fallback') {
+      if (
+        stored[STORAGE_KEYS.REFRESH_TOKEN] &&
+        stored[STORAGE_KEYS.AUTH_METHOD] === 'oauth2_fallback'
+      ) {
         try {
           return await refreshAccessToken(stored[STORAGE_KEYS.REFRESH_TOKEN]);
         } catch (error) {
@@ -361,7 +368,7 @@ export async function getUserInfo(token) {
   try {
     const response = await fetch(OAUTH2_CONFIG.userinfo_url, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -370,10 +377,10 @@ export async function getUserInfo(token) {
     }
 
     const userInfo = await response.json();
-    
+
     // Store user info
     await chrome.storage.local.set({ [STORAGE_KEYS.USER_INFO]: userInfo });
-    
+
     return userInfo;
   } catch (error) {
     console.error('Failed to get user info:', error);
@@ -389,7 +396,7 @@ export async function isAuthenticated() {
   try {
     const stored = await chrome.storage.local.get([
       STORAGE_KEYS.AUTH_TOKEN,
-      STORAGE_KEYS.TOKEN_EXPIRY
+      STORAGE_KEYS.TOKEN_EXPIRY,
     ]);
 
     if (!stored[STORAGE_KEYS.AUTH_TOKEN] || !stored[STORAGE_KEYS.TOKEN_EXPIRY]) {
@@ -431,7 +438,7 @@ export async function signOut() {
       STORAGE_KEYS.REFRESH_TOKEN,
       STORAGE_KEYS.TOKEN_EXPIRY,
       STORAGE_KEYS.AUTH_METHOD,
-      STORAGE_KEYS.USER_INFO
+      STORAGE_KEYS.USER_INFO,
     ]);
 
     // Remove cached token from Chrome Identity API
@@ -469,16 +476,16 @@ export async function getStoredUserInfo() {
 export async function ensureBookDriveFolder(createIfMissing = true) {
   try {
     const token = await getAuthToken();
-    
+
     // Check if folder already exists
     const response = await fetch(
       'https://www.googleapis.com/drive/v3/files?' +
-      'q=name="BookDrive" and mimeType="application/vnd.google-apps.folder" and trashed=false',
+        'q=name="BookDrive" and mimeType="application/vnd.google-apps.folder" and trashed=false',
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -486,7 +493,7 @@ export async function ensureBookDriveFolder(createIfMissing = true) {
     }
 
     const data = await response.json();
-    
+
     if (data.files && data.files.length > 0) {
       return data.files[0].id;
     }
@@ -499,7 +506,7 @@ export async function ensureBookDriveFolder(createIfMissing = true) {
     const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -527,7 +534,7 @@ export async function ensureBookDriveFolder(createIfMissing = true) {
 export function getBrowserCompatibility() {
   const browserType = getBrowserType();
   const chromeIdentitySupported = isChromeIdentitySupported();
-  
+
   return {
     browserType,
     chromeIdentitySupported,
@@ -538,6 +545,6 @@ export function getBrowserCompatibility() {
       storage: typeof chrome !== 'undefined' && chrome.storage,
       windows: typeof chrome !== 'undefined' && chrome.windows,
       tabs: typeof chrome !== 'undefined' && chrome.tabs,
-    }
+    },
   };
-} 
+}

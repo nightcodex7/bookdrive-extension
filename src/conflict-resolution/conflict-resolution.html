@@ -48,11 +48,12 @@
 
       <!-- Resolution Progress -->
       <div class="resolution-progress">
+        <div class="progress-info">
+          <span>Progress: <span id="progress-text">0 / 0</span></span>
+          <span id="progress-percentage">0%</span>
+        </div>
         <div class="progress-bar">
           <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <div class="progress-text">
-          <span id="resolved-count">0</span> of <span id="total-count">0</span> conflicts resolved
         </div>
       </div>
 
@@ -130,34 +131,25 @@
 
   <!-- Recommendations Panel -->
   <div class="recommendations-panel" id="recommendations-panel">
-    <div class="panel-header">
-      <h3>💡 Recommendations</h3>
-      <button class="panel-toggle" id="panel-toggle">−</button>
+    <div class="panel-header" id="panel-toggle">
+      <span class="material-icons">lightbulb</span>
+      <span>Recommendations</span>
+      <span class="panel-toggle-icon">+</span>
     </div>
-    <div class="panel-content" id="panel-content">
-      <div class="recommendation-item">
-        <div class="rec-icon">ℹ️</div>
-        <div class="rec-content">
-          <h4>Review Conflicts Carefully</h4>
-          <p>Check both versions before resolving to avoid losing important changes.</p>
-        </div>
-      </div>
-      <div class="recommendation-item">
-        <div class="rec-icon">🔧</div>
-        <div class="rec-content">
-          <h4>Use Smart Merge</h4>
-          <p>Smart merge combines the best of both versions automatically.</p>
-        </div>
-      </div>
-      <div class="recommendation-item">
-        <div class="rec-icon">📝</div>
-        <div class="rec-content">
-          <h4>Custom Resolution</h4>
-          <p>Create a custom version by editing the fields manually.</p>
-        </div>
+    <div class="panel-content" id="panel-content" style="display: none;">
+      <div id="recommendations-list">
+        <!-- Recommendations will be populated here -->
       </div>
     </div>
   </div>
+
+  <!-- Loading Indicator -->
+  <div id="loading-indicator" class="loading-indicator">
+    <div>Loading conflicts...</div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
 
   <script src="conflict-resolution.js"></script>
 </body>

@@ -12,7 +12,7 @@
  */
 export function showBrowserNotification(title, message, options = {}) {
   // Check if browser notifications are supported
-  if (!('Notification' in window)) {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
     console.log('Browser notifications not supported');
     return;
   }

@@ -31,7 +31,7 @@ describe('Retention Policy Integration Tests', () => {
     chrome.storage.local.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         callback(result);
@@ -41,7 +41,7 @@ describe('Retention Policy Integration Tests', () => {
     });
 
     chrome.storage.local.set.mockImplementation((data, callback) => {
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         mockStorage[key] = data[key];
       });
       if (callback) callback();
@@ -108,7 +108,10 @@ describe('Retention Policy Integration Tests', () => {
 
       // Debug: Log what was actually saved
       console.log('Expected length: 11, Actual length:', setCall.backups.length);
-      console.log('Actual backups:', setCall.backups.map(b => b.id));
+      console.log(
+        'Actual backups:',
+        setCall.backups.map((b) => b.id),
+      );
 
       // Check that we have 11 backups left (10 scheduled + 1 manual)
       expect(setCall.backups).toHaveLength(11);

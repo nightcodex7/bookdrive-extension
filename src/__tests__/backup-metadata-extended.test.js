@@ -18,8 +18,6 @@ import {
   BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
 
-
-
 describe('Backup Metadata Extended Tests', () => {
   beforeEach(() => {
     // Reset all mocks
@@ -510,4 +508,3 @@ describe('Backup Metadata Extended Tests', () => {
     });
   });
 });
-

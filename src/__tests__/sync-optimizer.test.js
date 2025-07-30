@@ -186,9 +186,18 @@ describe('Sync Optimizer', () => {
       expect(applyFn).toHaveBeenCalledTimes(3);
 
       // Check that deletions are processed first
-      expect(applyFn.mock.calls[0][0]).toEqual({ type: 'delete', item: { id: '1', title: 'Deleted Bookmark' } });
-      expect(applyFn.mock.calls[1][0]).toEqual({ type: 'modify', item: { source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } } });
-      expect(applyFn.mock.calls[2][0]).toEqual({ type: 'add', item: { id: '3', title: 'New Bookmark' } });
+      expect(applyFn.mock.calls[0][0]).toEqual({
+        type: 'delete',
+        item: { id: '1', title: 'Deleted Bookmark' },
+      });
+      expect(applyFn.mock.calls[1][0]).toEqual({
+        type: 'modify',
+        item: { source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } },
+      });
+      expect(applyFn.mock.calls[2][0]).toEqual({
+        type: 'add',
+        item: { id: '3', title: 'New Bookmark' },
+      });
     });
 
     it('should handle errors during delta application', async () => {

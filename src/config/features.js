@@ -119,6 +119,84 @@ export const FEATURES = {
     uiElements: ['optimization-toggle', 'performance-settings'],
     dependencies: ['core_sync'],
   },
+
+  // New Features
+  BOOKMARK_ORGANIZATION: {
+    id: 'bookmark_organization',
+    name: 'Bookmark Organization',
+    description: 'Tags, notes, and smart folders for better organization',
+    category: 'organization',
+    enabled: false,
+    required: false,
+    uiElements: ['organization-toggle', 'tags-manager', 'smart-folders', 'notes-editor'],
+    dependencies: [],
+  },
+
+  IMPORT_EXPORT: {
+    id: 'import_export',
+    name: 'Import/Export',
+    description: 'Import from and export to other bookmark managers',
+    category: 'data',
+    enabled: false,
+    required: false,
+    uiElements: ['import-export-toggle', 'import-btn', 'export-btn', 'format-selector'],
+    dependencies: [],
+  },
+
+  ENHANCED_TEAM_MANAGEMENT: {
+    id: 'enhanced_team_management',
+    name: 'Enhanced Team Management',
+    description: 'Granular permissions, activity logs, and team dashboards',
+    category: 'collaboration',
+    enabled: false,
+    required: false,
+    uiElements: ['team-dashboard', 'permissions-manager', 'activity-logs', 'team-analytics'],
+    dependencies: ['team_mode'],
+  },
+
+  READ_IT_LATER: {
+    id: 'read_it_later',
+    name: 'Read-It-Later',
+    description: 'Save offline, clutter-free versions of articles',
+    category: 'content',
+    enabled: false,
+    required: false,
+    uiElements: ['read-later-toggle', 'offline-reader', 'article-saver'],
+    dependencies: [],
+  },
+
+  ANNOTATIONS: {
+    id: 'annotations',
+    name: 'Annotations & Highlighting',
+    description: 'Highlight text and add annotations to saved pages',
+    category: 'content',
+    enabled: false,
+    required: false,
+    uiElements: ['annotations-toggle', 'highlight-tool', 'notes-panel'],
+    dependencies: [],
+  },
+
+  PUBLIC_COLLECTIONS: {
+    id: 'public_collections',
+    name: 'Public Collections',
+    description: 'Make bookmark collections public and shareable',
+    category: 'collaboration',
+    enabled: false,
+    required: false,
+    uiElements: ['public-toggle', 'share-link', 'collection-visibility'],
+    dependencies: ['team_mode'],
+  },
+
+  TEAM_ANALYTICS: {
+    id: 'team_analytics',
+    name: 'Team Analytics',
+    description: 'Team-focused dashboards and collaborative analytics',
+    category: 'monitoring',
+    enabled: false,
+    required: false,
+    uiElements: ['team-analytics-toggle', 'team-dashboard', 'collaboration-metrics'],
+    dependencies: ['team_mode', 'analytics'],
+  },
 };
 
 // Feature categories
@@ -157,6 +235,21 @@ export const FEATURE_CATEGORIES = {
     name: 'Performance',
     description: 'Performance optimization features',
     icon: 'speed',
+  },
+  organization: {
+    name: 'Organization',
+    description: 'Bookmark organization and management features',
+    icon: 'folder',
+  },
+  data: {
+    name: 'Data Management',
+    description: 'Import, export, and data handling features',
+    icon: 'storage',
+  },
+  content: {
+    name: 'Content Features',
+    description: 'Content saving and annotation features',
+    icon: 'article',
   },
 };
 

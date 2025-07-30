@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookDrive - Annotations</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="annotations.css">
+</head>
+<body>
+  <div class="annotations-container">
+    <header class="annotations-header">
+      <div class="header-content">
+        <div class="header-left">
+          <img src="../assets/icon48.png" alt="BookDrive" class="header-logo" />
+          <div class="header-info">
+            <h1 class="header-title">Annotations & Highlights</h1>
+            <div class="header-subtitle">Manage your text annotations and highlights</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="search-annotations-btn" class="btn btn-primary">
+            <span class="material-icons">search</span>
+            <span>Search Annotations</span>
+          </button>
+          <button id="export-all-btn" class="btn btn-secondary">
+            <span class="material-icons">download</span>
+            <span>Export All</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="annotations-content">
+      <!-- Statistics Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value" id="total-annotations">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="highlights-count">0</div>
+          <div class="stat-label">Highlights</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="notes-count">0</div>
+          <div class="stat-label">Notes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="underlines-count">0</div>
+          <div class="stat-label">Underlines</div>
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="filters-section">
+        <div class="search-group">
+          <div class="search-input-wrapper">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" id="search-input" placeholder="Search annotations..." class="search-input">
+          </div>
+        </div>
+        <div class="filter-group">
+          <select id="type-filter" class="filter-select">
+            <option value="">All Types</option>
+            <option value="highlight">Highlights</option>
+            <option value="note">Notes</option>
+            <option value="underline">Underlines</option>
+          </select>
+          <select id="bookmark-filter" class="filter-select">
+            <option value="">All Bookmarks</option>
+            <!-- Bookmarks will be populated by JavaScript -->
+          </select>
+          <select id="sort-filter" class="filter-select">
+            <option value="date">Date Created</option>
+            <option value="type">Type</option>
+            <option value="bookmark">Bookmark</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Annotations List -->
+      <div class="annotations-section">
+        <div class="annotations-header">
+          <h2>Your Annotations</h2>
+          <div class="annotations-actions">
+            <button id="bulk-actions-btn" class="btn btn-outline">
+              <span class="material-icons">more_vert</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="annotations-list" id="annotations-list">
+          <!-- Annotations will be populated by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+          <div class="empty-state-icon">
+            <span class="material-icons">highlight</span>
+          </div>
+          <h3>No annotations yet</h3>
+          <p>Start highlighting and annotating text on your saved pages to see them here.</p>
+          <button id="create-first-annotation-btn" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            <span>Create Your First Annotation</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading annotations...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotation Detail Modal -->
+  <div id="annotation-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Annotation Details</h2>
+        <button class="modal-close" id="modal-close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="annotation-meta">
+          <div class="meta-item">
+            <span class="material-icons">bookmark</span>
+            <span id="modal-bookmark">Bookmark</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">schedule</span>
+            <span id="modal-date">Date</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">category</span>
+            <span id="modal-type">Type</span>
+          </div>
+        </div>
+        <div class="annotation-content">
+          <div class="annotation-text-section">
+            <h4>Selected Text</h4>
+            <div id="modal-text" class="annotation-text"></div>
+          </div>
+          <div class="annotation-notes-section">
+            <h4>Notes</h4>
+            <textarea id="modal-notes" class="annotation-notes-input" placeholder="Add your notes..."></textarea>
+          </div>
+          <div class="annotation-actions">
+            <button id="open-bookmark-btn" class="btn btn-primary">
+              <span class="material-icons">open_in_new</span>
+              <span>Open Bookmark</span>
+            </button>
+            <button id="save-notes-btn" class="btn btn-secondary">
+              <span class="material-icons">save</span>
+              <span>Save Notes</span>
+            </button>
+            <button id="delete-annotation-btn" class="btn btn-outline">
+              <span class="material-icons">delete</span>
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Annotation Modal -->
+  <div id="create-annotation-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create New Annotation</h2>
+        <button class="modal-close" id="create-modal-close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="annotation-bookmark">Bookmark</label>
+          <select id="annotation-bookmark" class="form-select">
+            <option value="">Select a bookmark...</option>
+            <!-- Bookmarks will be populated by JavaScript -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="annotation-type">Type</label>
+          <select id="annotation-type" class="form-select">
+            <option value="highlight">Highlight</option>
+            <option value="note">Note</option>
+            <option value="underline">Underline</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="annotation-text">Text</label>
+          <textarea id="annotation-text" class="form-textarea" placeholder="Enter the text you want to annotate..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="annotation-notes">Notes</label>
+          <textarea id="annotation-notes" class="form-textarea" placeholder="Add your notes..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="annotation-color">Color</label>
+          <input type="color" id="annotation-color" class="form-color" value="#ffeb3b">
+        </div>
+        <div class="form-actions">
+          <button id="save-annotation-btn" class="btn btn-primary">
+            <span class="material-icons">save</span>
+            <span>Save Annotation</span>
+          </button>
+          <button id="cancel-annotation-btn" class="btn btn-secondary">
+            <span>Cancel</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="export-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Export Annotations</h2>
+        <button class="modal-close" id="export-modal-close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="export-format">Format</label>
+          <select id="export-format" class="form-select">
+            <option value="json">JSON</option>
+            <option value="html">HTML</option>
+            <option value="text">Text</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="export-scope">Scope</label>
+          <select id="export-scope" class="form-select">
+            <option value="all">All Annotations</option>
+            <option value="filtered">Filtered Results</option>
+            <option value="selected">Selected Only</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button id="export-confirm-btn" class="btn btn-primary">
+            <span class="material-icons">download</span>
+            <span>Export</span>
+          </button>
+          <button id="export-cancel-btn" class="btn btn-secondary">
+            <span>Cancel</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="annotations.js"></script>
+</body>
+</html> 

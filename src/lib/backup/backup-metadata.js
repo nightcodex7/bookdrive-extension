@@ -331,19 +331,17 @@ export async function enforceRetentionPolicy(scheduleId, retentionCount) {
     }
 
     const backups = await getBackupsBySchedule(scheduleId);
-    
+
     if (backups.length <= retentionCount) {
       return 0;
     }
 
     // Sort by timestamp (oldest first)
-    const sortedBackups = backups.sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
+    const sortedBackups = backups.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
     // Get backups to remove (oldest ones)
     const backupsToRemove = sortedBackups.slice(0, backups.length - retentionCount);
-    
+
     // Delete the backups
     for (const backup of backupsToRemove) {
       await deleteBackup(backup.id);
@@ -370,15 +368,13 @@ export async function getBackupsToRemove(scheduleId, retentionCount) {
     }
 
     const backups = await getBackupsBySchedule(scheduleId);
-    
+
     if (backups.length <= retentionCount) {
       return [];
     }
 
     // Sort by timestamp (oldest first)
-    const sortedBackups = backups.sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
+    const sortedBackups = backups.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
     // Return backups to remove (oldest ones)
     return sortedBackups.slice(0, backups.length - retentionCount);
@@ -396,7 +392,7 @@ export async function getBackupsToRemove(scheduleId, retentionCount) {
 export async function deleteBackups(backupIds) {
   try {
     let deletedCount = 0;
-    
+
     for (const backupId of backupIds) {
       try {
         await deleteBackup(backupId);
@@ -405,7 +401,7 @@ export async function deleteBackups(backupIds) {
         console.error(`Failed to delete backup ${backupId}:`, error);
       }
     }
-    
+
     return deletedCount;
   } catch (error) {
     console.error('Failed to delete backups:', error);

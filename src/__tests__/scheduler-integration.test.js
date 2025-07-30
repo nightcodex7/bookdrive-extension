@@ -29,8 +29,6 @@ import {
   BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
 
-
-
 // Mock the storage module
 jest.mock('../lib/storage/storage.js', () => ({
   getSettings: jest.fn(),

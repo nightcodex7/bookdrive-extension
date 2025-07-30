@@ -7,8 +7,6 @@ import {
   showRestorationNotification,
 } from '../lib/notification-manager.js';
 
-
-
 // Mock window.Notification
 const originalNotification = global.Notification;
 let notificationMock;
@@ -255,4 +253,3 @@ describe('Notification Manager', () => {
     });
   });
 });
-

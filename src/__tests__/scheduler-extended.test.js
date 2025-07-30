@@ -11,17 +11,19 @@ import {
 
 // Mock the storage module
 jest.mock('../lib/storage/storage.js', () => ({
-  getSettings: jest.fn(() => Promise.resolve({
-    schedule: {
-      id: 'default',
-      enabled: true,
-      frequency: 'daily',
-      hour: 3,
-      minute: 0,
-      lastBackupTime: null,
-      nextBackupTime: null,
-    },
-  })),
+  getSettings: jest.fn(() =>
+    Promise.resolve({
+      schedule: {
+        id: 'default',
+        enabled: true,
+        frequency: 'daily',
+        hour: 3,
+        minute: 0,
+        lastBackupTime: null,
+        nextBackupTime: null,
+      },
+    }),
+  ),
   setSettings: jest.fn(() => Promise.resolve()),
 }));
 
@@ -50,9 +52,11 @@ describe('Scheduler Module Extended Tests', () => {
     };
 
     // Default mock implementations - ensure getSettings always returns an object with schedule
-    getSettings.mockImplementation(() => Promise.resolve({
-      schedule: mockStorage.schedule,
-    }));
+    getSettings.mockImplementation(() =>
+      Promise.resolve({
+        schedule: mockStorage.schedule,
+      }),
+    );
     setSettings.mockResolvedValue({});
 
     // Mock the current date to a fixed value for testing
@@ -80,12 +84,14 @@ describe('Scheduler Module Extended Tests', () => {
   describe('isBackupDue', () => {
     test.skip('should return true when backup time is in the past', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: true,
-          nextBackupTime: new Date(2025, 6, 17, 10, 0, 0).toISOString(), // 10 AM, in the past
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: true,
+            nextBackupTime: new Date(2025, 6, 17, 10, 0, 0).toISOString(), // 10 AM, in the past
+          },
+        }),
+      );
 
       const result = await isBackupDue();
       expect(result).toBe(true);
@@ -93,12 +99,14 @@ describe('Scheduler Module Extended Tests', () => {
 
     test.skip('should return false when backup time is in the future', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: true,
-          nextBackupTime: new Date(2025, 6, 17, 14, 0, 0).toISOString(), // 2 PM, in the future
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: true,
+            nextBackupTime: new Date(2025, 6, 17, 14, 0, 0).toISOString(), // 2 PM, in the future
+          },
+        }),
+      );
 
       const result = await isBackupDue();
       expect(result).toBe(false);
@@ -106,12 +114,14 @@ describe('Scheduler Module Extended Tests', () => {
 
     test.skip('should return false when scheduling is disabled', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: false,
-          nextBackupTime: new Date(2025, 6, 17, 10, 0, 0).toISOString(),
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: false,
+            nextBackupTime: new Date(2025, 6, 17, 10, 0, 0).toISOString(),
+          },
+        }),
+      );
 
       const result = await isBackupDue();
       expect(result).toBe(false);
@@ -119,12 +129,14 @@ describe('Scheduler Module Extended Tests', () => {
 
     test.skip('should return false when no next backup time is set', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: true,
-          nextBackupTime: null,
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: true,
+            nextBackupTime: null,
+          },
+        }),
+      );
 
       const result = await isBackupDue();
       expect(result).toBe(false);
@@ -140,14 +152,16 @@ describe('Scheduler Module Extended Tests', () => {
   describe('updateBackupTime', () => {
     test.skip('should update last backup time and calculate next backup time', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: true,
-          frequency: 'daily',
-          hour: 3,
-          minute: 0,
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: true,
+            frequency: 'daily',
+            hour: 3,
+            minute: 0,
+          },
+        }),
+      );
 
       const result = await updateBackupTime();
 
@@ -158,17 +172,19 @@ describe('Scheduler Module Extended Tests', () => {
 
     test.skip('should use provided backup time', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: true,
-          frequency: 'daily',
-          hour: 3,
-          minute: 0,
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: true,
+            frequency: 'daily',
+            hour: 3,
+            minute: 0,
+          },
+        }),
+      );
 
       const customTime = new Date(2025, 6, 17, 15, 30, 0).toISOString();
-      
+
       const result = await updateBackupTime(customTime);
 
       expect(result.lastBackupTime).toBe(customTime);
@@ -176,11 +192,13 @@ describe('Scheduler Module Extended Tests', () => {
 
     test.skip('should not update when scheduling is disabled', async () => {
       // Reset the mock for this specific test
-      getSettings.mockImplementation(() => Promise.resolve({
-        schedule: {
-          enabled: false,
-        },
-      }));
+      getSettings.mockImplementation(() =>
+        Promise.resolve({
+          schedule: {
+            enabled: false,
+          },
+        }),
+      );
 
       const result = await updateBackupTime();
 

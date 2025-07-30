@@ -78,17 +78,17 @@ export function calculateDelta(sourceTree, targetTree) {
  */
 export async function applyDelta(currentTree, delta, applyFn) {
   const operations = [];
-  
+
   // Add deletions first
   delta.deleted.forEach((bookmark) => {
     operations.push({ type: 'delete', item: bookmark });
   });
-  
+
   // Add modifications
   delta.modified.forEach((mod) => {
     operations.push({ type: 'modify', item: mod });
   });
-  
+
   // Add additions
   delta.added.forEach((bookmark) => {
     operations.push({ type: 'add', item: bookmark });
@@ -96,7 +96,7 @@ export async function applyDelta(currentTree, delta, applyFn) {
 
   // Process operations in batches
   const result = await processBatch(operations, applyFn);
-  
+
   return {
     success: result.success,
     applied: result.processed,
@@ -113,31 +113,32 @@ export async function applyDelta(currentTree, delta, applyFn) {
 export function compressBookmarkData(data) {
   const dictionary = new Set();
   const commonStrings = [];
-  
+
   // Extract common strings
   function extractStrings(obj) {
     if (typeof obj === 'string') {
-      if (obj.length > 3) { // Only compress strings longer than 3 chars
+      if (obj.length > 3) {
+        // Only compress strings longer than 3 chars
         commonStrings.push(obj);
       }
     } else if (typeof obj === 'object' && obj !== null) {
       Object.values(obj).forEach(extractStrings);
     }
   }
-  
+
   extractStrings(data);
-  
+
   // Create dictionary from most common strings
   const stringCount = {};
-  commonStrings.forEach(str => {
+  commonStrings.forEach((str) => {
     stringCount[str] = (stringCount[str] || 0) + 1;
   });
-  
+
   const sortedStrings = Object.entries(stringCount)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 50) // Limit dictionary size
     .map(([str]) => str);
-  
+
   // Replace strings with references
   function replaceWithRefs(obj) {
     if (typeof obj === 'string') {
@@ -154,7 +155,7 @@ export function compressBookmarkData(data) {
     }
     return obj;
   }
-  
+
   return {
     dictionary: sortedStrings,
     data: replaceWithRefs(data),
@@ -168,7 +169,7 @@ export function compressBookmarkData(data) {
  */
 export function decompressBookmarkData(compressed) {
   const { dictionary, data } = compressed;
-  
+
   function replaceRefs(obj) {
     if (typeof obj === 'string' && obj.startsWith('$')) {
       const index = parseInt(obj.slice(1), 10);
@@ -184,7 +185,7 @@ export function decompressBookmarkData(compressed) {
     }
     return obj;
   }
-  
+
   return replaceRefs(data);
 }
 

@@ -260,116 +260,152 @@ async function handleThemeToggle() {
 }
 
 /**
- * Setup main popup event listeners
+ * Set up event listeners
  */
 function setupEventListeners() {
-  // Tab navigation
-  document.querySelectorAll('.nav-tab').forEach((tab) => {
+  // Onboarding listeners
+  setupOnboardingListeners();
+
+  // Welcome setup listeners
+  setupWelcomeListeners();
+
+  // Main popup listeners
+  const syncNowBtn = document.getElementById('sync-now-btn');
+  const quickBackupBtn = document.getElementById('quick-backup-btn');
+  const syncTabBtn = document.getElementById('sync-tab-btn');
+  const createBackupBtn = document.getElementById('create-backup-btn');
+  const viewBackupsBtn = document.getElementById('view-backups-btn');
+  const headerMenuBtn = document.getElementById('header-menu-btn');
+  const autoSyncToggle = document.getElementById('auto-sync-toggle');
+
+  // Navigation tabs
+  const navTabs = document.querySelectorAll('.nav-tab');
+  navTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       const tabName = tab.dataset.tab;
       switchTab(tabName);
     });
   });
 
-  // Header menu button with improved dropdown handling
-  const headerMenuBtn = document.getElementById('header-menu-btn');
-  const dropdownMenu = document.getElementById('dropdown-menu');
-
-  if (headerMenuBtn && dropdownMenu) {
-    headerMenuBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleDropdownMenu();
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!dropdownMenu.contains(e.target) && !headerMenuBtn.contains(e.target)) {
-        hideDropdownMenu();
-      }
-    });
-
-    // Close dropdown on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        hideDropdownMenu();
-      }
-    });
-
-    // Dropdown menu items - using event delegation
-    dropdownMenu.addEventListener('click', (e) => {
-      const target = e.target.closest('.dropdown-item');
-      if (!target) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-      hideDropdownMenu();
-
-      const action = target.id;
-      switch (action) {
-        case 'menu-settings':
-          handleOpenOptions();
-          break;
-        case 'menu-theme-toggle':
-          handleThemeToggle();
-          break;
-        case 'menu-account':
-          showAccountInfo();
-          break;
-        case 'menu-sign-out':
-          handleSignOut();
-          break;
-      }
-    });
-  }
-
   // Sync buttons
-  const syncNowBtn = document.getElementById('sync-now-btn');
   if (syncNowBtn) {
     syncNowBtn.addEventListener('click', handleSync);
   }
-
-  const syncTabBtn = document.getElementById('sync-tab-btn');
   if (syncTabBtn) {
     syncTabBtn.addEventListener('click', handleSync);
   }
 
   // Backup buttons
-  const quickBackupBtn = document.getElementById('quick-backup-btn');
   if (quickBackupBtn) {
     quickBackupBtn.addEventListener('click', handleQuickBackup);
   }
-
-  const createBackupBtn = document.getElementById('create-backup-btn');
   if (createBackupBtn) {
     createBackupBtn.addEventListener('click', handleCreateBackup);
   }
-
-  const viewBackupsBtn = document.getElementById('view-backups-btn');
   if (viewBackupsBtn) {
     viewBackupsBtn.addEventListener('click', handleViewBackups);
   }
 
-  // Auto sync toggle
-  const autoSyncToggle = document.getElementById('auto-sync-toggle');
+  // Header menu
+  if (headerMenuBtn) {
+    headerMenuBtn.addEventListener('click', toggleDropdownMenu);
+  }
+
+  // Dropdown menu items
+  const menuSettings = document.getElementById('menu-settings');
+  const menuThemeToggle = document.getElementById('menu-theme-toggle');
+  const menuAccount = document.getElementById('menu-account');
+  const menuSignOut = document.getElementById('menu-sign-out');
+
+  if (menuSettings) {
+    menuSettings.addEventListener('click', handleOpenOptions);
+  }
+  if (menuThemeToggle) {
+    menuThemeToggle.addEventListener('click', handleThemeToggle);
+  }
+  if (menuAccount) {
+    menuAccount.addEventListener('click', showAccountInfo);
+  }
+  if (menuSignOut) {
+    menuSignOut.addEventListener('click', handleSignOut);
+  }
+
+  // Settings toggles
   if (autoSyncToggle) {
     autoSyncToggle.addEventListener('change', handleAutoSyncChange);
   }
 
-  // Feature-specific event listeners
-  if (isFeatureEnabled('conflict-resolution')) {
-    const resolveConflictsBtn = document.getElementById('resolve-conflicts-btn');
-    if (resolveConflictsBtn) {
-      resolveConflictsBtn.addEventListener('click', handleResolveConflicts);
-    }
+  // Organize tab listeners
+  const manageTagsBtn = document.getElementById('manage-tags-btn');
+  const bulkEditBtn = document.getElementById('bulk-edit-btn');
+  const createSmartFolderBtn = document.getElementById('create-smart-folder-btn');
+  const advancedSearchBtn = document.getElementById('advanced-search-btn');
+  const advancedSearchInput = document.getElementById('advanced-search-input');
+
+  if (manageTagsBtn) {
+    manageTagsBtn.addEventListener('click', handleManageTags);
+  }
+  if (bulkEditBtn) {
+    bulkEditBtn.addEventListener('click', handleBulkEdit);
+  }
+  if (createSmartFolderBtn) {
+    createSmartFolderBtn.addEventListener('click', handleCreateSmartFolder);
+  }
+  if (advancedSearchBtn) {
+    advancedSearchBtn.addEventListener('click', handleAdvancedSearch);
+  }
+  if (advancedSearchInput) {
+    advancedSearchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleAdvancedSearch();
+      }
+    });
   }
 
-  if (isFeatureEnabled('shared-folders')) {
-    const sharedFoldersBtn = document.getElementById('shared-folders-btn');
-    if (sharedFoldersBtn) {
-      sharedFoldersBtn.addEventListener('click', handleSharedFolders);
-    }
+  // Tools tab listeners
+  const importBtn = document.getElementById('import-btn');
+  const exportBtn = document.getElementById('export-btn');
+  const readLaterBtn = document.getElementById('read-later-btn');
+  const annotationsBtn = document.getElementById('annotations-btn');
+  const publicCollectionsBtn = document.getElementById('public-collections-btn');
+  const shareLinkBtn = document.getElementById('share-link-btn');
+  const viewAnalyticsBtn = document.getElementById('view-analytics-btn');
+  const teamDashboardBtn = document.getElementById('team-dashboard-btn');
+
+  if (importBtn) {
+    importBtn.addEventListener('click', handleImportBookmarks);
   }
+  if (exportBtn) {
+    exportBtn.addEventListener('click', handleExportBookmarks);
+  }
+  if (readLaterBtn) {
+    readLaterBtn.addEventListener('click', handleReadLater);
+  }
+  if (annotationsBtn) {
+    annotationsBtn.addEventListener('click', handleAnnotations);
+  }
+  if (publicCollectionsBtn) {
+    publicCollectionsBtn.addEventListener('click', handlePublicCollections);
+  }
+  if (shareLinkBtn) {
+    shareLinkBtn.addEventListener('click', handleShareLink);
+  }
+  if (viewAnalyticsBtn) {
+    viewAnalyticsBtn.addEventListener('click', handleViewAnalytics);
+  }
+  if (teamDashboardBtn) {
+    teamDashboardBtn.addEventListener('click', handleTeamDashboard);
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (event) => {
+    const dropdown = document.getElementById('dropdown-menu');
+    const headerMenuBtn = document.getElementById('header-menu-btn');
+    
+    if (dropdown && !dropdown.contains(event.target) && !headerMenuBtn.contains(event.target)) {
+      hideDropdownMenu();
+    }
+  });
 }
 
 /**
@@ -728,13 +764,283 @@ function handleResolveConflicts() {
   });
 }
 
+/**
+ * Handle shared folders
+ */
 function handleSharedFolders() {
-  if (!isFeatureEnabled('shared_folders')) {
-    showToast('Shared folders feature is disabled', 'warning');
+  chrome.tabs.create({
+    url: chrome.runtime.getURL('src/shared-folders/shared-folders.html'),
+  });
+}
+
+/**
+ * Organize tab handlers
+ */
+
+/**
+ * Handle manage tags
+ */
+async function handleManageTags() {
+  if (!isFeatureEnabled('bookmark_organization')) {
+    showToast('Bookmark organization feature is not enabled', 'warning');
     return;
   }
 
-  chrome.tabs.create({ url: chrome.runtime.getURL('shared-folders/shared-folders.html') });
+  try {
+    // Open tags management interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#tags'),
+    });
+  } catch (error) {
+    console.error('Failed to open tags manager:', error);
+    showToast('Failed to open tags manager', 'error');
+  }
+}
+
+/**
+ * Handle bulk edit
+ */
+async function handleBulkEdit() {
+  if (!isFeatureEnabled('bookmark_organization')) {
+    showToast('Bookmark organization feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open bulk edit interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#bulk-edit'),
+    });
+  } catch (error) {
+    console.error('Failed to open bulk edit:', error);
+    showToast('Failed to open bulk edit', 'error');
+  }
+}
+
+/**
+ * Handle create smart folder
+ */
+async function handleCreateSmartFolder() {
+  if (!isFeatureEnabled('bookmark_organization')) {
+    showToast('Bookmark organization feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open smart folder creation interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#smart-folders'),
+    });
+  } catch (error) {
+    console.error('Failed to open smart folder creator:', error);
+    showToast('Failed to open smart folder creator', 'error');
+  }
+}
+
+/**
+ * Handle advanced search
+ */
+async function handleAdvancedSearch() {
+  if (!isFeatureEnabled('bookmark_organization')) {
+    showToast('Bookmark organization feature is not enabled', 'warning');
+    return;
+  }
+
+  const searchInput = document.getElementById('advanced-search-input');
+  const query = searchInput?.value?.trim();
+
+  if (!query) {
+    showToast('Please enter a search query', 'warning');
+    return;
+  }
+
+  try {
+    // Open search results in new tab
+    chrome.tabs.create({
+      url: chrome.runtime.getURL(`src/options/options.html#search?q=${encodeURIComponent(query)}`),
+    });
+  } catch (error) {
+    console.error('Failed to perform advanced search:', error);
+    showToast('Failed to perform search', 'error');
+  }
+}
+
+/**
+ * Tools tab handlers
+ */
+
+/**
+ * Handle import bookmarks
+ */
+async function handleImportBookmarks() {
+  if (!isFeatureEnabled('import_export')) {
+    showToast('Import/Export feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open import interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#import'),
+    });
+  } catch (error) {
+    console.error('Failed to open import interface:', error);
+    showToast('Failed to open import interface', 'error');
+  }
+}
+
+/**
+ * Handle export bookmarks
+ */
+async function handleExportBookmarks() {
+  if (!isFeatureEnabled('import_export')) {
+    showToast('Import/Export feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open export interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#export'),
+    });
+  } catch (error) {
+    console.error('Failed to open export interface:', error);
+    showToast('Failed to open export interface', 'error');
+  }
+}
+
+/**
+ * Handle read later
+ */
+async function handleReadLater() {
+  if (!isFeatureEnabled('read_it_later')) {
+    showToast('Read-It-Later feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open read later interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/read-later/read-later.html'),
+    });
+  } catch (error) {
+    console.error('Failed to open read later interface:', error);
+    showToast('Failed to open read later interface', 'error');
+  }
+}
+
+/**
+ * Handle annotations
+ */
+async function handleAnnotations() {
+  if (!isFeatureEnabled('annotations')) {
+    showToast('Annotations feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open annotations interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/annotations/annotations.html'),
+    });
+  } catch (error) {
+    console.error('Failed to open annotations interface:', error);
+    showToast('Failed to open annotations interface', 'error');
+  }
+}
+
+/**
+ * Handle public collections
+ */
+async function handlePublicCollections() {
+  if (!isFeatureEnabled('public_collections')) {
+    showToast('Public collections feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open public collections interface
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#public-collections'),
+    });
+  } catch (error) {
+    console.error('Failed to open public collections:', error);
+    showToast('Failed to open public collections', 'error');
+  }
+}
+
+/**
+ * Handle share link
+ */
+async function handleShareLink() {
+  if (!isFeatureEnabled('public_collections')) {
+    showToast('Sharing feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Get current tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab) {
+      // Create shareable link for current page
+      const shareData = {
+        title: tab.title,
+        text: `Check out this page: ${tab.title}`,
+        url: tab.url,
+      };
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(tab.url);
+        showToast('Link copied to clipboard', 'success');
+      }
+    }
+  } catch (error) {
+    console.error('Failed to share link:', error);
+    showToast('Failed to share link', 'error');
+  }
+}
+
+/**
+ * Handle view analytics
+ */
+async function handleViewAnalytics() {
+  if (!isFeatureEnabled('analytics')) {
+    showToast('Analytics feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open analytics dashboard
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/analytics/analytics.html'),
+    });
+  } catch (error) {
+    console.error('Failed to open analytics:', error);
+    showToast('Failed to open analytics', 'error');
+  }
+}
+
+/**
+ * Handle team dashboard
+ */
+async function handleTeamDashboard() {
+  if (!isFeatureEnabled('team_analytics')) {
+    showToast('Team analytics feature is not enabled', 'warning');
+    return;
+  }
+
+  try {
+    // Open team dashboard
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('src/options/options.html#team-dashboard'),
+    });
+  } catch (error) {
+    console.error('Failed to open team dashboard:', error);
+    showToast('Failed to open team dashboard', 'error');
+  }
 }
 
 /**

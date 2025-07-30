@@ -85,7 +85,9 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid frequency. Must be one of: hourly, daily, weekly, monthly');
+      expect(result.errors).toContain(
+        'Invalid frequency. Must be one of: hourly, daily, weekly, monthly',
+      );
     });
 
     test('should reject invalid day of week', () => {
@@ -100,7 +102,9 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Day of week must be a number between 0 (Sunday) and 6 (Saturday)');
+      expect(result.errors).toContain(
+        'Day of week must be a number between 0 (Sunday) and 6 (Saturday)',
+      );
     });
 
     test('should reject invalid day of month', () => {
@@ -157,7 +161,9 @@ describe('Scheduler Module', () => {
 
       const result = validateSchedule(schedule);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid frequency. Must be one of: hourly, daily, weekly, monthly');
+      expect(result.errors).toContain(
+        'Invalid frequency. Must be one of: hourly, daily, weekly, monthly',
+      );
     });
 
     test('should accept unlimited retention count', () => {

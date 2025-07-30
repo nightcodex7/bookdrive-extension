@@ -29,8 +29,6 @@ jest.mock('../lib/scheduling/scheduler', () => ({
   updateBackupTime: jest.fn(),
 }));
 
-
-
 const mockStorage = {
   missedBackups: [],
 };
@@ -42,7 +40,7 @@ describe('Adaptive Scheduler', () => {
     chrome.storage.local.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         callback(result);
@@ -51,7 +49,7 @@ describe('Adaptive Scheduler', () => {
       }
     });
     chrome.storage.local.set.mockImplementation((obj, callback) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         mockStorage[key] = obj[key];
       });
       if (callback) callback();
@@ -321,4 +319,3 @@ describe('Adaptive Scheduler', () => {
     });
   });
 });
-

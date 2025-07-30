@@ -32,7 +32,7 @@ const MISSED_BACKUP_CHECK_INTERVAL_MINUTES = 10; // Check for missed backups eve
 export async function initializeBackupAlarms() {
   try {
     const settings = await getSettings();
-    
+
     if (!settings.scheduledBackups) {
       return;
     }
@@ -55,7 +55,6 @@ export async function initializeBackupAlarms() {
       delayInMinutes: MISSED_BACKUP_CHECK_INTERVAL_MINUTES,
       periodInMinutes: MISSED_BACKUP_CHECK_INTERVAL_MINUTES,
     });
-
   } catch (error) {
     console.error('Failed to initialize backup alarms:', error);
   }

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookDrive - Read Later</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="read-later.css">
+</head>
+<body>
+  <div class="read-later-container">
+    <header class="read-later-header">
+      <div class="header-content">
+        <div class="header-left">
+          <img src="../assets/icon48.png" alt="BookDrive" class="header-logo" />
+          <div class="header-info">
+            <h1 class="header-title">Read Later</h1>
+            <div class="header-subtitle">Your saved articles for offline reading</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="add-current-page-btn" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            <span>Add Current Page</span>
+          </button>
+          <button id="settings-btn" class="btn btn-secondary">
+            <span class="material-icons">settings</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="read-later-content">
+      <!-- Statistics Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value" id="total-count">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="unread-count">0</div>
+          <div class="stat-label">Unread</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="read-count">0</div>
+          <div class="stat-label">Read</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="reading-time">0m</div>
+          <div class="stat-label">Reading Time</div>
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="filters-section">
+        <div class="search-group">
+          <div class="search-input-wrapper">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" id="search-input" placeholder="Search saved articles..." class="search-input">
+          </div>
+        </div>
+        <div class="filter-group">
+          <select id="status-filter" class="filter-select">
+            <option value="">All Status</option>
+            <option value="unread">Unread</option>
+            <option value="read">Read</option>
+            <option value="archived">Archived</option>
+          </select>
+          <select id="tag-filter" class="filter-select">
+            <option value="">All Tags</option>
+            <!-- Tags will be populated by JavaScript -->
+          </select>
+          <select id="sort-filter" class="filter-select">
+            <option value="date">Date Added</option>
+            <option value="title">Title</option>
+            <option value="reading-time">Reading Time</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Articles List -->
+      <div class="articles-section">
+        <div class="articles-header">
+          <h2>Saved Articles</h2>
+          <div class="articles-actions">
+            <button id="bulk-actions-btn" class="btn btn-outline">
+              <span class="material-icons">more_vert</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="articles-list" id="articles-list">
+          <!-- Articles will be populated by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+          <div class="empty-state-icon">
+            <span class="material-icons">article</span>
+          </div>
+          <h3>No saved articles yet</h3>
+          <p>Start saving articles for later reading by clicking "Add Current Page" or using the extension popup.</p>
+          <button id="add-first-article-btn" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            <span>Add Your First Article</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading articles...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Detail Modal -->
+  <div id="article-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Article Title</h2>
+        <button class="modal-close" id="modal-close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="article-meta">
+          <div class="meta-item">
+            <span class="material-icons">schedule</span>
+            <span id="modal-date">Date</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">access_time</span>
+            <span id="modal-reading-time">Reading time</span>
+          </div>
+          <div class="meta-item">
+            <span class="material-icons">local_offer</span>
+            <span id="modal-tags">Tags</span>
+          </div>
+        </div>
+        <div class="article-content">
+          <div id="modal-excerpt" class="article-excerpt"></div>
+          <div class="article-actions">
+            <button id="open-article-btn" class="btn btn-primary">
+              <span class="material-icons">open_in_new</span>
+              <span>Open Article</span>
+            </button>
+            <button id="mark-read-btn" class="btn btn-secondary">
+              <span class="material-icons">check</span>
+              <span>Mark as Read</span>
+            </button>
+            <button id="edit-article-btn" class="btn btn-outline">
+              <span class="material-icons">edit</span>
+              <span>Edit</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Article Modal -->
+  <div id="add-article-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add Article for Later Reading</h2>
+        <button class="modal-close" id="add-modal-close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="article-title">Title</label>
+          <input type="text" id="article-title" class="form-input" placeholder="Article title">
+        </div>
+        <div class="form-group">
+          <label for="article-url">URL</label>
+          <input type="url" id="article-url" class="form-input" placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label for="article-tags">Tags</label>
+          <input type="text" id="article-tags" class="form-input" placeholder="Enter tags separated by commas">
+        </div>
+        <div class="form-group">
+          <label for="article-notes">Notes</label>
+          <textarea id="article-notes" class="form-textarea" placeholder="Add your notes..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button id="save-article-btn" class="btn btn-primary">
+            <span class="material-icons">save</span>
+            <span>Save Article</span>
+          </button>
+          <button id="cancel-save-btn" class="btn btn-secondary">
+            <span>Cancel</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="read-later.js"></script>
+</body>
+</html> 

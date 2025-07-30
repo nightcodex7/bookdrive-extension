@@ -14,7 +14,8 @@ describe('Drive Module', () => {
 
     // Mock navigator.userAgent to ensure getBrowserType() returns 'chrome'
     Object.defineProperty(navigator, 'userAgent', {
-      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      value:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       configurable: true,
     });
 
@@ -22,7 +23,7 @@ describe('Drive Module', () => {
     chrome.storage.local.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         if (callback) callback(result);
@@ -31,7 +32,7 @@ describe('Drive Module', () => {
       }
     });
     chrome.storage.local.set.mockImplementation((obj, callback) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         mockStorage[key] = obj[key];
       });
       if (callback) callback();
@@ -41,7 +42,7 @@ describe('Drive Module', () => {
     chrome.storage.sync.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         if (callback) callback(result);
@@ -50,7 +51,7 @@ describe('Drive Module', () => {
       }
     });
     chrome.storage.sync.set.mockImplementation((obj, callback) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         mockStorage[key] = obj[key];
       });
       if (callback) callback();

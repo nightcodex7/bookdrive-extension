@@ -34,11 +34,11 @@ describe('Google Drive API', () => {
     global.chrome.storage.local.get.mockImplementation((keys, callback) => {
       const result = {};
       if (Array.isArray(keys)) {
-        keys.forEach(key => {
+        keys.forEach((key) => {
           result[key] = mockStorage[key] !== undefined ? mockStorage[key] : null;
         });
       } else if (typeof keys === 'object') {
-        Object.keys(keys).forEach(key => {
+        Object.keys(keys).forEach((key) => {
           result[key] = mockStorage[key] !== undefined ? mockStorage[key] : keys[key];
         });
       }
@@ -46,7 +46,7 @@ describe('Google Drive API', () => {
     });
 
     global.chrome.storage.local.set.mockImplementation((data, callback) => {
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         mockStorage[key] = data[key];
       });
       if (callback) callback();
@@ -55,11 +55,11 @@ describe('Google Drive API', () => {
     global.chrome.storage.sync.get.mockImplementation((keys, callback) => {
       const result = {};
       if (Array.isArray(keys)) {
-        keys.forEach(key => {
+        keys.forEach((key) => {
           result[key] = mockStorage[key] || null;
         });
       } else if (typeof keys === 'object') {
-        Object.keys(keys).forEach(key => {
+        Object.keys(keys).forEach((key) => {
           result[key] = mockStorage[key] || keys[key];
         });
       }
@@ -67,7 +67,7 @@ describe('Google Drive API', () => {
     });
 
     global.chrome.storage.sync.set.mockImplementation((data, callback) => {
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         mockStorage[key] = data[key];
       });
       if (callback) callback();
@@ -290,9 +290,7 @@ describe('Google Drive API', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          files: [
-            { id: 'file-1', name: 'file1.json' },
-          ],
+          files: [{ id: 'file-1', name: 'file1.json' }],
           nextPageToken: 'next-page',
         }),
       });
@@ -300,9 +298,7 @@ describe('Google Drive API', () => {
       const result = await driveApi.listFiles('folder-123', 'test-token');
 
       expect(result).toEqual({
-        files: [
-          { id: 'file-1', name: 'file1.json' },
-        ],
+        files: [{ id: 'file-1', name: 'file1.json' }],
         nextPageToken: 'next-page',
       });
     });
@@ -312,18 +308,14 @@ describe('Google Drive API', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          files: [
-            { id: 'file-2', name: 'file2.json' },
-          ],
+          files: [{ id: 'file-2', name: 'file2.json' }],
         }),
       });
 
       const result = await driveApi.listFiles('', 'test-token');
 
       expect(result).toEqual({
-        files: [
-          { id: 'file-2', name: 'file2.json' },
-        ],
+        files: [{ id: 'file-2', name: 'file2.json' }],
       });
     });
   });

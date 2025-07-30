@@ -14,8 +14,6 @@ jest.mock('../lib/backup/retention-policy.js', () => {
   };
 });
 
-
-
 describe('Retention Policy Manager', () => {
   beforeEach(() => {
     // Reset all mocks
@@ -291,4 +289,3 @@ describe('Retention Policy Manager', () => {
     });
   });
 });
-

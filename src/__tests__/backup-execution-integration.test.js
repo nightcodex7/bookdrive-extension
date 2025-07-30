@@ -32,8 +32,6 @@ jest.mock('../lib/backup/backup-metadata.js');
 jest.mock('../lib/scheduling/resource-monitor.js');
 jest.mock('../lib/scheduling/adaptive-scheduler.js');
 
-
-
 describe('Backup Execution Integration Tests', () => {
   beforeEach(() => {
     // Reset all mocks
@@ -311,4 +309,3 @@ describe('Backup Execution Integration Tests', () => {
     });
   });
 });
-

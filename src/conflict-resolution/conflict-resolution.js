@@ -3,9 +3,7 @@
  * Visual merge tools for resolving bookmark conflicts
  */
 
-import {
-  resolveConflicts,
-} from '../lib/sync/conflict-resolver.js';
+import { resolveConflicts, CONFLICT_STRATEGIES } from '../lib/sync/conflict-resolver.js';
 import { generateSyncPreview } from '../lib/sync/sync-preview.js';
 
 // Global state
@@ -418,41 +416,235 @@ function resolveSelectedConflicts() {
  * @param {number} index - Conflict index
  */
 function openConflictModal(index) {
+  if (index < 0 || index >= conflicts.length) return;
+
   const conflict = conflicts[index];
-  if (!conflict) return;
+  const modal = createConflictModal(conflict, index);
+  document.body.appendChild(modal);
 
-  currentConflictIndex = index;
+  // Add event listeners
+  const closeBtn = modal.querySelector('.modal-close');
+  const localBtn = modal.querySelector('.resolve-local');
+  const remoteBtn = modal.querySelector('.resolve-remote');
+  const mergeBtn = modal.querySelector('.resolve-merge');
+  const skipBtn = modal.querySelector('.resolve-skip');
 
-  // Populate modal with conflict data
-  document.getElementById('conflict-title').textContent =
-    conflict.local.title || conflict.remote.title || 'Untitled Bookmark';
-  document.getElementById('conflict-url').textContent =
-    conflict.local.url || conflict.remote.url || 'No URL';
+  closeBtn.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
 
-  // Local version
-  document.getElementById('local-title').value = conflict.local.title || '';
-  document.getElementById('local-url').value = conflict.local.url || '';
-  document.getElementById('local-modified').textContent = formatDate(
-    new Date(conflict.local.dateModified || 0),
-  );
-  document.getElementById('local-added').textContent = formatDate(
-    new Date(conflict.local.dateAdded || 0),
-  );
+  localBtn.addEventListener('click', () => {
+    resolveConflictByIndex(index, CONFLICT_STRATEGIES.LOCAL_WINS);
+    document.body.removeChild(modal);
+  });
 
-  // Remote version
-  document.getElementById('remote-title').value = conflict.remote.title || '';
-  document.getElementById('remote-url').value = conflict.remote.url || '';
-  document.getElementById('remote-modified').textContent = formatDate(
-    new Date(conflict.remote.dateModified || 0),
-  );
-  document.getElementById('remote-added').textContent = formatDate(
-    new Date(conflict.remote.dateAdded || 0),
-  );
+  remoteBtn.addEventListener('click', () => {
+    resolveConflictByIndex(index, CONFLICT_STRATEGIES.REMOTE_WINS);
+    document.body.removeChild(modal);
+  });
 
-  // Show modal
-  const modal = document.getElementById('conflict-modal');
-  if (modal) {
-    modal.classList.add('show');
+  mergeBtn.addEventListener('click', () => {
+    resolveConflictByIndex(index, CONFLICT_STRATEGIES.MERGE);
+    document.body.removeChild(modal);
+  });
+
+  skipBtn.addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+}
+
+/**
+ * Create conflict resolution modal
+ * @param {Object} conflict - Conflict object
+ * @param {number} index - Conflict index
+ * @returns {HTMLElement} Modal element
+ */
+function createConflictModal(conflict, index) {
+  const modal = document.createElement('div');
+  modal.className = 'conflict-modal';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Resolve Conflict</h2>
+        <button class="modal-close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="conflict-info">
+          <h3>${conflict.local.title || conflict.remote.title || 'Untitled Bookmark'}</h3>
+          <p class="conflict-url">${conflict.local.url || conflict.remote.url || 'No URL'}</p>
+        </div>
+        
+        <div class="conflict-comparison">
+          <div class="comparison-column">
+            <h4>Local Version</h4>
+            <div class="version-details">
+              <p><strong>Title:</strong> ${conflict.local.title || 'No title'}</p>
+              <p><strong>URL:</strong> ${conflict.local.url || 'No URL'}</p>
+              <p><strong>Modified:</strong> ${formatDate(conflict.local.dateModified)}</p>
+              <p><strong>Folder:</strong> ${getFolderName(conflict.local.parentId)}</p>
+            </div>
+          </div>
+          
+          <div class="comparison-column">
+            <h4>Remote Version</h4>
+            <div class="version-details">
+              <p><strong>Title:</strong> ${conflict.remote.title || 'No title'}</p>
+              <p><strong>URL:</strong> ${conflict.remote.url || 'No URL'}</p>
+              <p><strong>Modified:</strong> ${formatDate(conflict.remote.dateModified)}</p>
+              <p><strong>Folder:</strong> ${getFolderName(conflict.remote.parentId)}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="resolution-options">
+          <h4>Choose Resolution Strategy</h4>
+          <div class="resolution-buttons">
+            <button class="resolve-btn resolve-local">
+              <span class="material-icons">computer</span>
+              <span>Keep Local</span>
+            </button>
+            <button class="resolve-btn resolve-remote">
+              <span class="material-icons">cloud</span>
+              <span>Keep Remote</span>
+            </button>
+            <button class="resolve-btn resolve-merge">
+              <span class="material-icons">merge</span>
+              <span>Smart Merge</span>
+            </button>
+            <button class="resolve-btn resolve-skip">
+              <span class="material-icons">skip_next</span>
+              <span>Skip</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  return modal;
+}
+
+/**
+ * Resolve a specific conflict
+ * @param {number} index - Conflict index
+ * @param {string} strategy - Resolution strategy
+ */
+function resolveConflictByIndex(index, strategy) {
+  if (index < 0 || index >= conflicts.length) return;
+
+  const conflict = conflicts[index];
+  const resolution = resolveConflicts([conflict], strategy);
+  
+  if (resolution.resolvedCount > 0) {
+    resolvedConflicts.push(index);
+    updateConflictList();
+    updateProgress();
+    
+    // Show success message
+    showToast(`Conflict resolved using ${strategy} strategy`, 'success');
+  }
+}
+
+/**
+ * Format date for display
+ * @param {string} dateString - Date string
+ * @returns {string} Formatted date
+ */
+function formatDate(dateString) {
+  if (!dateString) return 'Unknown';
+  return new Date(dateString).toLocaleString();
+}
+
+/**
+ * Get folder name by ID
+ * @param {string} folderId - Folder ID
+ * @returns {string} Folder name
+ */
+function getFolderName(folderId) {
+  // This would need to be implemented to fetch folder names
+  // For now, return a placeholder
+  return folderId === '0' ? 'Bookmarks Bar' : `Folder ${folderId}`;
+}
+
+/**
+ * Show toast notification
+ * @param {string} message - Message to show
+ * @param {string} type - Toast type (success, error, warning)
+ */
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  
+  const container = document.getElementById('toast-container') || document.body;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
+}
+
+/**
+ * Show loading state
+ * @param {boolean} loading - Whether to show loading
+ */
+function showLoading(loading) {
+  const loadingEl = document.getElementById('loading-indicator');
+  if (loadingEl) {
+    loadingEl.style.display = loading ? 'block' : 'none';
+  }
+}
+
+/**
+ * Show error message
+ * @param {string} message - Error message
+ */
+function showError(message) {
+  showToast(message, 'error');
+}
+
+/**
+ * Show empty state
+ */
+function showEmptyState() {
+  const conflictList = document.getElementById('conflict-list');
+  if (conflictList) {
+    conflictList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">✅</div>
+        <h3>No Conflicts Found</h3>
+        <p>All bookmarks are in sync. No conflicts to resolve.</p>
+      </div>
+    `;
+  }
+}
+
+/**
+ * Toggle recommendations panel
+ */
+function toggleRecommendationsPanel() {
+  const panel = document.getElementById('recommendations-panel');
+  if (panel) {
+    panel.classList.toggle('expanded');
   }
 }
 
@@ -536,152 +728,6 @@ function applyCurrentResolution() {
 function skipCurrentConflict() {
   closeModal();
   showInfo('Conflict skipped');
-}
-
-/**
- * Toggle recommendations panel
- */
-function toggleRecommendationsPanel() {
-  const panel = document.getElementById('recommendations-panel');
-  const content = document.getElementById('panel-content');
-  const toggle = document.getElementById('panel-toggle');
-
-  if (panel && content && toggle) {
-    const isVisible = content.style.display !== 'none';
-
-    if (isVisible) {
-      content.style.display = 'none';
-      toggle.textContent = '+';
-    } else {
-      content.style.display = 'block';
-      toggle.textContent = '−';
-    }
-  }
-}
-
-/**
- * Show empty state
- */
-function showEmptyState() {
-  const conflictList = document.getElementById('conflict-list');
-  if (conflictList) {
-    conflictList.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">✅</div>
-        <h3>No Conflicts Found</h3>
-        <p>All bookmarks are in sync. No conflicts to resolve.</p>
-      </div>
-    `;
-  }
-}
-
-/**
- * Show loading state
- * @param {boolean} loading - Loading state
- */
-function showLoading(loading) {
-  const container = document.querySelector('.conflict-container');
-  if (container) {
-    if (loading) {
-      container.classList.add('loading');
-    } else {
-      container.classList.remove('loading');
-    }
-  }
-}
-
-/**
- * Show success message
- * @param {string} message - Success message
- */
-function showSuccess(message) {
-  showToast(message, 'success');
-}
-
-/**
- * Show error message
- * @param {string} message - Error message
- */
-function showError(message) {
-  showToast(message, 'error');
-}
-
-/**
- * Show info message
- * @param {string} message - Info message
- */
-function showInfo(message) {
-  showToast(message, 'info');
-}
-
-/**
- * Show toast message
- * @param {string} message - Message
- * @param {string} type - Message type
- */
-function showToast(message, type = 'info') {
-  // Create toast element
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-
-  // Add styles
-  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 16px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 500;
-    z-index: 1000;
-    animation: slideIn 0.3s ease;
-  `;
-
-  // Set background color based on type
-  if (type === 'success') {
-    toast.style.backgroundColor = '#2e7d32';
-  } else if (type === 'error') {
-    toast.style.backgroundColor = '#c62828';
-  } else {
-    toast.style.backgroundColor = '#1565c0';
-  }
-
-  // Add to page
-  document.body.appendChild(toast);
-
-  // Remove after 3 seconds
-  setTimeout(() => {
-    toast.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
-      }
-    }, 300);
-  }, 3000);
-}
-
-/**
- * Format date
- * @param {Date} date - Date to format
- * @returns {string} Formatted date
- */
-function formatDate(date) {
-  if (date.getTime() === 0) {
-    return 'Unknown';
-  }
-
-  const now = new Date();
-  const diff = now - date;
-  const oneDay = 24 * 60 * 60 * 1000;
-
-  if (diff < oneDay) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else if (diff < 7 * oneDay) {
-    return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-  } else {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-  }
 }
 
 // Add CSS animations

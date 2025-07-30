@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Set up message listener for notifications
     setupMessageListener();
-
   } catch (error) {
     console.error('Failed to initialize advanced settings:', error);
   }
@@ -262,13 +261,12 @@ function updateDaySelectors(frequency) {
   const dayOfMonthContainer = document.getElementById('day-of-month-container');
 
   if (daySelectorContainer) {
-    daySelectorContainer.style.display = 
-      (frequency === 'weekly' || frequency === 'bi-weekly') ? 'block' : 'none';
+    daySelectorContainer.style.display =
+      frequency === 'weekly' || frequency === 'bi-weekly' ? 'block' : 'none';
   }
 
   if (dayOfMonthContainer) {
-    dayOfMonthContainer.style.display = 
-      frequency === 'monthly' ? 'block' : 'none';
+    dayOfMonthContainer.style.display = frequency === 'monthly' ? 'block' : 'none';
   }
 }
 
@@ -346,7 +344,7 @@ function setupEventListeners() {
 // Handle form submission
 async function handleFormSubmit(event) {
   event.preventDefault();
-  
+
   try {
     await saveAllSettings();
     showToast('Settings saved successfully!', 'success');
@@ -360,7 +358,7 @@ async function handleFormSubmit(event) {
 async function handleThemeChange(event) {
   const theme = event.target.value;
   applyTheme(theme);
-  
+
   try {
     await chrome.storage.sync.set({ [STORAGE_KEYS.THEME]: theme });
   } catch (error) {
@@ -407,22 +405,22 @@ function handleClearLogs() {
 function handleEnableEncryption() {
   const passphrase = document.getElementById('encryption-passphrase').value;
   const confirmPassphrase = document.getElementById('confirm-passphrase').value;
-  
+
   if (!passphrase) {
     showToast('Please enter a passphrase', 'error');
     return;
   }
-  
+
   if (passphrase !== confirmPassphrase) {
     showToast('Passphrases do not match', 'error');
     return;
   }
-  
+
   if (passphrase.length < 8) {
     showToast('Passphrase must be at least 8 characters long', 'error');
     return;
   }
-  
+
   showToast('Encryption enabled successfully!', 'success');
 }
 
@@ -433,7 +431,9 @@ function handleChangePassphrase() {
 
 // Handle disable encryption
 function handleDisableEncryption() {
-  if (confirm('Are you sure you want to disable encryption? This will make your data unencrypted.')) {
+  if (
+    confirm('Are you sure you want to disable encryption? This will make your data unencrypted.')
+  ) {
     showToast('Encryption disabled successfully!', 'success');
   }
 }
@@ -442,12 +442,12 @@ function handleDisableEncryption() {
 function handleAddTeamMember() {
   const email = document.getElementById('new-member-email').value;
   const role = document.getElementById('new-member-role').value;
-  
+
   if (!email || !isValidEmail(email)) {
     showToast('Please enter a valid email address', 'error');
     return;
   }
-  
+
   showToast(`Team member ${email} added successfully!`, 'success');
   document.getElementById('new-member-email').value = '';
 }
@@ -455,8 +455,11 @@ function handleAddTeamMember() {
 // Apply theme
 function applyTheme(theme) {
   const root = document.documentElement;
-  
-  if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+
+  if (
+    theme === 'dark' ||
+    (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  ) {
     root.setAttribute('data-theme', 'dark');
   } else {
     root.setAttribute('data-theme', 'light');
@@ -476,7 +479,8 @@ async function saveAllSettings() {
     [STORAGE_KEYS.ANALYTICS]: document.getElementById('sync-analytics-toggle')?.checked || false,
     [STORAGE_KEYS.VERBOSE_LOGS]: document.getElementById('verbose-logs-toggle')?.checked || false,
     [STORAGE_KEYS.PERF_LOGS]: document.getElementById('perf-logs-toggle')?.checked || false,
-    [STORAGE_KEYS.SCHEDULED_BACKUPS]: document.getElementById('scheduled-backups-toggle')?.checked || false,
+    [STORAGE_KEYS.SCHEDULED_BACKUPS]:
+      document.getElementById('scheduled-backups-toggle')?.checked || false,
     [STORAGE_KEYS.BACKUP_SCHEDULE]: {
       enabled: document.getElementById('scheduled-backups-toggle')?.checked || false,
       frequency: document.getElementById('backup-frequency')?.value || 'daily',
@@ -498,10 +502,10 @@ function showToast(message, type = 'info') {
 
   toast.textContent = message;
   toast.style.display = 'block';
-  
+
   // Add type-specific styling
   toast.className = `toast-container ${type}`;
-  
+
   // Auto-hide after 3 seconds
   setTimeout(() => {
     toast.style.display = 'none';

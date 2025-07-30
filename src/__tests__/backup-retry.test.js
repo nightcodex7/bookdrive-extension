@@ -7,8 +7,6 @@ import {
   BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
 
-
-
 describe('Backup Retry Mechanism', () => {
   beforeEach(() => {
     // Reset all mocks

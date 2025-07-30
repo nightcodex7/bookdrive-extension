@@ -127,7 +127,7 @@ describe('Alarm Manager Extended Tests', () => {
     chrome.storage.local.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         callback(result);
@@ -136,7 +136,7 @@ describe('Alarm Manager Extended Tests', () => {
       }
     });
     chrome.storage.local.set.mockImplementation((obj, callback) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         mockStorage[key] = obj[key];
       });
       if (callback) callback();
@@ -156,7 +156,7 @@ describe('Alarm Manager Extended Tests', () => {
     test.skip('should defer backup when system resources are constrained', async () => {
       // Mock backup is due
       isBackupDue.mockResolvedValue(true);
-      
+
       // Mock shouldDeferBackup to return true (defer)
       shouldDeferBackup.mockResolvedValue({
         shouldDefer: true,

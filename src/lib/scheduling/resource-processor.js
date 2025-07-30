@@ -28,6 +28,7 @@ function updateActivityTime() {
  */
 export function initializeActivityTracking() {
   // Track user activity
+  // Only attach event listeners if running in a window context
   if (typeof window !== 'undefined' && window.addEventListener) {
     window.addEventListener('mousemove', updateActivityTime);
     window.addEventListener('keydown', updateActivityTime);

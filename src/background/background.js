@@ -3,15 +3,19 @@ console.log('BookDrive background script loaded');
 
 // Import only the specific modules needed for background functionality
 import { isAuthenticated, ensureBookDriveFolder } from '../lib/auth/drive-auth.js';
-import { 
-  createBackupMetadata, 
-  saveBackup, 
-  getAllBackups, 
+import {
+  createBackupMetadata,
+  saveBackup,
+  getAllBackups,
   scheduleBackupRetry,
   BACKUP_TYPES,
-  BACKUP_STATUS 
+  BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
-import { showToast, updateBackupProgress, showBackupNotification } from '../lib/notification-manager.js';
+import {
+  showToast,
+  updateBackupProgress,
+  showBackupNotification,
+} from '../lib/notification-manager.js';
 
 // Import real sync service
 import {

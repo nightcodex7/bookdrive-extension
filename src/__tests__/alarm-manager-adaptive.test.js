@@ -45,7 +45,6 @@ jest.mock('../lib/backup/backup-metadata.js', () => ({
 
 jest.setTimeout(15000);
 
-
 describe('Alarm Manager Adaptive Scheduling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,7 +52,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     chrome.storage.local.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         callback(result);
@@ -62,7 +61,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
       }
     });
     chrome.storage.local.set.mockImplementation((obj, callback) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         mockStorage[key] = obj[key];
       });
       if (callback) callback();
@@ -83,7 +82,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     it.skip('should initialize adaptive scheduler', async () => {
       // Mock the async operations to complete immediately
       initializeAdaptiveScheduler.mockResolvedValue();
-      
+
       await initializeBackupAlarms();
 
       expect(initializeAdaptiveScheduler).toHaveBeenCalled();
@@ -92,7 +91,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     it.skip('should create missed backup alarm', async () => {
       // Mock the async operations to complete immediately
       initializeAdaptiveScheduler.mockResolvedValue();
-      
+
       await initializeBackupAlarms();
 
       expect(chrome.alarms.create).toHaveBeenCalledWith(
@@ -116,7 +115,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     it.skip('should check if backup should be deferred', async () => {
       // Mock backup is due
       isBackupDue.mockResolvedValue(true);
-      
+
       // Mock shouldDeferBackup to return a result
       shouldDeferBackup.mockResolvedValue({
         shouldDefer: false,
@@ -131,7 +130,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     it.skip('should trigger backup when resources are sufficient', async () => {
       // Mock backup is due
       isBackupDue.mockResolvedValue(true);
-      
+
       // Mock shouldDeferBackup to return false (don't defer)
       shouldDeferBackup.mockResolvedValue({
         shouldDefer: false,
@@ -149,7 +148,7 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     it.skip('should defer backup when resources are constrained', async () => {
       // Mock backup is due
       isBackupDue.mockResolvedValue(true);
-      
+
       // Mock shouldDeferBackup to return true (defer)
       shouldDeferBackup.mockResolvedValue({
         shouldDefer: true,
@@ -171,4 +170,3 @@ describe('Alarm Manager Adaptive Scheduling', () => {
     }, 20000);
   });
 });
-

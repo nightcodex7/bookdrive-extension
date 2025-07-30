@@ -246,9 +246,17 @@
           <span class="material-icons">sync</span>
           <span>Sync</span>
         </button>
+        <button class="nav-tab" data-tab="organize">
+          <span class="material-icons">folder</span>
+          <span>Organize</span>
+        </button>
         <button class="nav-tab" data-tab="backups">
           <span class="material-icons">backup</span>
           <span>Backups</span>
+        </button>
+        <button class="nav-tab" data-tab="tools">
+          <span class="material-icons">build</span>
+          <span>Tools</span>
         </button>
       </nav>
 
@@ -395,6 +403,117 @@
           </div>
           <div class="schedule-info" id="schedule-info">
             <!-- Schedule items will be populated by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Organize Tab -->
+        <div class="tab-content" id="organize-tab">
+          <div class="section-title">
+            <span class="material-icons">local_offer</span>
+            Tags & Notes
+          </div>
+          <div class="organize-actions">
+            <button class="organize-btn primary" id="manage-tags-btn">
+              <span class="material-icons">local_offer</span>
+              <span>Manage Tags</span>
+            </button>
+            <button class="organize-btn secondary" id="bulk-edit-btn">
+              <span class="material-icons">edit</span>
+              <span>Bulk Edit</span>
+            </button>
+          </div>
+
+          <div class="section-title">
+            <span class="material-icons">smart_toy</span>
+            Smart Folders
+          </div>
+          <div class="smart-folders-section">
+            <button class="smart-folder-btn primary" id="create-smart-folder-btn">
+              <span class="material-icons">add</span>
+              <span>Create Smart Folder</span>
+            </button>
+            <div class="smart-folders-list" id="smart-folders-list">
+              <!-- Smart folders will be populated by JavaScript -->
+            </div>
+          </div>
+
+          <div class="section-title">
+            <span class="material-icons">search</span>
+            Advanced Search
+          </div>
+          <div class="search-section">
+            <div class="search-input-group">
+              <input type="text" id="advanced-search-input" placeholder="Search bookmarks..." class="search-input">
+              <button class="search-btn" id="advanced-search-btn">
+                <span class="material-icons">search</span>
+              </button>
+            </div>
+            <div class="search-filters" id="search-filters">
+              <!-- Search filters will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tools Tab -->
+        <div class="tab-content" id="tools-tab">
+          <div class="section-title">
+            <span class="material-icons">import_export</span>
+            Import/Export
+          </div>
+          <div class="import-export-actions">
+            <button class="tool-btn primary" id="import-btn">
+              <span class="material-icons">upload</span>
+              <span>Import Bookmarks</span>
+            </button>
+            <button class="tool-btn secondary" id="export-btn">
+              <span class="material-icons">download</span>
+              <span>Export Bookmarks</span>
+            </button>
+          </div>
+
+          <div class="section-title">
+            <span class="material-icons">article</span>
+            Content Features
+          </div>
+          <div class="content-features">
+            <button class="tool-btn primary" id="read-later-btn">
+              <span class="material-icons">bookmark_add</span>
+              <span>Save for Later</span>
+            </button>
+            <button class="tool-btn secondary" id="annotations-btn">
+              <span class="material-icons">highlight</span>
+              <span>Annotations</span>
+            </button>
+          </div>
+
+          <div class="section-title">
+            <span class="material-icons">share</span>
+            Sharing
+          </div>
+          <div class="sharing-features">
+            <button class="tool-btn primary" id="public-collections-btn">
+              <span class="material-icons">public</span>
+              <span>Public Collections</span>
+            </button>
+            <button class="tool-btn secondary" id="share-link-btn">
+              <span class="material-icons">link</span>
+              <span>Share Link</span>
+            </button>
+          </div>
+
+          <div class="section-title">
+            <span class="material-icons">analytics</span>
+            Analytics
+          </div>
+          <div class="analytics-features">
+            <button class="tool-btn primary" id="view-analytics-btn">
+              <span class="material-icons">analytics</span>
+              <span>View Analytics</span>
+            </button>
+            <button class="tool-btn secondary" id="team-dashboard-btn">
+              <span class="material-icons">dashboard</span>
+              <span>Team Dashboard</span>
+            </button>
           </div>
         </div>
       </main>

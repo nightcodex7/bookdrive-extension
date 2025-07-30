@@ -50,8 +50,6 @@ jest.mock('../lib/backup/backup-metadata.js', () => ({
   saveBackup: jest.fn(),
 }));
 
-
-
 describe('Alarm Manager Module', () => {
   let mockStorage;
 
@@ -75,7 +73,7 @@ describe('Alarm Manager Module', () => {
     chrome.storage.local.get.mockImplementation((key, callback) => {
       if (typeof key === 'object') {
         const result = {};
-        Object.keys(key).forEach(k => {
+        Object.keys(key).forEach((k) => {
           result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
         });
         callback(result);
@@ -84,7 +82,7 @@ describe('Alarm Manager Module', () => {
       }
     });
     chrome.storage.local.set.mockImplementation((obj, callback) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         mockStorage[key] = obj[key];
       });
       if (callback) callback();
@@ -235,4 +233,3 @@ describe('Alarm Manager Module', () => {
     }, 20000);
   });
 });
-
