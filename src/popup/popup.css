@@ -1913,6 +1913,64 @@ img {
   outline-offset: 2px;
 }
 
+/* Button states and accessibility improvements */
+.action-btn:focus,
+.nav-tab:focus,
+.dropdown-item:focus {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+.action-btn:hover,
+.nav-tab:hover,
+.dropdown-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--md-elevation-2);
+}
+
+.action-btn:active,
+.nav-tab:active,
+.dropdown-item:active {
+  transform: translateY(0);
+  box-shadow: var(--md-elevation-1);
+}
+
+/* Improved toggle switch accessibility */
+.toggle-switch:focus-within {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+  border-radius: var(--md-radius-sm);
+}
+
+/* Better form control focus states */
+.form-control:focus,
+select:focus,
+input:focus {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+  border-color: var(--md-primary);
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid var(--md-outline);
+  border-top: 2px solid var(--md-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 /* High DPI display optimizations */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .logo,

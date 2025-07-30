@@ -58,7 +58,6 @@ async function initializePopup() {
 
     // Show main popup
     showMainPopup();
-
   } catch (error) {
     console.error('Failed to initialize popup:', error);
     showError('Failed to initialize popup. Please try again.');
@@ -93,7 +92,6 @@ async function refreshCounts() {
 
     updateSyncCount(syncCount);
     updateBackupCount(backupCount);
-
   } catch (error) {
     console.error('Failed to refresh counts:', error);
   }
@@ -198,7 +196,6 @@ async function handleGoogleSignIn() {
 
     // Show welcome setup screen
     showWelcomeSetup();
-
   } catch (error) {
     console.error('Sign-In failed:', error);
     showError('Sign-In failed. Please try again.');
@@ -212,10 +209,9 @@ async function handleQuickSetup() {
   try {
     // Perform quick setup
     await featureManager.performQuickSetup();
-    
+
     // Show main popup
     showMainPopup();
-    
   } catch (error) {
     console.error('Quick setup failed:', error);
     showError('Quick setup failed. Please try again.');
@@ -268,7 +264,7 @@ async function handleThemeToggle() {
  */
 function setupEventListeners() {
   // Tab navigation
-  document.querySelectorAll('.nav-tab').forEach(tab => {
+  document.querySelectorAll('.nav-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
       const tabName = tab.dataset.tab;
       switchTab(tabName);
@@ -278,7 +274,7 @@ function setupEventListeners() {
   // Header menu button with improved dropdown handling
   const headerMenuBtn = document.getElementById('header-menu-btn');
   const dropdownMenu = document.getElementById('dropdown-menu');
-  
+
   if (headerMenuBtn && dropdownMenu) {
     headerMenuBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -304,11 +300,11 @@ function setupEventListeners() {
     dropdownMenu.addEventListener('click', (e) => {
       const target = e.target.closest('.dropdown-item');
       if (!target) return;
-      
+
       e.preventDefault();
       e.stopPropagation();
       hideDropdownMenu();
-      
+
       const action = target.id;
       switch (action) {
         case 'menu-settings':
@@ -618,12 +614,12 @@ async function handleSync() {
   try {
     // Send message to background script to start sync
     const response = await chrome.runtime.sendMessage({
-      action: 'startSync',
+      action: 'syncNow',
     });
 
-    if (response.success) {
+    if (response && response.status === 'ok') {
       showToast('Sync started successfully', 'success');
-      
+
       // Update sync count
       const result = await chrome.storage.local.get([STORAGE_KEYS.SYNC_COUNT]);
       const currentCount = result[STORAGE_KEYS.SYNC_COUNT] || 0;
@@ -631,7 +627,7 @@ async function handleSync() {
       await chrome.storage.local.set({ [STORAGE_KEYS.SYNC_COUNT]: newCount });
       updateSyncCount(newCount);
     } else {
-      showToast(response.error || 'Sync failed', 'error');
+      showToast(response?.error || 'Sync failed', 'error');
     }
   } catch (error) {
     console.error('Sync failed:', error);
@@ -646,12 +642,12 @@ async function handleQuickBackup() {
   try {
     // Send message to background script to start quick backup
     const response = await chrome.runtime.sendMessage({
-      action: 'startQuickBackup',
+      action: 'manualBackup',
     });
 
-    if (response.success) {
+    if (response && response.status === 'ok') {
       showToast('Quick backup started successfully', 'success');
-      
+
       // Update backup count
       const result = await chrome.storage.local.get([STORAGE_KEYS.BACKUP_COUNT]);
       const currentCount = result[STORAGE_KEYS.BACKUP_COUNT] || 0;
@@ -659,7 +655,7 @@ async function handleQuickBackup() {
       await chrome.storage.local.set({ [STORAGE_KEYS.BACKUP_COUNT]: newCount });
       updateBackupCount(newCount);
     } else {
-      showToast(response.error || 'Quick backup failed', 'error');
+      showToast(response?.error || 'Quick backup failed', 'error');
     }
   } catch (error) {
     console.error('Quick backup failed:', error);
@@ -674,12 +670,12 @@ async function handleCreateBackup() {
   try {
     // Send message to background script to start backup
     const response = await chrome.runtime.sendMessage({
-      action: 'startBackup',
+      action: 'manualBackup',
     });
 
-    if (response.success) {
+    if (response && response.status === 'ok') {
       showToast('Backup started successfully', 'success');
-      
+
       // Update backup count
       const result = await chrome.storage.local.get([STORAGE_KEYS.BACKUP_COUNT]);
       const currentCount = result[STORAGE_KEYS.BACKUP_COUNT] || 0;
@@ -687,7 +683,7 @@ async function handleCreateBackup() {
       await chrome.storage.local.set({ [STORAGE_KEYS.BACKUP_COUNT]: newCount });
       updateBackupCount(newCount);
     } else {
-      showToast(response.error || 'Backup failed', 'error');
+      showToast(response?.error || 'Backup failed', 'error');
     }
   } catch (error) {
     console.error('Backup failed:', error);
@@ -727,7 +723,9 @@ function handleResolveConflicts() {
     return;
   }
 
-  chrome.tabs.create({ url: chrome.runtime.getURL('conflict-resolution/conflict-resolution.html') });
+  chrome.tabs.create({
+    url: chrome.runtime.getURL('conflict-resolution/conflict-resolution.html'),
+  });
 }
 
 function handleSharedFolders() {
@@ -935,7 +933,7 @@ function hideDropdownMenu() {
   if (dropdownMenu) {
     dropdownMenu.style.opacity = '0';
     dropdownMenu.style.transform = 'scale(0.95)';
-    
+
     setTimeout(() => {
       dropdownMenu.style.display = 'none';
     }, 150); // Match transition duration
