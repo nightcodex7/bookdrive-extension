@@ -79,20 +79,7 @@ function hashBookmarks(folders, bookmarks) {
   return hash;
 }
 
-/**
- * Deduplicate bookmarks by URL.
- * @param {Array} bookmarks
- * @returns {Array}
- */
-// function dedupeBookmarks(bookmarks) {
-  const seen = new Set();
-  return bookmarks.filter((b) => {
-    if (!b.url) return true; // If no URL, don't dedupe on it
-    if (seen.has(b.url)) return false;
-    seen.add(b.url);
-    return true;
-  });
-}
+// Removed unused function dedupeBookmarks
 
 /**
  * Restore bookmarks from a state object
