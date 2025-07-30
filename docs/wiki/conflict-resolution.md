@@ -1,224 +1,339 @@
-# Conflict Resolution
+# Advanced Conflict Resolution
 
-BookDrive's Conflict Resolution system helps you manage and resolve conflicts that occur during bookmark synchronization.
+BookDrive's Advanced Conflict Resolution system provides intelligent and flexible strategies for resolving bookmark synchronization conflicts. This system goes beyond basic conflict resolution to offer multiple resolution strategies with intelligent analysis and user preference support.
 
 ## Overview
 
-When multiple devices modify the same bookmarks simultaneously, conflicts can arise. The Conflict Resolution feature provides tools to identify, analyze, and resolve these conflicts efficiently.
-
-## Understanding Conflicts
-
-### What Causes Conflicts?
-- **Simultaneous Edits**: Multiple devices editing the same bookmark
-- **Network Issues**: Interrupted sync operations
-- **Version Mismatches**: Different versions of the same bookmark
-- **Sync Mode Differences**: Conflicts between Host-to-Many and Global Sync modes
-
-### Conflict Types
-- **Title Conflicts**: Different titles for the same URL
-- **URL Conflicts**: Same title but different URLs
-- **Folder Conflicts**: Same bookmark in different folders
-- **Mixed Conflicts**: Multiple properties changed simultaneously
-
-## Accessing Conflict Resolution
-
-### From Popup
-1. Open the BookDrive popup
-2. Go to the **Settings** tab
-3. Click **Resolve Conflicts**
-
-### From Options Page
-1. Open the BookDrive options page
-2. Navigate to **Sync Settings**
-3. Click **Resolve Conflicts**
-
-## Conflict Resolution Interface
-
-### Conflict Summary
-- **Total Conflicts**: Number of conflicts detected
-- **Conflict Types**: Breakdown by conflict category
-- **Severity Levels**: Low, medium, and high priority conflicts
-- **Progress Tracking**: Visual progress indicator
-
-### Conflict List
-- **Conflict Cards**: Individual cards for each conflict
-- **Conflict Details**: Title, URL, and change information
-- **Resolution Options**: Available resolution strategies
-- **Preview**: Side-by-side comparison of changes
-
-### Resolution Strategies
-
-#### Auto Resolve
-- **Local Wins**: Keep local changes, discard remote changes
-- **Remote Wins**: Keep remote changes, discard local changes
-- **Merge**: Intelligently combine both versions
-- **Skip**: Leave conflict unresolved for manual handling
-
-#### Manual Resolution
-- **Visual Merge**: Side-by-side comparison tool
-- **Selective Merging**: Choose specific properties to keep
-- **Custom Resolution**: Create custom merged version
+The Advanced Conflict Resolution system implements 5 different resolution strategies, each designed for specific conflict scenarios and user preferences. The system automatically analyzes conflicts and can resolve them intelligently or present options to users.
 
 ## Resolution Strategies
 
-### 1. Local Wins Strategy
+### 1. Intelligent Merge Strategy
+**Default Strategy**: Automatically combines local and remote versions intelligently.
+
+**How it works**:
+- Analyzes content similarity between local and remote versions
+- Preserves unique information from both versions
+- Merges titles, URLs, and metadata intelligently
+- Handles folder structures and hierarchies
+
+**Best for**: Most conflict scenarios where both versions contain valuable information.
+
+### 2. Timestamp-Based Resolution
+Uses timestamps and user activity patterns to determine the most recent or relevant version.
+
+**How it works**:
+- Compares modification timestamps
+- Considers user activity patterns
+- Respects timezone differences
+- Handles clock synchronization issues
+
+**Best for**: Conflicts where recency is the primary factor.
+
+### 3. Content-Aware Resolution
+Analyzes content similarity and completeness to determine the best version.
+
+**How it works**:
+- Calculates content similarity scores
+- Evaluates completeness of bookmark data
+- Considers URL validity and accessibility
+- Analyzes metadata quality
+
+**Best for**: Conflicts where content quality varies significantly.
+
+### 4. User Preference Resolution
+Respects user-defined conflict preferences and settings.
+
+**How it works**:
+- Uses user-configured default preferences
+- Learns from previous conflict resolutions
+- Applies user-defined rules
+- Maintains consistency with user choices
+
+**Best for**: Users with specific preferences for conflict resolution.
+
+### 5. Auto-Resolve Strategy
+Automatically resolves low-severity conflicts without user intervention.
+
+**How it works**:
+- Categorizes conflicts by severity
+- Auto-resolves low and medium severity conflicts
+- Escalates high and critical conflicts to user
+- Maintains resolution history
+
+**Best for**: Reducing user intervention for minor conflicts.
+
+## Conflict Types
+
+### 1. Title Only Conflicts
+- **Description**: Only the bookmark title differs between versions
+- **Severity**: Low
+- **Resolution**: Usually auto-resolved with intelligent merge
+
+### 2. URL Only Conflicts
+- **Description**: Only the bookmark URL differs between versions
+- **Severity**: Medium
+- **Resolution**: Content-aware analysis to determine valid URL
+
+### 3. Folder Only Conflicts
+- **Description**: Only the folder location differs between versions
+- **Severity**: Low
+- **Resolution**: Preserves both locations or merges intelligently
+
+### 4. Mixed Conflicts
+- **Description**: Multiple fields differ between versions
+- **Severity**: Medium to High
+- **Resolution**: Intelligent merge or user intervention
+
+### 5. Deletion Conflicts
+- **Description**: One version deleted, other modified
+- **Severity**: High
+- **Resolution**: User decision required
+
+### 6. Duplicate Conflicts
+- **Description**: Same bookmark exists in multiple locations
+- **Severity**: Low
+- **Resolution**: Auto-merge or user choice
+
+### 7. Permission Conflicts
+- **Description**: Access permission differences
+- **Severity**: Critical
+- **Resolution**: Always requires user intervention
+
+## Conflict Severity Levels
+
+### Low Severity
+- Minor metadata differences
+- Duplicate bookmarks
+- Folder location changes
+- **Auto-resolution**: Enabled by default
+
+### Medium Severity
+- URL changes
+- Title modifications
+- Mixed field conflicts
+- **Auto-resolution**: Optional, based on user preferences
+
+### High Severity
+- Deletion conflicts
+- Significant content changes
+- **Auto-resolution**: Disabled, requires user intervention
+
+### Critical Severity
+- Permission conflicts
+- Security-related issues
+- **Auto-resolution**: Never auto-resolved
+
+## Configuration
+
+### Strategy Selection
 ```javascript
-// Keep local version, discard remote
-const resolvedBookmark = {
-  ...localBookmark,
-  lastModified: Date.now()
+// Set default resolution strategy
+const strategy = CONFLICT_STRATEGIES.INTELLIGENT_MERGE;
+
+// Configure resolution options
+const options = {
+  autoResolveLowSeverity: true,
+  autoResolveMediumSeverity: false,
+  userPreferences: {
+    preferLocal: false,
+    preferRemote: false,
+    mergeStrategy: 'intelligent'
+  }
 };
 ```
 
-**Use When:**
-- Local changes are more recent
-- Remote changes are outdated
-- You want to preserve local work
-
-### 2. Remote Wins Strategy
+### User Preferences
 ```javascript
-// Keep remote version, discard local
-const resolvedBookmark = {
-  ...remoteBookmark,
-  lastModified: Date.now()
+// Configure user preferences
+const userPreferences = {
+  defaultStrategy: CONFLICT_STRATEGIES.INTELLIGENT_MERGE,
+  autoResolveThreshold: CONFLICT_SEVERITY.LOW,
+  preserveHistory: true,
+  notifyOnResolution: true
 };
 ```
 
-**Use When:**
-- Remote changes are more recent
-- Local changes are outdated
-- You want to sync with team changes
+## Usage Examples
 
-### 3. Merge Strategy
+### Basic Conflict Resolution
 ```javascript
-// Intelligently merge both versions
-const resolvedBookmark = {
-  title: localBookmark.title || remoteBookmark.title,
-  url: localBookmark.url || remoteBookmark.url,
-  parentId: localBookmark.parentId || remoteBookmark.parentId,
-  lastModified: Date.now()
-};
+import { resolveConflictsAdvanced } from '../lib/sync/conflict-resolver.js';
+
+// Resolve conflicts with default strategy
+const resolved = await resolveConflictsAdvanced(conflicts);
 ```
 
-**Use When:**
-- Both versions have valuable changes
-- Changes don't conflict directly
-- You want to preserve all information
-
-### 4. Manual Strategy
+### Custom Strategy Resolution
 ```javascript
-// User manually selects what to keep
-const resolvedBookmark = {
-  title: userSelectedTitle,
-  url: userSelectedUrl,
-  parentId: userSelectedParentId,
-  lastModified: Date.now()
-};
+// Use timestamp-based resolution
+const resolved = await resolveConflictsAdvanced(
+  conflicts,
+  CONFLICT_STRATEGIES.TIMESTAMP_BASED,
+  { preferRecent: true }
+);
 ```
 
-**Use When:**
-- Complex conflicts require human judgment
-- You need to review all changes
-- Automated strategies aren't suitable
+### User Preference Resolution
+```javascript
+// Use user preferences
+const resolved = await resolveConflictsAdvanced(
+  conflicts,
+  CONFLICT_STRATEGIES.USER_PREFERENCE,
+  { userPreferences: getUserPreferences() }
+);
+```
 
 ## Conflict Analysis
 
-### Severity Assessment
-- **Low**: Minor changes, easy to resolve
-- **Medium**: Moderate conflicts, may need review
-- **High**: Complex conflicts, requires manual resolution
+### Similarity Calculation
+The system calculates similarity between conflicting versions using:
+- **String similarity**: Levenshtein distance for titles and URLs
+- **Content analysis**: Domain extraction and validation
+- **Metadata comparison**: Tags, notes, and other attributes
+- **Structural analysis**: Folder hierarchy and organization
 
-### Conflict Categories
-- **Title Only**: Only the bookmark title changed
-- **URL Only**: Only the bookmark URL changed
-- **Folder Only**: Only the bookmark location changed
-- **Mixed**: Multiple properties changed
+### Change Summary
+For each conflict, the system provides:
+- **Change type**: What fields have changed
+- **Change magnitude**: How significant the changes are
+- **Impact assessment**: Potential impact of resolution choices
+- **Recommendation**: Suggested resolution approach
 
-### Recommendations
-- **Auto-resolve**: Suggested for low-severity conflicts
-- **Manual Review**: Recommended for high-severity conflicts
-- **Team Coordination**: Advised for team-shared bookmarks
+## Resolution History
 
-## API Reference
+### Tracking
+All conflict resolutions are tracked for:
+- **Audit purposes**: Complete history of all resolutions
+- **Learning**: Improve future conflict resolution
+- **User preferences**: Understand user resolution patterns
+- **Analytics**: Conflict frequency and resolution success rates
 
-### Conflict Resolution Functions
+### History Management
 ```javascript
-import { 
-  resolveConflicts, 
-  CONFLICT_STRATEGIES,
-  generateConflictSummary 
-} from '../lib/sync/conflict-resolver.js';
+// Get resolution history
+const history = await getResolutionHistory();
 
-// Resolve conflicts using a strategy
-const resolvedConflicts = await resolveConflicts(conflicts, CONFLICT_STRATEGIES.MERGE);
+// Clear history
+await clearResolutionHistory();
 
-// Generate conflict summary
-const summary = generateConflictSummary(conflicts);
-```
-
-### Available Strategies
-- `CONFLICT_STRATEGIES.LOCAL_WINS`: Keep local changes
-- `CONFLICT_STRATEGIES.REMOTE_WINS`: Keep remote changes
-- `CONFLICT_STRATEGIES.MERGE`: Merge both versions
-- `CONFLICT_STRATEGIES.MANUAL`: Manual resolution
-
-### Conflict Object Structure
-```javascript
-{
-  id: 'bookmark-123',
-  type: 'title_conflict',
-  severity: 'medium',
-  local: {
-    title: 'Local Title',
-    url: 'https://example.com',
-    lastModified: 1640995200000
-  },
-  remote: {
-    title: 'Remote Title',
-    url: 'https://example.com',
-    lastModified: 1640995300000
-  },
-  recommendations: ['merge', 'manual']
-}
+// Export history
+const exported = await exportResolutionHistory();
 ```
 
 ## Best Practices
 
-### Prevention
-- **Regular Sync**: Sync frequently to minimize conflicts
-- **Team Communication**: Coordinate changes with team members
-- **Clear Ownership**: Establish clear ownership of shared bookmarks
+### 1. Strategy Selection
+- Use **Intelligent Merge** for most scenarios
+- Use **Timestamp-Based** when recency is important
+- Use **Content-Aware** for quality-focused resolution
+- Use **User Preference** for consistent user experience
+- Use **Auto-Resolve** to reduce user intervention
 
-### Resolution
-- **Review Before Resolving**: Always review conflicts before resolving
-- **Use Appropriate Strategy**: Choose the right strategy for each conflict
-- **Document Decisions**: Keep track of resolution decisions
+### 2. Configuration
+- Set appropriate auto-resolution thresholds
+- Configure user preferences based on usage patterns
+- Enable resolution history for learning
+- Set up notifications for important conflicts
 
-### Team Collaboration
-- **Team Coordination**: Coordinate with team members on shared bookmarks
-- **Role-based Access**: Use role-based permissions to reduce conflicts
-- **Shared Folders**: Use shared folders for team collaboration
+### 3. Monitoring
+- Monitor conflict frequency and types
+- Track resolution success rates
+- Analyze user resolution patterns
+- Adjust strategies based on feedback
 
 ## Troubleshooting
 
-### Conflicts Not Detected
-1. **Check Sync Status**: Ensure sync is running properly
-2. **Verify Permissions**: Check file permissions
-3. **Review Logs**: Check sync logs for errors
+### Common Issues
 
-### Resolution Not Applied
-1. **Check Network**: Ensure stable internet connection
-2. **Verify Permissions**: Check Google Drive permissions
-3. **Retry Resolution**: Try resolving conflicts again
+1. **Too many conflicts**
+   - Check sync frequency settings
+   - Review conflict resolution strategy
+   - Consider adjusting auto-resolution thresholds
 
-### Performance Issues
-1. **Limit Batch Size**: Process conflicts in smaller batches
-2. **Clear Cache**: Clear browser cache if needed
-3. **Check Storage**: Ensure sufficient storage space
+2. **Incorrect resolutions**
+   - Review user preferences
+   - Check conflict analysis accuracy
+   - Adjust similarity thresholds
 
-## Related Documentation
+3. **Performance issues**
+   - Limit conflict analysis depth
+   - Optimize similarity calculations
+   - Use caching for repeated analysis
 
-- **[Sync Modes](Sync-Modes.md)** - Understanding sync modes
-- **[Team Mode](team.md)** - Team collaboration features
-- **[Shared Folders](shared-folders.md)** - Shared folder management
-- **[Troubleshooting](Troubleshooting.md)** - Common issues and solutions 
+### Debugging
+```javascript
+// Enable debug logging
+const debugOptions = {
+  verbose: true,
+  logAnalysis: true,
+  logResolutions: true
+};
+
+// Get detailed conflict information
+const conflictInfo = await analyzeConflict(conflict);
+console.log('Conflict analysis:', conflictInfo);
+```
+
+## API Reference
+
+### Main Functions
+
+#### `resolveConflictsAdvanced(conflicts, strategy, options)`
+Resolves conflicts using the specified strategy.
+
+**Parameters**:
+- `conflicts`: Array of conflict objects
+- `strategy`: Resolution strategy (default: INTELLIGENT_MERGE)
+- `options`: Configuration options
+
+**Returns**: Promise resolving to resolved conflicts
+
+#### `analyzeConflict(conflict)`
+Analyzes a single conflict for detailed information.
+
+**Parameters**:
+- `conflict`: Conflict object to analyze
+
+**Returns**: Promise resolving to conflict analysis
+
+#### `getResolutionHistory()`
+Retrieves the complete resolution history.
+
+**Returns**: Promise resolving to resolution history array
+
+### Constants
+
+#### `CONFLICT_STRATEGIES`
+Available resolution strategies:
+- `INTELLIGENT_MERGE`
+- `TIMESTAMP_BASED`
+- `CONTENT_AWARE`
+- `USER_PREFERENCE`
+- `AUTO_RESOLVE`
+
+#### `CONFLICT_SEVERITY`
+Conflict severity levels:
+- `LOW`
+- `MEDIUM`
+- `HIGH`
+- `CRITICAL`
+
+#### `CONFLICT_TYPES`
+Conflict type definitions:
+- `TITLE_ONLY`
+- `URL_ONLY`
+- `FOLDER_ONLY`
+- `MIXED`
+- `DELETION`
+- `DUPLICATE`
+- `PERMISSION`
+
+## Integration
+
+The Advanced Conflict Resolution system integrates with:
+- **Sync Service**: Automatic conflict detection and resolution
+- **User Interface**: Conflict resolution dialogs and preferences
+- **Analytics**: Conflict tracking and resolution metrics
+- **Team Features**: Conflict resolution in team environments
+- **Backup System**: Conflict resolution history preservation 

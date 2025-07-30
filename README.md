@@ -46,13 +46,66 @@ BookDrive is a cross-platform browser extension that synchronizes bookmarks acro
 ### Advanced Features
 - **🔐 End-to-End Encryption**: Optional AES-GCM encryption with passphrase
 - **👥 Team Mode**: Multi-user collaboration with role-based access
-- **🔍 Conflict Resolution**: Visual merge tools with multiple resolution strategies
+- **🔍 Advanced Conflict Resolution**: 5 resolution strategies with intelligent analysis
 - **📊 Sync Analytics**: Timeline graphs, performance metrics, and detailed logs
 - **💾 Backup & Restore**: Versioned backup system with scheduled backups and compression
 - **🎨 Themes**: Light, dark, and auto modes with persistent preferences
 - **📁 Shared Folders**: Team collaboration with permission enforcement
 - **🔄 Sync Preview**: Preview changes before committing to sync
 - **📈 Performance Optimization**: Delta compression, smart retry mechanisms, and caching
+
+### 🆕 **NEW: Advanced Conflict Resolution Strategies**
+- **Intelligent Merge**: Automatically combines local and remote versions intelligently
+- **Timestamp-Based Resolution**: Uses timestamps and user activity patterns
+- **Content-Aware Resolution**: Analyzes content similarity and completeness
+- **User Preference Resolution**: Respects user-defined conflict preferences
+- **Auto-Resolve Strategy**: Automatically resolves low-severity conflicts
+- **Conflict Categorization**: Categorizes conflicts by type and severity
+- **Resolution History**: Tracks all conflict resolutions for audit purposes
+
+### 🆕 **NEW: Enhanced Bookmark Organization**
+- **Advanced Smart Folders**: 15+ rule types with complex operators
+- **Bulk Operations**: Bulk add/remove tags, move bookmarks, delete bookmarks
+- **Advanced Search**: Multi-criteria search with logical operators
+- **Smart Folder Auto-updates**: Automatic updates with configurable intervals
+- **Advanced Rule Types**: Regex matching, domain matching, date ranges
+- **Sorting and Pagination**: Advanced sorting and result limiting
+
+### 🆕 **NEW: Public Collections Infrastructure**
+- **Collection Management**: Create, update, delete public collections
+- **Visibility Levels**: Private, unlisted, public, team collections
+- **Permission System**: Granular permissions for collections
+- **Sharing Functionality**: Share links and access control
+- **Collection Forking**: Fork existing collections
+- **Search and Discovery**: Search public collections
+- **Statistics and Analytics**: Collection usage statistics
+
+### 🆕 **NEW: Team Dashboards and Analytics**
+- **Team Dashboard**: Comprehensive team activity overview
+- **Performance Metrics**: Sync success rates, conflict resolution times
+- **Collaboration Insights**: Top contributors, popular folders
+- **Activity Logging**: Detailed activity tracking
+- **Member Statistics**: Individual and team-wide statistics
+- **Report Generation**: Automated analytics reports
+- **Data Export**: Export analytics in multiple formats
+
+### 🆕 **NEW: Enhanced Team Management**
+- **Granular Permissions**: 6 permission levels with resource-level control
+- **Permission Inheritance**: Hierarchical permission inheritance
+- **Detailed Activity Logs**: Comprehensive activity logging
+- **Permission Management**: Grant, revoke, and manage permissions
+- **Activity Analytics**: Team-wide activity analysis
+- **Security Events**: Security and audit event tracking
+- **Member Activity Summary**: Individual member activity reports
+
+### 🆕 **NEW: Additional Encryption Options**
+- **Multiple Algorithms**: AES-GCM, AES-CBC, AES-CTR, RSA-OAEP, ECDH
+- **Key Derivation Functions**: PBKDF2, HKDF, Argon2, Scrypt
+- **Hash Algorithms**: SHA-256, SHA-384, SHA-512
+- **Advanced Configuration**: Configurable iterations, salt lengths
+- **Key Management**: Key generation, export, import
+- **Security Validation**: Configuration validation and recommendations
+- **Hybrid Encryption**: Support for asymmetric encryption
 
 ### Sync Modes
 - **Host-to-Many**: One primary device pushes to others
@@ -126,11 +179,17 @@ src/
 │   ├── auth/           # Authentication and OAuth2
 │   ├── backup/         # Backup and compression
 │   ├── encryption/     # Client-side encryption
+│   │   └── advanced-encryption.js # Advanced encryption options
 │   ├── sync/           # Sync operations and optimization
+│   │   └── conflict-resolver.js # Advanced conflict resolution
 │   ├── team/           # Team collaboration
+│   │   ├── enhanced-team-manager.js # Enhanced team management
+│   │   └── team-analytics.js # Team dashboards and analytics
 │   ├── analytics/      # Analytics and monitoring
 │   ├── scheduling/     # Adaptive scheduling
 │   └── storage/        # Storage management
+├── public-collections.js # Public collections infrastructure
+├── bookmarks.js        # Enhanced bookmark organization
 ├── types/              # TypeScript definitions
 └── utils/              # Utility functions
 ```

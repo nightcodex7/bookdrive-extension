@@ -15,6 +15,14 @@ Welcome to the BookDrive documentation! BookDrive is a privacy-first bookmark sy
 - **[Scheduled Backups](Scheduled-Backups.md)** - Automated backup system
 - **[Backup History](backup-history/)** - Manage your backups
 
+### 🆕 **NEW: Advanced Features**
+- **[Advanced Conflict Resolution](conflict-resolution.md)** - 5 resolution strategies with intelligent analysis
+- **[Enhanced Bookmark Organization](bookmark-organization.md)** - Advanced smart folders and bulk operations
+- **[Public Collections](public-collections.md)** - Sharing and collaboration infrastructure
+- **[Team Dashboards & Analytics](team-analytics.md)** - Comprehensive team analytics
+- **[Enhanced Team Management](enhanced-team-management.md)** - Granular permissions and activity logs
+- **[Advanced Encryption](advanced-encryption.md)** - Multiple encryption algorithms and options
+
 ### Team Collaboration
 - **[Team Mode](team/)** - Multi-user collaboration features
 - **[Shared Folders](shared-folders/)** - Create and manage shared bookmark folders
