@@ -383,6 +383,11 @@
         background-color: var(--md-error-container);
       }
 
+      .validation-success {
+        border-color: var(--md-tertiary) !important;
+        background-color: var(--md-tertiary-container);
+      }
+
       .error-message {
         color: var(--md-error);
         font-size: var(--md-font-size-small);
@@ -668,6 +673,14 @@
             </div>
             
             <div class="form-group">
+              <label for="encryption-algorithm" class="form-label">Encryption Algorithm</label>
+              <select id="encryption-algorithm" name="encryptionAlgorithm" class="form-control" aria-describedby="algorithm-desc">
+                <!-- Will be populated with JavaScript -->
+              </select>
+              <div id="algorithm-desc" class="help-text">Choose the encryption algorithm to use</div>
+            </div>
+            
+            <div class="form-group">
               <label for="encryption-passphrase" class="form-label">Encryption Passphrase</label>
               <input
                 type="password"
@@ -709,6 +722,138 @@
                 Disable Encryption
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- Conflict Resolution -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">merge_type</span>
+            </div>
+            <h2 class="card-title">Conflict Resolution</h2>
+          </div>
+          
+          <div class="form-group">
+            <label for="conflict-strategy" class="form-label">Default Conflict Resolution Strategy</label>
+            <select id="conflict-strategy" name="conflictStrategy" class="form-control" aria-describedby="strategy-desc">
+              <!-- Will be populated with JavaScript -->
+            </select>
+            <div id="strategy-desc" class="help-text">Choose how conflicts should be resolved by default</div>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" id="resolve-conflicts-btn" class="btn btn-primary">
+              <span class="material-icons">merge_type</span>
+              Resolve Conflicts Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Smart Folders -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">folder_special</span>
+            </div>
+            <h2 class="card-title">Smart Folders</h2>
+          </div>
+          
+          <div class="form-group">
+            <label for="smart-folder-name" class="form-label">Smart Folder Name</label>
+            <input
+              type="text"
+              id="smart-folder-name"
+              name="smartFolderName"
+              placeholder="Enter folder name"
+              class="form-control"
+              aria-describedby="smart-folder-desc"
+            />
+            <div id="smart-folder-desc" class="help-text">Create a new smart folder with custom rules</div>
+          </div>
+
+          <div class="form-group">
+            <label for="smart-folder-rules" class="form-label">Smart Folder Rules (JSON)</label>
+            <textarea
+              id="smart-folder-rules"
+              name="smartFolderRules"
+              placeholder='[{"type": "domain_match", "operator": "equals", "value": "example.com"}]'
+              class="form-control"
+              rows="4"
+              aria-describedby="rules-desc"
+            ></textarea>
+            <div id="rules-desc" class="help-text">Define rules for the smart folder in JSON format</div>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" id="create-smart-folder-btn" class="btn btn-primary">
+              <span class="material-icons">create_new_folder</span>
+              Create Smart Folder
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-top: var(--md-spacing-lg);">
+            <label class="form-label">Existing Smart Folders</label>
+            <div id="smart-folders-list" class="help-text">Loading smart folders...</div>
+          </div>
+        </div>
+
+        <!-- Public Collections -->
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <span class="material-icons">public</span>
+            </div>
+            <h2 class="card-title">Public Collections</h2>
+          </div>
+          
+          <div class="form-group">
+            <label for="collection-name" class="form-label">Collection Name</label>
+            <input
+              type="text"
+              id="collection-name"
+              name="collectionName"
+              placeholder="Enter collection name"
+              class="form-control"
+              aria-describedby="collection-desc"
+            />
+            <div id="collection-desc" class="help-text">Create a new public collection</div>
+          </div>
+
+          <div class="form-group">
+            <label for="collection-description" class="form-label">Description</label>
+            <textarea
+              id="collection-description"
+              name="collectionDescription"
+              placeholder="Enter collection description"
+              class="form-control"
+              rows="3"
+              aria-describedby="description-desc"
+            ></textarea>
+            <div id="description-desc" class="help-text">Describe what this collection contains</div>
+          </div>
+
+          <div class="form-group">
+            <label for="collection-visibility" class="form-label">Visibility</label>
+            <select id="collection-visibility" name="collectionVisibility" class="form-control" aria-describedby="visibility-desc">
+              <option value="private">Private</option>
+              <option value="unlisted">Unlisted</option>
+              <option value="public">Public</option>
+              <option value="team">Team</option>
+            </select>
+            <div id="visibility-desc" class="help-text">Choose who can see this collection</div>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" id="create-collection-btn" class="btn btn-primary">
+              <span class="material-icons">add</span>
+              Create Collection
+            </button>
+          </div>
+
+          <div class="form-group" style="margin-top: var(--md-spacing-lg);">
+            <label class="form-label">Existing Collections</label>
+            <div id="public-collections-list" class="help-text">Loading collections...</div>
           </div>
         </div>
 
