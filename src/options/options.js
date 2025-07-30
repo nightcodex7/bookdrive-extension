@@ -94,8 +94,10 @@ async function initializeEncryptionManager() {
   try {
     const config = getRecommendedConfig('high');
     encryptionManager = new AdvancedEncryptionManager(config);
+    console.log('Encryption manager initialized successfully');
   } catch (error) {
     console.error('Failed to initialize encryption manager:', error);
+    showToast('Failed to initialize encryption: ' + error.message, 'error');
   }
 }
 
@@ -301,6 +303,16 @@ function applySettingsToUI(settings) {
   if (encryptionToggle) {
     encryptionToggle.checked = settings[STORAGE_KEYS.ENCRYPTION] || false;
     toggleEncryptionOptions(encryptionToggle.checked);
+    updateEncryptionStatus(encryptionToggle.checked);
+    
+    // Show/hide encryption buttons based on status
+    const enableBtn = document.getElementById('enable-encryption-btn');
+    const changeBtn = document.getElementById('change-passphrase-btn');
+    const disableBtn = document.getElementById('disable-encryption-btn');
+    
+    if (enableBtn) enableBtn.style.display = encryptionToggle.checked ? 'none' : 'inline-flex';
+    if (changeBtn) changeBtn.style.display = encryptionToggle.checked ? 'inline-flex' : 'none';
+    if (disableBtn) disableBtn.style.display = encryptionToggle.checked ? 'inline-flex' : 'none';
   }
 
   const encryptionAlgorithm = document.getElementById('encryption-algorithm');
@@ -545,6 +557,17 @@ function setupEventListeners() {
     disableEncryptionBtn.addEventListener('click', handleDisableEncryption);
   }
 
+  // Passphrase input listeners
+  const passphraseInput = document.getElementById('encryption-passphrase');
+  if (passphraseInput) {
+    passphraseInput.addEventListener('input', handlePassphraseInput);
+  }
+
+  const confirmPassphraseInput = document.getElementById('confirm-passphrase');
+  if (confirmPassphraseInput) {
+    confirmPassphraseInput.addEventListener('input', handleConfirmPassphraseInput);
+  }
+
   // Team member management
   const addMemberBtn = document.getElementById('add-member-btn');
   if (addMemberBtn) {
@@ -567,18 +590,6 @@ function setupEventListeners() {
   const resolveConflictsBtn = document.getElementById('resolve-conflicts-btn');
   if (resolveConflictsBtn) {
     resolveConflictsBtn.addEventListener('click', handleResolveConflicts);
-  }
-
-  // Passphrase strength indicator
-  const passphraseInput = document.getElementById('encryption-passphrase');
-  if (passphraseInput) {
-    passphraseInput.addEventListener('input', handlePassphraseInput);
-  }
-
-  // Confirm passphrase
-  const confirmPassphraseInput = document.getElementById('confirm-passphrase');
-  if (confirmPassphraseInput) {
-    confirmPassphraseInput.addEventListener('input', handleConfirmPassphraseInput);
   }
 }
 
@@ -617,6 +628,18 @@ function handleTeamModeChange(event) {
 function handleEncryptionChange(event) {
   const enabled = event.target.checked;
   toggleEncryptionOptions(enabled);
+  
+  // Update encryption status immediately
+  updateEncryptionStatus(enabled);
+  
+  // Show/hide encryption buttons based on status
+  const enableBtn = document.getElementById('enable-encryption-btn');
+  const changeBtn = document.getElementById('change-passphrase-btn');
+  const disableBtn = document.getElementById('disable-encryption-btn');
+  
+  if (enableBtn) enableBtn.style.display = enabled ? 'none' : 'inline-flex';
+  if (changeBtn) changeBtn.style.display = enabled ? 'inline-flex' : 'none';
+  if (disableBtn) disableBtn.style.display = enabled ? 'inline-flex' : 'none';
 }
 
 // Handle backup frequency change
@@ -683,9 +706,19 @@ async function handleClearLogs() {
 
 // Handle enable encryption
 async function handleEnableEncryption() {
+  console.log('handleEnableEncryption called');
+  
+  if (!encryptionManager) {
+    showToast('Encryption manager not initialized', 'error');
+    return;
+  }
+
   const passphrase = document.getElementById('encryption-passphrase').value;
   const confirmPassphrase = document.getElementById('confirm-passphrase').value;
   const algorithm = document.getElementById('encryption-algorithm').value;
+
+  console.log('Passphrase length:', passphrase.length);
+  console.log('Algorithm:', algorithm);
 
   if (!passphrase) {
     showToast('Please enter a passphrase', 'error');
@@ -703,12 +736,17 @@ async function handleEnableEncryption() {
   }
 
   try {
+    console.log('Testing encryption...');
     // Test encryption
     const testData = 'test';
     const encrypted = await encryptionManager.encrypt(testData, passphrase, { algorithm });
+    console.log('Encryption successful');
+    
     const decrypted = await encryptionManager.decrypt(encrypted, passphrase);
+    console.log('Decryption successful');
 
     if (decrypted === testData) {
+      console.log('Encryption test passed, saving settings...');
       // Save encryption settings
       await chrome.storage.sync.set({
         [STORAGE_KEYS.ENCRYPTION]: true,
@@ -716,8 +754,23 @@ async function handleEnableEncryption() {
         [STORAGE_KEYS.ENCRYPTION_ALGORITHM]: algorithm,
       });
 
+      // Update UI
+      const encryptionToggle = document.getElementById('encryption-toggle');
+      if (encryptionToggle) {
+        encryptionToggle.checked = true;
+      }
+      
       showToast('Encryption enabled successfully!', 'success');
       updateEncryptionStatus(true);
+      
+      // Show/hide encryption buttons
+      const enableBtn = document.getElementById('enable-encryption-btn');
+      const changeBtn = document.getElementById('change-passphrase-btn');
+      const disableBtn = document.getElementById('disable-encryption-btn');
+      
+      if (enableBtn) enableBtn.style.display = 'none';
+      if (changeBtn) changeBtn.style.display = 'inline-flex';
+      if (disableBtn) disableBtn.style.display = 'inline-flex';
     } else {
       showToast('Encryption test failed', 'error');
     }
