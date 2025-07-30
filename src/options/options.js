@@ -3,35 +3,10 @@
 
 // Import required modules
 import { featureManager } from '../lib/index.js';
-import {
-  getTeamMembers,
-  addTeamMember,
-  removeTeamMember,
-  updateMemberRole,
-} from '../lib/team/team-manager.js';
-import {
-  getEnhancedTeamConfig,
-  setUserPermission,
-  getUserPermissions,
-  logDetailedActivity,
-} from '../lib/team/enhanced-team-manager.js';
-import {
-  getTeamDashboard,
-  recordTeamActivity,
-  exportTeamAnalytics,
-} from '../lib/team/team-analytics.js';
-import {
-  createPublicCollection,
-  getPublicCollection,
-  searchPublicCollections,
-} from '../lib/public-collections.js';
-import {
-  createAdvancedSmartFolder,
-  getSmartFolders,
-  bulkAddTags,
-  bulkRemoveTags,
-  advancedSearch,
-} from '../lib/bookmarks.js';
+import { getTeamMembers, addTeamMember, removeTeamMember } from '../lib/team/team-manager.js';
+import { getTeamDashboard, exportTeamAnalytics } from '../lib/team/team-analytics.js';
+import { createPublicCollection, searchPublicCollections } from '../lib/public-collections.js';
+import { createAdvancedSmartFolder, getSmartFolders } from '../lib/bookmarks.js';
 import { resolveConflictsAdvanced, CONFLICT_STRATEGIES } from '../lib/sync/conflict-resolver.js';
 import {
   AdvancedEncryptionManager,
@@ -653,7 +628,7 @@ function handleBackupFrequencyChange(event) {
 // Handle view analytics
 async function handleViewAnalytics() {
   try {
-    const dashboard = await getTeamDashboard();
+    await getTeamDashboard();
     showToast('Analytics dashboard loaded successfully!', 'success');
 
     // Open analytics page
@@ -1096,7 +1071,7 @@ function isValidEmail(email) {
 
 // Set up message listener
 function setupMessageListener() {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     if (message.type === 'settings-updated') {
       showToast('Settings updated from another tab', 'info');
     }
@@ -1115,10 +1090,10 @@ window.removeTeamMember = async function (email) {
   }
 };
 
-window.editSmartFolder = function (folderId) {
+window.editSmartFolder = function (_folderId) {
   showToast('Smart folder editor coming soon!', 'info');
 };
 
-window.editPublicCollection = function (collectionId) {
+window.editPublicCollection = function (_collectionId) {
   showToast('Public collection editor coming soon!', 'info');
 };

@@ -24,8 +24,13 @@ global.chrome = {
   },
 };
 
-// Mock fetch
-global.fetch = jest.fn();
+    // Mock fetch
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue({}),
+      text: jest.fn().mockResolvedValue(''),
+    });
 
 describe('Drive Module', () => {
   let mockStorage;
@@ -51,11 +56,14 @@ describe('Drive Module', () => {
       if (typeof key === 'object') {
         const result = {};
         Object.keys(key).forEach((k) => {
-          result[k] = mockStorage[k] !== undefined ? mockStorage[k] : key[k];
+          result[k] = mockStorage[k] !== undefined ? mockStorage[k] : null;
         });
         if (callback) callback(result);
+        return Promise.resolve(result);
       } else {
-        if (callback) callback({ [key]: mockStorage[key] || null });
+        const result = { [key]: mockStorage[key] || null };
+        if (callback) callback(result);
+        return Promise.resolve(result);
       }
     });
     chrome.storage.local.set.mockImplementation((obj, callback) => {
