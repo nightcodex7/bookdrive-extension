@@ -1,6 +1,6 @@
 /**
  * resource-processor.js - Resource-aware processing for BookDrive
- * 
+ *
  * This module provides functions for resource-aware processing,
  * including background task throttling, idle detection, and batch processing.
  */
@@ -34,7 +34,7 @@ export function initializeActivityTracking() {
     window.addEventListener('scroll', updateActivityTime);
     window.addEventListener('click', updateActivityTime);
   }
-  
+
   // Initialize with current time
   updateActivityTime();
 }
@@ -69,10 +69,10 @@ export async function processBatch(items, processFn, options = {}) {
     idleTimeout = IDLE_TIMEOUT,
     checkResources = true,
   } = options;
-  
+
   // For testing purposes, reset the processing flag
   isProcessingBatch = false;
-  
+
   // Check if already processing a batch
   if (isProcessingBatch) {
     return {
@@ -82,10 +82,10 @@ export async function processBatch(items, processFn, options = {}) {
       reason: 'Another batch is already being processed',
     };
   }
-  
+
   try {
     isProcessingBatch = true;
-    
+
     // Check if system is idle if required
     if (requireIdle && !isIdle(idleTimeout)) {
       return {
@@ -95,14 +95,14 @@ export async function processBatch(items, processFn, options = {}) {
         reason: 'System is not idle',
       };
     }
-    
+
     // Check system resources if required
     if (checkResources) {
       const resourceCheck = await canPerformOperation({
         requireOptimal: false,
         allowConstrained: true,
       });
-      
+
       if (!resourceCheck.isSafe) {
         return {
           success: false,
@@ -113,7 +113,7 @@ export async function processBatch(items, processFn, options = {}) {
         };
       }
     }
-    
+
     // Process items in batches
     const results = {
       success: true,
@@ -122,26 +122,27 @@ export async function processBatch(items, processFn, options = {}) {
       total: items.length,
       errors: [],
     };
-    
+
     // Process each item with throttling
     for (let i = 0; i < items.length; i++) {
       try {
         // Check if we should continue based on system state
-        if (checkResources && i % 10 === 0 && i > 0) { // Check resources every 10 items
+        if (checkResources && i % 10 === 0 && i > 0) {
+          // Check resources every 10 items
           const systemState = await getSystemState();
           if (systemState.state === RESOURCE_STATE.CRITICAL) {
             results.reason = `Processing stopped due to critical system state: ${systemState.reason}`;
             return results;
           }
         }
-        
+
         // Process the item
         await processFn(items[i], i);
         results.processed++;
-        
+
         // Throttle processing
         if (i < items.length - 1 && throttleDelay > 0) {
-          await new Promise(resolve => setTimeout(resolve, throttleDelay));
+          await new Promise((resolve) => setTimeout(resolve, throttleDelay));
         }
       } catch (error) {
         results.failed++;
@@ -150,14 +151,14 @@ export async function processBatch(items, processFn, options = {}) {
           error: error.message || 'Unknown error',
         });
       }
-      
+
       // Check if we should continue based on idle state
       if (requireIdle && !isIdle(idleTimeout)) {
         results.reason = 'Processing stopped because system is no longer idle';
         break;
       }
     }
-    
+
     return results;
   } finally {
     isProcessingBatch = false;
@@ -180,7 +181,7 @@ export async function runWhenIdle(task, options = {}) {
     checkResources = true,
     maxWaitTime = 5 * 60 * 1000, // 5 minutes
   } = options;
-  
+
   // Check if system is already idle
   if (isIdle(idleTimeout)) {
     // Check system resources if required
@@ -189,7 +190,7 @@ export async function runWhenIdle(task, options = {}) {
         requireOptimal: false,
         allowConstrained: true,
       });
-      
+
       if (!resourceCheck.isSafe) {
         return {
           success: false,
@@ -198,7 +199,7 @@ export async function runWhenIdle(task, options = {}) {
         };
       }
     }
-    
+
     // Run the task
     try {
       const result = await task();
@@ -214,10 +215,10 @@ export async function runWhenIdle(task, options = {}) {
       };
     }
   }
-  
+
   // Wait for the system to become idle
   const startTime = Date.now();
-  
+
   return new Promise((resolve) => {
     const checkIdle = async () => {
       // Check if we've waited too long
@@ -228,7 +229,7 @@ export async function runWhenIdle(task, options = {}) {
         });
         return;
       }
-      
+
       // Check if system is idle
       if (isIdle(idleTimeout)) {
         // Check system resources if required
@@ -237,7 +238,7 @@ export async function runWhenIdle(task, options = {}) {
             requireOptimal: false,
             allowConstrained: true,
           });
-          
+
           if (!resourceCheck.isSafe) {
             resolve({
               success: false,
@@ -247,7 +248,7 @@ export async function runWhenIdle(task, options = {}) {
             return;
           }
         }
-        
+
         // Run the task
         try {
           const result = await task();
@@ -267,7 +268,7 @@ export async function runWhenIdle(task, options = {}) {
         setTimeout(checkIdle, 1000);
       }
     };
-    
+
     // Start checking
     checkIdle();
   });
@@ -282,17 +283,17 @@ export async function runWhenIdle(task, options = {}) {
 export function throttle(fn, delay = THROTTLE_DELAY) {
   let lastCall = 0;
   let timeout = null;
-  
-  return function(...args) {
+
+  return function (...args) {
     const now = Date.now();
     const timeSinceLastCall = now - lastCall;
-    
+
     // Clear any existing timeout
     if (timeout) {
       clearTimeout(timeout);
       timeout = null;
     }
-    
+
     if (timeSinceLastCall >= delay) {
       // Execute immediately
       lastCall = now;

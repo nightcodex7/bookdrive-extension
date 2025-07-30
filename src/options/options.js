@@ -354,57 +354,60 @@ function setupEventListeners() {
     teamModeToggle.addEventListener('change', () => {
       const isEnabled = teamModeToggle.checked;
       chrome.storage.sync.set({ teamMode: isEnabled });
-      
+
       // Show/hide team-related settings based on toggle state
       const teamSettings = document.querySelectorAll('.team-setting');
-      teamSettings.forEach(el => {
+      teamSettings.forEach((el) => {
         el.style.display = isEnabled ? 'flex' : 'none';
       });
-      
+
       // If enabling team mode, validate email
       if (isEnabled) {
         validateTeamSettings();
       }
-      
+
       // Show notification
-      showNotification(`Team Mode ${isEnabled ? 'enabled' : 'disabled'}`, isEnabled ? 'info' : 'warning');
-      
+      showNotification(
+        `Team Mode ${isEnabled ? 'enabled' : 'disabled'}`,
+        isEnabled ? 'info' : 'warning',
+      );
+
       // Notify background script about team mode change
-      chrome.runtime.sendMessage({ 
+      chrome.runtime.sendMessage({
         action: 'teamModeChanged',
-        enabled: isEnabled
+        enabled: isEnabled,
       });
     });
   }
 
   // User email input
   const userEmailInput = document.getElementById('user-email');
-  
+
   // Team role selection
   const teamRoleSelect = document.getElementById('team-role');
   if (teamRoleSelect) {
     chrome.storage.sync.get({ teamRole: 'member' }, (data) => {
       teamRoleSelect.value = data.teamRole || 'member';
     });
-    
+
     teamRoleSelect.addEventListener('change', () => {
       chrome.storage.sync.set({ teamRole: teamRoleSelect.value });
     });
   }
-  
+
   // Function to validate team settings
   function validateTeamSettings() {
     const userEmailInput = document.getElementById('user-email');
     if (!userEmailInput) return;
-    
+
     const email = userEmailInput.value.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (!emailRegex.test(email)) {
       showNotification('Please enter a valid email address for team mode', 'error');
       return false;
     }
-    
+
     return true;
   }
   if (userEmailInput) {

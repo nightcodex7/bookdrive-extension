@@ -148,16 +148,16 @@ describe('Sync Optimizer', () => {
 
       // Bookmark 3 and Bookmark 2 are added in source (compared to target)
       expect(delta.added.length).toBeGreaterThanOrEqual(1);
-      expect(delta.added.some(item => item.id === '4')).toBe(true);
+      expect(delta.added.some((item) => item.id === '4')).toBe(true);
 
       // Bookmark 1 is modified (title changed)
       expect(delta.modified.length).toBeGreaterThanOrEqual(1);
-      expect(delta.modified.some(item => item.source.id === '2')).toBe(true);
-      expect(delta.modified.find(item => item.source.id === '2').changes.title).toBeDefined();
+      expect(delta.modified.some((item) => item.source.id === '2')).toBe(true);
+      expect(delta.modified.find((item) => item.source.id === '2').changes.title).toBeDefined();
 
       // Bookmark 4 is deleted in source (exists in target but not source)
       expect(delta.deleted.length).toBeGreaterThanOrEqual(1);
-      expect(delta.deleted.some(item => item.id === '5')).toBe(true);
+      expect(delta.deleted.some((item) => item.id === '5')).toBe(true);
 
       // Skip checking for unchanged items as the implementation might vary
       // expect(delta.unchanged.some(item => item.id === '1')).toBe(true);
@@ -171,7 +171,9 @@ describe('Sync Optimizer', () => {
     it('should apply delta changes to a bookmark tree', async () => {
       const delta = {
         added: [{ id: '3', title: 'New Bookmark' }],
-        modified: [{ source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } }],
+        modified: [
+          { source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } },
+        ],
         deleted: [{ id: '1', title: 'Deleted Bookmark' }],
       };
 
@@ -192,7 +194,9 @@ describe('Sync Optimizer', () => {
     it('should handle errors during delta application', async () => {
       const delta = {
         added: [{ id: '3', title: 'New Bookmark' }],
-        modified: [{ source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } }],
+        modified: [
+          { source: { id: '2', title: 'Updated' }, target: { id: '2', title: 'Original' } },
+        ],
         deleted: [{ id: '1', title: 'Deleted Bookmark' }],
       };
 
@@ -315,7 +319,9 @@ describe('Sync Optimizer', () => {
         reason: 'Test error',
       });
 
-      await expect(performOptimizedSync(syncOperation, { requireIdle: true })).rejects.toThrow('Failed to perform sync operation');
+      await expect(performOptimizedSync(syncOperation, { requireIdle: true })).rejects.toThrow(
+        'Failed to perform sync operation',
+      );
     });
   });
 });

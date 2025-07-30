@@ -236,11 +236,11 @@ export async function checkAndTriggerRetries() {
     });
 
     console.log(`Processed ${result.processed} of ${result.total} backup retries`);
-    
+
     if (result.failed > 0) {
       console.warn(`Failed to process ${result.failed} backup retries`);
     }
-    
+
     if (result.reason) {
       console.log(`Processing stopped: ${result.reason}`);
     }

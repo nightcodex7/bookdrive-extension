@@ -22,7 +22,7 @@ let notificationMock;
 jest.mock('../lib/notification-manager.js', () => {
   // Store the actual implementations
   const actual = jest.requireActual('../lib/notification-manager.js');
-  
+
   return {
     ...actual,
     showBrowserNotification: jest.fn(),
@@ -101,7 +101,9 @@ describe('Notification Manager', () => {
   describe('updateBackupProgress', () => {
     it('should send a message with the correct parameters', () => {
       // Use the actual implementation for this test
-      const actualUpdateBackupProgress = jest.requireActual('../lib/notification-manager.js').updateBackupProgress;
+      const actualUpdateBackupProgress = jest.requireActual(
+        '../lib/notification-manager.js',
+      ).updateBackupProgress;
       actualUpdateBackupProgress('backup-123', 50, 'Backing up...');
 
       expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
@@ -116,7 +118,9 @@ describe('Notification Manager', () => {
   describe('showBrowserNotification', () => {
     it('should create a notification with the correct parameters when permission is granted', () => {
       // Use the actual implementation for this test
-      const actualShowBrowserNotification = jest.requireActual('../lib/notification-manager.js').showBrowserNotification;
+      const actualShowBrowserNotification = jest.requireActual(
+        '../lib/notification-manager.js',
+      ).showBrowserNotification;
       actualShowBrowserNotification('Test Title', 'Test Message', {
         type: 'success',
         requireInteraction: true,
@@ -134,7 +138,9 @@ describe('Notification Manager', () => {
       global.Notification.permission = 'default';
 
       // Use the actual implementation for this test
-      const actualShowBrowserNotification = jest.requireActual('../lib/notification-manager.js').showBrowserNotification;
+      const actualShowBrowserNotification = jest.requireActual(
+        '../lib/notification-manager.js',
+      ).showBrowserNotification;
       actualShowBrowserNotification('Test Title', 'Test Message');
 
       expect(global.Notification.requestPermission).toHaveBeenCalled();
@@ -145,7 +151,9 @@ describe('Notification Manager', () => {
       global.Notification.permission = 'denied';
 
       // Use the actual implementation for this test
-      const actualShowBrowserNotification = jest.requireActual('../lib/notification-manager.js').showBrowserNotification;
+      const actualShowBrowserNotification = jest.requireActual(
+        '../lib/notification-manager.js',
+      ).showBrowserNotification;
       actualShowBrowserNotification('Test Title', 'Test Message');
 
       expect(global.Notification).not.toHaveBeenCalled();
@@ -170,7 +178,7 @@ describe('Notification Manager', () => {
 
       // Check that showBrowserNotification was called
       expect(showBrowserNotification).toHaveBeenCalled();
-      
+
       // Check that showToast was called
       expect(showToast).toHaveBeenCalled();
     });
@@ -186,7 +194,7 @@ describe('Notification Manager', () => {
 
       // Check that showBrowserNotification was called
       expect(showBrowserNotification).toHaveBeenCalled();
-      
+
       // Check that showToast was called
       expect(showToast).toHaveBeenCalled();
     });
@@ -217,7 +225,7 @@ describe('Notification Manager', () => {
 
       // Check that showBrowserNotification was called
       expect(showBrowserNotification).toHaveBeenCalled();
-      
+
       // Check that showToast was called
       expect(showToast).toHaveBeenCalled();
     });
@@ -233,7 +241,7 @@ describe('Notification Manager', () => {
 
       // Check that showBrowserNotification was called
       expect(showBrowserNotification).toHaveBeenCalled();
-      
+
       // Check that showToast was called
       expect(showToast).toHaveBeenCalled();
     });

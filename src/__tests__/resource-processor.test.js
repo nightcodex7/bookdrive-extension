@@ -9,7 +9,11 @@ import {
   initializeResourceProcessor,
 } from '../lib/scheduling/resource-processor.js';
 
-import { canPerformOperation, getSystemState, RESOURCE_STATE } from '../lib/scheduling/resource-monitor.js';
+import {
+  canPerformOperation,
+  getSystemState,
+  RESOURCE_STATE,
+} from '../lib/scheduling/resource-monitor.js';
 
 // Mock dependencies
 jest.mock('../lib/scheduling/resource-monitor.js', () => ({
@@ -242,7 +246,7 @@ describe('Resource Processor', () => {
 
       // Skip checking mockAddEventListener since it's not being called in the test environment
       initializeResourceProcessor();
-      
+
       expect(console.log).toHaveBeenCalledWith('Resource processor initialized');
 
       // Restore console.log

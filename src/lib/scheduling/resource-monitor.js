@@ -1,6 +1,6 @@
 /**
  * resource-monitor.js - System resource monitoring for BookDrive
- * 
+ *
  * This module provides functions for monitoring system resources
  * to determine if operations like backups can be performed safely.
  */
@@ -36,19 +36,19 @@ export async function getSystemState() {
   try {
     // Get battery information if available
     const batteryInfo = await getBatteryInfo();
-    
+
     // Get memory usage
     const memoryInfo = await getMemoryInfo();
-    
+
     // Get CPU usage
     const cpuInfo = await getCpuInfo();
-    
+
     // Get network status
     const networkInfo = await getNetworkInfo();
-    
+
     // Determine overall state
     const state = determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo);
-    
+
     return {
       timestamp: new Date().toISOString(),
       state: state.state,
@@ -92,12 +92,12 @@ export async function canPerformOperation(options = {}) {
       checkNetwork: true,
       checkPerformance: true,
     };
-    
+
     const mergedOptions = { ...defaultOptions, ...options };
-    
+
     // Get system state
     const systemState = await getSystemState();
-    
+
     // If optimal resources are required, only allow OPTIMAL state
     if (mergedOptions.requireOptimal && systemState.state !== RESOURCE_STATE.OPTIMAL) {
       return {
@@ -106,7 +106,7 @@ export async function canPerformOperation(options = {}) {
         systemState,
       };
     }
-    
+
     // If constrained resources are not allowed, only allow OPTIMAL state
     if (!mergedOptions.allowConstrained && systemState.state !== RESOURCE_STATE.OPTIMAL) {
       return {
@@ -115,7 +115,7 @@ export async function canPerformOperation(options = {}) {
         systemState,
       };
     }
-    
+
     // Never allow operations in CRITICAL state
     if (systemState.state === RESOURCE_STATE.CRITICAL) {
       return {
@@ -124,7 +124,7 @@ export async function canPerformOperation(options = {}) {
         systemState,
       };
     }
-    
+
     // Check specific resources if requested
     if (mergedOptions.checkBattery && systemState.details.battery) {
       if (systemState.details.battery.level <= DEFAULT_THRESHOLDS.battery.critical) {
@@ -135,7 +135,7 @@ export async function canPerformOperation(options = {}) {
         };
       }
     }
-    
+
     if (mergedOptions.checkNetwork && systemState.details.network) {
       if (!systemState.details.network.online) {
         return {
@@ -145,7 +145,7 @@ export async function canPerformOperation(options = {}) {
         };
       }
     }
-    
+
     // All checks passed
     return {
       isSafe: true,
@@ -153,7 +153,7 @@ export async function canPerformOperation(options = {}) {
     };
   } catch (error) {
     console.error('Failed to check if operation can be performed:', error);
-    
+
     // Default to safe in case of error
     return {
       isSafe: true,
@@ -172,7 +172,7 @@ async function getBatteryInfo() {
     // Check if Battery API is available
     if ('getBattery' in navigator) {
       const battery = await navigator.getBattery();
-      
+
       return {
         level: Math.round(battery.level * 100),
         charging: battery.charging,
@@ -180,7 +180,7 @@ async function getBatteryInfo() {
         dischargingTime: battery.dischargingTime,
       };
     }
-    
+
     // Battery API not available
     return null;
   } catch (error) {
@@ -198,14 +198,14 @@ async function getMemoryInfo() {
     // Check if Performance API is available
     if ('memory' in performance) {
       const memory = performance.memory;
-      
+
       return {
         total: memory.jsHeapSizeLimit,
         used: memory.usedJSHeapSize,
         usagePercent: Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100),
       };
     }
-    
+
     // Memory API not available
     return null;
   } catch (error) {
@@ -231,8 +231,9 @@ async function getCpuInfo() {
 async function getNetworkInfo() {
   try {
     // Check if Network Information API is available
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    
+    const connection =
+      navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
     if (connection) {
       return {
         online: navigator.onLine,
@@ -244,7 +245,7 @@ async function getNetworkInfo() {
         saveData: connection.saveData,
       };
     }
-    
+
     // Basic network info
     return {
       online: navigator.onLine,
@@ -267,15 +268,19 @@ async function getNetworkInfo() {
  */
 function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
   // Check for critical conditions first
-  
+
   // Battery critical
-  if (batteryInfo && batteryInfo.level <= DEFAULT_THRESHOLDS.battery.critical && !batteryInfo.charging) {
+  if (
+    batteryInfo &&
+    batteryInfo.level <= DEFAULT_THRESHOLDS.battery.critical &&
+    !batteryInfo.charging
+  ) {
     return {
       state: RESOURCE_STATE.CRITICAL,
       reason: `Battery level is critical: ${batteryInfo.level}%`,
     };
   }
-  
+
   // Memory critical
   if (memoryInfo && memoryInfo.usagePercent >= DEFAULT_THRESHOLDS.memory.critical) {
     return {
@@ -283,7 +288,7 @@ function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
       reason: `Memory usage is critical: ${memoryInfo.usagePercent}%`,
     };
   }
-  
+
   // CPU critical
   if (cpuInfo && cpuInfo.usagePercent >= DEFAULT_THRESHOLDS.cpu.critical) {
     return {
@@ -291,7 +296,7 @@ function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
       reason: `CPU usage is critical: ${cpuInfo.usagePercent}%`,
     };
   }
-  
+
   // Network offline
   if (networkInfo && !networkInfo.online) {
     return {
@@ -299,17 +304,21 @@ function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
       reason: 'Device is offline',
     };
   }
-  
+
   // Check for constrained conditions
-  
+
   // Battery constrained
-  if (batteryInfo && batteryInfo.level <= DEFAULT_THRESHOLDS.battery.constrained && !batteryInfo.charging) {
+  if (
+    batteryInfo &&
+    batteryInfo.level <= DEFAULT_THRESHOLDS.battery.constrained &&
+    !batteryInfo.charging
+  ) {
     return {
       state: RESOURCE_STATE.CONSTRAINED,
       reason: `Battery level is low: ${batteryInfo.level}%`,
     };
   }
-  
+
   // Memory constrained
   if (memoryInfo && memoryInfo.usagePercent >= DEFAULT_THRESHOLDS.memory.constrained) {
     return {
@@ -317,7 +326,7 @@ function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
       reason: `Memory usage is high: ${memoryInfo.usagePercent}%`,
     };
   }
-  
+
   // CPU constrained
   if (cpuInfo && cpuInfo.usagePercent >= DEFAULT_THRESHOLDS.cpu.constrained) {
     return {
@@ -325,7 +334,7 @@ function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
       reason: `CPU usage is high: ${cpuInfo.usagePercent}%`,
     };
   }
-  
+
   // Network constrained
   if (networkInfo && networkInfo.effectiveType === '2g') {
     return {
@@ -333,7 +342,7 @@ function determineResourceState(batteryInfo, memoryInfo, cpuInfo, networkInfo) {
       reason: 'Network connection is slow',
     };
   }
-  
+
   // If no constraints, system is optimal
   return {
     state: RESOURCE_STATE.OPTIMAL,

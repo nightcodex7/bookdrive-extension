@@ -82,7 +82,7 @@ describe('Backup Metadata Module', () => {
       // Mock Date.now() for consistent ID generation
       const originalNow = Date.now;
       Date.now = jest.fn(() => 1626307200000);
-      
+
       try {
         const metadata = createBackupMetadata({
           id: 'custom_id',

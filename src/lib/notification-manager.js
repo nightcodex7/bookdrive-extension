@@ -81,7 +81,7 @@ export function showBrowserNotification(title, message, options = {}) {
         }
         return Promise.resolve('default');
       };
-      
+
       // Function to show notification
       const showNotification = () => {
         const notification = new Notification(title, {
@@ -95,7 +95,7 @@ export function showBrowserNotification(title, message, options = {}) {
           notification.onclick = mergedOptions.onClick;
         }
       };
-      
+
       requestPermission();
     } catch (error) {
       console.error('Error requesting notification permission:', error);

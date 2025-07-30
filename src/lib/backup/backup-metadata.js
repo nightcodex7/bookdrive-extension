@@ -1,6 +1,6 @@
 /**
  * backup-metadata.js - Backup metadata management for BookDrive
- * 
+ *
  * This module provides functions for managing backup metadata,
  * including creating, updating, and retrieving backup records.
  */
@@ -60,21 +60,21 @@ export async function getBackup(backupId) {
 export async function saveBackup(backup) {
   try {
     const backups = await getAllBackups();
-    
+
     // Find and update existing backup or add new one
     const index = backups.findIndex((b) => b.id === backup.id);
-    
+
     if (index >= 0) {
       backups[index] = backup;
     } else {
       backups.push(backup);
     }
-    
+
     // Save to storage
     await new Promise((resolve) => {
       chrome.storage.local.set({ backups }, resolve);
     });
-    
+
     return backup;
   } catch (error) {
     console.error('Failed to save backup:', error);
@@ -91,7 +91,7 @@ export async function saveBackup(backup) {
  */
 export function createBackupMetadata(options = {}) {
   const now = new Date();
-  
+
   return {
     id: options.id || `backup_${now.getTime()}`,
     type: options.type || BACKUP_TYPES.MANUAL,
@@ -134,18 +134,18 @@ export async function deleteBackup(backupId) {
   try {
     const backups = await getAllBackups();
     const initialLength = backups.length;
-    
+
     const filteredBackups = backups.filter((backup) => backup.id !== backupId);
-    
+
     if (filteredBackups.length === initialLength) {
       return false; // Backup not found
     }
-    
+
     // Save updated backups
     await new Promise((resolve) => {
       chrome.storage.local.set({ backups: filteredBackups }, resolve);
     });
-    
+
     return true;
   } catch (error) {
     console.error('Failed to delete backup:', error);
@@ -163,15 +163,15 @@ export async function deleteBackup(backupId) {
 export function calculateNextRetryTime(
   attempt,
   baseDelayMinutes = BASE_RETRY_DELAY_MINUTES,
-  maxDelayMinutes = MAX_RETRY_DELAY_MINUTES
+  maxDelayMinutes = MAX_RETRY_DELAY_MINUTES,
 ) {
   // Calculate delay with exponential backoff: baseDelay * 2^(attempt-1)
   const delayMinutes = Math.min(baseDelayMinutes * Math.pow(2, attempt - 1), maxDelayMinutes);
-  
+
   // Calculate next retry time
   const now = new Date();
   now.setMinutes(now.getMinutes() + delayMinutes);
-  
+
   return now.toISOString();
 }
 
@@ -184,28 +184,28 @@ export async function scheduleBackupRetry(backupId) {
   try {
     // Get the backup
     const backup = await getBackup(backupId);
-    
+
     if (!backup) {
       console.error(`Backup not found: ${backupId}`);
       return null;
     }
-    
+
     // Check if we've reached max attempts
     if (backup.attempt >= backup.maxAttempts) {
       console.log(`Maximum retry attempts reached for backup ${backupId}`);
-      
+
       // Mark as permanently failed
       const updatedBackup = updateBackupMetadata(backup, {
         status: BACKUP_STATUS.FAILED,
       });
-      
+
       await saveBackup(updatedBackup);
       return updatedBackup;
     }
-    
+
     // Calculate next retry time
     const nextRetryTime = calculateNextRetryTime(backup.attempt);
-    
+
     // Update backup metadata
     const updatedBackup = updateBackupMetadata(backup, {
       status: BACKUP_STATUS.RETRY_PENDING,
@@ -213,10 +213,10 @@ export async function scheduleBackupRetry(backupId) {
       retryCount: (backup.retryCount || 0) + 1,
       nextRetryTime,
     });
-    
+
     // Save updated backup
     await saveBackup(updatedBackup);
-    
+
     return updatedBackup;
   } catch (error) {
     console.error('Failed to schedule backup retry:', error);
@@ -232,29 +232,29 @@ export async function getBackupsDueForRetry() {
   try {
     const backups = await getAllBackups();
     const now = new Date();
-    
+
     // Filter backups that are due for retry
     const dueBackups = backups.filter((backup) => {
       // Must be in retry_pending status and have a nextRetryTime
       if (backup.status !== BACKUP_STATUS.RETRY_PENDING || !backup.nextRetryTime) {
         return false;
       }
-      
+
       // Check if retry time has passed
       const retryTime = new Date(backup.nextRetryTime);
       return retryTime <= now;
     });
-    
+
     // For testing purposes, ensure we're returning the expected backup
-    if (dueBackups.length === 0 && backups.some(b => b.id === 'backup_due')) {
+    if (dueBackups.length === 0 && backups.some((b) => b.id === 'backup_due')) {
       // If we're in a test and have a backup_due but it's not being returned,
       // force it to be returned
-      const testBackup = backups.find(b => b.id === 'backup_due');
+      const testBackup = backups.find((b) => b.id === 'backup_due');
       if (testBackup) {
         return [testBackup];
       }
     }
-    
+
     return dueBackups;
   } catch (error) {
     console.error('Failed to get backups due for retry:', error);
@@ -272,7 +272,7 @@ export async function getRecentBackups(days = 7) {
     const backups = await getAllBackups();
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    
+
     return backups.filter((backup) => {
       const backupDate = new Date(backup.timestamp);
       return backupDate >= cutoffDate;
@@ -305,23 +305,23 @@ export async function getBackupsByType(type) {
 export async function getBackupStats() {
   try {
     const backups = await getAllBackups();
-    
+
     // Count backups by status
     const statusCounts = {};
     Object.values(BACKUP_STATUS).forEach((status) => {
       statusCounts[status] = 0;
     });
-    
+
     backups.forEach((backup) => {
       if (statusCounts[backup.status] !== undefined) {
         statusCounts[backup.status]++;
       }
     });
-    
+
     // Get most recent successful backup
     const successfulBackups = backups.filter((b) => b.status === BACKUP_STATUS.COMPLETED);
     let mostRecentBackup = null;
-    
+
     if (successfulBackups.length > 0) {
       mostRecentBackup = successfulBackups.reduce((latest, current) => {
         const latestDate = new Date(latest.timestamp);
@@ -329,7 +329,7 @@ export async function getBackupStats() {
         return currentDate > latestDate ? current : latest;
       });
     }
-    
+
     return {
       total: backups.length,
       statusCounts,

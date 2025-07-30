@@ -361,7 +361,7 @@ function flattenBookmarksToArray(tree, bookmarks) {
         title: node.title,
         url: node.url,
         dateAdded: node.dateAdded,
-        parentId: node.parentId
+        parentId: node.parentId,
       });
     }
     if (node.children) {
@@ -379,19 +379,19 @@ export async function syncBookmarks(mode = 'host-to-many') {
   try {
     // Export current bookmarks
     const localState = await exportBookmarksState();
-    
+
     // For now, just return basic sync result
     // In a real implementation, this would:
     // 1. Upload to Google Drive
     // 2. Download remote state
     // 3. Compare and merge
     // 4. Apply changes
-    
+
     return {
       added: 0,
       updated: 0,
       removed: 0,
-      total: localState.bookmarks.length
+      total: localState.bookmarks.length,
     };
   } catch (error) {
     console.error('Sync failed:', error);

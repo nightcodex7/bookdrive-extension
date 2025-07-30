@@ -1,6 +1,6 @@
 /**
  * retention-policy.js - Backup retention policy management for BookDrive
- * 
+ *
  * This module provides functions for managing backup retention policies,
  * including determining which backups to keep and which to remove.
  */
@@ -22,28 +22,28 @@ export async function getBackupsToRemove(scheduleId, retentionCount) {
   try {
     // Get all backups
     const allBackups = await getAllBackups();
-    
+
     // Filter backups for the specified schedule
-    const scheduleBackups = allBackups.filter(backup => backup.scheduleId === scheduleId);
-    
+    const scheduleBackups = allBackups.filter((backup) => backup.scheduleId === scheduleId);
+
     // If we have fewer backups than the retention count, don't remove any
     if (scheduleBackups.length <= retentionCount) {
       return [];
     }
-    
+
     // Sort backups by timestamp (newest first)
     scheduleBackups.sort((a, b) => {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
-    
+
     // Keep the newest backups up to the retention count
     const backupsToKeep = scheduleBackups.slice(0, retentionCount);
-    
+
     // The rest should be removed
     const backupsToRemove = scheduleBackups.slice(retentionCount);
-    
+
     // Return the IDs of backups to remove
-    return backupsToRemove.map(backup => backup.id);
+    return backupsToRemove.map((backup) => backup.id);
   } catch (error) {
     console.error('Failed to get backups to remove:', error);
     return [];
@@ -59,10 +59,10 @@ export async function deleteBackups(backupIds) {
   if (!backupIds || backupIds.length === 0) {
     return 0;
   }
-  
+
   try {
     let deletedCount = 0;
-    
+
     // Delete each backup
     for (const backupId of backupIds) {
       const deleted = await deleteBackup(backupId);
@@ -70,7 +70,7 @@ export async function deleteBackups(backupIds) {
         deletedCount++;
       }
     }
-    
+
     return deletedCount;
   } catch (error) {
     console.error('Failed to delete backups:', error);
@@ -90,10 +90,10 @@ export async function enforceRetentionPolicy(scheduleId, retentionCount) {
     if (retentionCount === -1) {
       return 0;
     }
-    
+
     // Get backups to remove
     const backupsToRemove = await getBackupsToRemove(scheduleId, retentionCount);
-    
+
     // Delete backups
     return await deleteBackups(backupsToRemove);
   } catch (error) {
@@ -111,13 +111,13 @@ export async function getRetentionPolicy(scheduleId) {
   try {
     // Get all backups for the schedule
     const allBackups = await getAllBackups();
-    const scheduleBackups = allBackups.filter(backup => backup.scheduleId === scheduleId);
-    
+    const scheduleBackups = allBackups.filter((backup) => backup.scheduleId === scheduleId);
+
     // Sort backups by timestamp (newest first)
     scheduleBackups.sort((a, b) => {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
-    
+
     return {
       scheduleId,
       totalBackups: scheduleBackups.length,

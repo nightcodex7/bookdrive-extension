@@ -110,163 +110,122 @@ src/
 - **Production**: Minified, optimized builds
 - **Testing**: Jest with Chrome API mocks
 
-## 🔧 Configuration
+## 🔐 Authentication & Security
+
+### Cross-Browser Compatibility
+BookDrive provides seamless Google Sign-In across all major browsers:
+
+- **Chrome**: Uses native `chrome.identity` API for trusted Google account picker
+- **Edge/Firefox/Safari**: Uses secure OAuth2 fallback with popup authentication
+- **No Manual Setup**: Works out-of-the-box with browser session accounts
+
+### Production Deployment
+For production deployment to eliminate the "unverified app" warning:
+
+1. **Complete Google OAuth API Verification**:
+   - Submit your extension for Google's OAuth API verification process
+   - This is required for Chrome Web Store deployment
+   - See [Google's OAuth API verification guide](https://developers.google.com/identity/protocols/oauth2/web-application#verification)
+
+2. **Update Client ID**:
+   - Replace the placeholder client ID in `manifest.json` with your verified OAuth2 credentials
+   - Ensure proper redirect URIs are configured
+
+3. **Security Best Practices**:
+   - Never store client secrets in extension code
+   - Use HTTPS for all API communications
+   - Implement proper token refresh and revocation
+
+### Privacy & Data Handling
+- **No Server Storage**: All data is stored in your Google Drive
+- **Local Processing**: Bookmark operations happen locally
+- **Optional Encryption**: End-to-end encryption available
+- **Minimal Permissions**: Only requests necessary browser permissions
+
+### OAuth2 Compliance & Verification
+BookDrive is designed to comply with Google's OAuth2 verification requirements:
+
+#### ✅ **No Verification Required**
+BookDrive uses only **non-sensitive scopes** that do not require Google's OAuth app verification:
+- `https://www.googleapis.com/auth/userinfo.email` - Access to user's email address
+- `https://www.googleapis.com/auth/drive.appdata` - Access to app-specific data in Google Drive
+
+#### 🔒 **Scope Categories**
+- **Non-sensitive**: These scopes are categorized as non-sensitive by Google
+- **No verification needed**: Can be published without completing Google's verification process
+- **Privacy-respecting**: Minimal access to user data
+
+#### 📋 **Verification Options**
+1. **No Verification**: Extension works immediately with non-sensitive scopes
+2. **Brand Verification**: Optional lightweight verification for app name and logo display
+3. **Full Verification**: Required only if adding sensitive or restricted scopes later
+
+#### 🚀 **Production Ready**
+- **Immediate Deployment**: No verification delays
+- **Chrome Web Store**: Ready for submission
+- **User Trust**: Transparent about data access and usage
+
+## 📋 Configuration
 
 ### Environment Variables
-```bash
-NODE_ENV=production    # Build mode
-DEBUG=false           # Debug logging
-```
+- `NODE_ENV`: Development or Production
+- `GOOGLE_CLIENT_ID`: Your OAuth2 client ID (for production)
 
-### Extension Settings
-Access via popup → Settings tab:
-- **Sync Mode**: Host-to-Many or Global
-- **Auto Sync**: Enable/disable automatic sync
-- **Sync Interval**: 5-30 minutes
-- **Team Mode**: Multi-user collaboration
-- **Encryption**: Optional end-to-end encryption
+### Build Modes
+- **Development**: `npm run watch` - Hot reload with source maps
+- **Production**: `npm run build:prod` - Optimized production build
 
-### Advanced Configuration
-```json
-// config.json (optional)
-{
-  "syncMode": "global",
-  "autoSync": true,
-  "syncInterval": 15,
-  "encryption": {
-    "enabled": true,
-    "algorithm": "aes-gcm"
-  },
-  "teamMode": {
-    "enabled": false,
-    "defaultRole": "member"
-  }
-}
-```
-
-## 🔐 Security & Privacy
-
-### Data Protection
-- **Local Storage**: Settings and metadata only
-- **Google Drive**: Encrypted bookmark data
-- **No Third-Party Servers**: Direct Drive API usage
-- **Optional Encryption**: AES-GCM with user passphrase
-
-### Permissions Explained
-- `bookmarks`: Read/write browser bookmarks
-- `storage`: Store extension settings
-- `identity`: Google OAuth authentication
-- `alarms`: Scheduled sync operations
-- `notifications`: User feedback
-
-### Security Best Practices
-- Use strong encryption passphrases
-- Regularly review Google Drive permissions
-- Enable verbose logging for diagnostics
-- Keep extension updated
-
-## 🌍 Cross-Platform Support
-
-### Supported Browsers
-- **Chrome** 100+ ✅
-- **Microsoft Edge** 100+ ✅
-- **Brave** Latest ✅
-- **Vivaldi** Latest ✅
-- **Opera** Latest ✅
-
-### Operating Systems
-- **Windows** 10/11 ✅
-- **macOS** 10.15+ ✅
-- **Linux** (Ubuntu, Fedora, etc.) ✅
-- **Chrome OS** ✅
-
-### Mobile Support
-- Chrome for Android (limited)
-- *iOS Safari extension planned*
-
-## 📚 Documentation
-
-- [Installation Guide](docs/wiki/Installation.md)
-- [Sync Modes](docs/wiki/Sync-Modes.md)
-- [Security Features](docs/wiki/Security.md)
-- [Configuration](docs/wiki/Configuration.md)
-- [Troubleshooting](docs/wiki/Troubleshooting.md)
-- [API Documentation](docs/api/)
-
-## 🤝 Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Workflow
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
-
-### Code Standards
-- TypeScript with strict mode
-- ESLint + Prettier formatting
-- Jest testing required
-- Accessibility compliance (WCAG 2.1)
-
-## 📊 Performance
-
-### Benchmarks
-- **Sync Speed**: ~1000 bookmarks in <2 seconds
-- **Memory Usage**: <10MB typical
-- **Battery Impact**: Minimal (adaptive intervals)
-- **Network Usage**: Delta-sync reduces bandwidth
-
-### Optimization Features
-- SHA-256 change detection
-- Incremental sync
-- Battery-aware intervals
-- Offline queue management
-
-## 🐛 Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
+1. **"OAuth2 credentials not configured"**: Run `npm run setup:oauth2`
+2. **"Sign-in failed"**: Check browser compatibility and network connection
+3. **"Authentication timeout"**: Try signing in again or check browser settings
 
-**Sync Not Working**
-```bash
-# Check network connection
-# Verify Google Drive permissions
-# Review extension logs (Advanced tab)
-```
-
-**OAuth2 Setup Issues**
-```bash
-# Ensure client_id is correctly set in manifest.json
-# Verify Google Cloud project configuration
-# Check OAuth2 redirect URIs
-```
-
-**Performance Issues**
-```bash
-# Reduce sync interval
-# Disable verbose logging
-# Clear browser cache
-```
-
-### Getting Help
-- [GitHub Issues](https://github.com/nightcodex7/bookdrive-extension/issues)
-- [Discussions](https://github.com/nightcodex7/bookdrive-extension/discussions)
-- [Wiki](https://github.com/nightcodex7/bookdrive-extension/wiki)
+### Browser Support
+- **Chrome 100+**: Full native integration
+- **Edge 100+**: OAuth2 fallback authentication
+- **Firefox 100+**: OAuth2 fallback authentication
+- **Safari 15+**: OAuth2 fallback authentication
 
 ## 📄 License
 
-GNU General Public License v3.0 - see [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📈 Performance
+
+- **Fast Sync**: Optimized algorithms for quick bookmark synchronization
+- **Efficient Storage**: Minimal local storage usage
+- **Background Processing**: Non-blocking sync operations
+- **Smart Caching**: Intelligent caching for better performance
+
+## 🚨 Troubleshooting
+
+### Extension Issues
+- **Extension not loading**: Check manifest.json and build output
+- **Authentication errors**: Verify OAuth2 credentials and browser compatibility
+- **Sync failures**: Check network connection and Google Drive permissions
+
+### Development Issues
+- **Build errors**: Run `npm install` and check Node.js version
+- **Test failures**: Ensure all dependencies are installed
+- **Linting errors**: Run `npm run lint` to identify issues
+
+## 📝 License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Google Drive API team
-- Chrome Extensions community
-- Open source contributors
-- Beta testers and early adopters
-
----
-
-**Made with ❤️ for privacy-conscious users**
-
-*BookDrive is not affiliated with Google Inc.*
+- Google Drive API for secure cloud storage
+- Chrome Extensions API for cross-browser compatibility
+- Material Design 3 for modern UI components
+- Open source community for inspiration and support

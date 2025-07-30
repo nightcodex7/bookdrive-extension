@@ -100,6 +100,17 @@ src/manifest.json.backup
 *.key
 oauth2_credentials.json
 
+# OAuth and sensitive credentials
+src/manifest.json
+src/lib/auth/drive-auth.js
+.env.oauth
+oauth2_config.json
+secrets.json
+
+# Keep template files but exclude actual credential files
+!src/manifest.template.json
+!src/lib/auth/drive-auth.template.js
+
 # Test files
 test-results/
 playwright-report/

@@ -76,11 +76,11 @@ describe('Resource Monitor', () => {
       // Save battery state
       const originalCharging = mockBattery.charging;
       const originalLevel = mockBattery.level;
-      
+
       // Set battery to good state
       mockBattery.charging = true;
       mockBattery.level = 0.8;
-      
+
       // Set network to offline
       navigator.onLine = false;
 
@@ -88,7 +88,7 @@ describe('Resource Monitor', () => {
 
       expect(state.state).toBe(RESOURCE_STATE.CRITICAL);
       expect(state.reason).toContain('offline');
-      
+
       // Restore battery state
       mockBattery.charging = originalCharging;
       mockBattery.level = originalLevel;
@@ -120,11 +120,11 @@ describe('Resource Monitor', () => {
       // Save battery state
       const originalCharging = mockBattery.charging;
       const originalLevel = mockBattery.level;
-      
+
       // Set battery to good state
       mockBattery.charging = true;
       mockBattery.level = 0.8;
-      
+
       // Set network to offline
       navigator.onLine = false;
 
@@ -132,7 +132,7 @@ describe('Resource Monitor', () => {
 
       expect(result.isSafe).toBe(false);
       expect(result.reason).toContain('offline');
-      
+
       // Restore battery state
       mockBattery.charging = originalCharging;
       mockBattery.level = originalLevel;
@@ -160,11 +160,11 @@ describe('Resource Monitor', () => {
       // Save battery state
       const originalCharging = mockBattery.charging;
       const originalLevel = mockBattery.level;
-      
+
       // Set battery to critical state
       mockBattery.charging = false;
       mockBattery.level = 0.1; // Critical
-      
+
       // Set network to online
       navigator.onLine = true;
 
@@ -179,7 +179,7 @@ describe('Resource Monitor', () => {
       };
 
       expect(result.isSafe).toBe(true);
-      
+
       // Restore battery state
       mockBattery.charging = originalCharging;
       mockBattery.level = originalLevel;

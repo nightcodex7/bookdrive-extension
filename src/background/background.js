@@ -2,10 +2,8 @@
 console.log('BookDrive background script loaded');
 
 import {
-  getAuthToken,
+  isAuthenticated,
   ensureBookDriveFolder,
-  initializeBackupAlarms,
-  handleAlarm,
   createBackupMetadata,
   saveBackup,
   getAllBackups,
@@ -13,7 +11,6 @@ import {
   BACKUP_TYPES,
   BACKUP_STATUS,
   showToast,
-  // showBrowserNotification, // Unused import
   updateBackupProgress,
   showBackupNotification,
   showRestorationNotification,
@@ -46,15 +43,17 @@ async function initializeAuth() {
   if (authInitialized) return;
 
   try {
-    // Try to get token silently first
-    await getAuthToken(false);
+    // Check if user is authenticated
+    const authenticated = await isAuthenticated();
 
-    // If successful, ensure folder exists
-    const folderId = await ensureBookDriveFolder(false);
-    console.log(`Using folder ID: ${folderId}`);
-    authInitialized = true;
+    if (authenticated) {
+      // If successful, ensure folder exists
+      const folderId = await ensureBookDriveFolder(false);
+      console.log(`Using folder ID: ${folderId}`);
+      authInitialized = true;
+    }
   } catch (error) {
-    console.log('Silent auth failed, will prompt on user action:', error.message);
+    console.log('Auth check failed, will prompt on user action:', error.message);
     // We'll prompt the user when they interact with the extension
   }
 }
@@ -121,7 +120,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           showNotification(`Sync failed: ${error.message}`, 'error');
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         sendResponse({ status: 'error', error: 'Authentication failed' });
         showNotification('Authentication failed', 'error');
       });
@@ -221,7 +220,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           );
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         sendResponse({ status: 'error', error: 'Authentication failed' });
         showNotification('Authentication failed', 'error');
       });
@@ -370,7 +369,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           );
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         sendResponse({ success: false, error: 'Authentication failed' });
         showNotification('Authentication failed', 'error');
       });
@@ -565,7 +564,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           );
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         sendResponse({ status: 'error', error: 'Authentication failed' });
         showNotification('Authentication failed', 'error');
       });
@@ -581,7 +580,14 @@ chrome.alarms.create('autoSync', { periodInMinutes: 30 });
 chrome.alarms.onAlarm.addListener((alarm) => {
   // Handle scheduled backup alarms
   if (alarm.name === 'scheduledBackup' || alarm.name === 'backupRetry') {
-    handleAlarm(alarm);
+    (async () => {
+      try {
+        const { handleAlarm } = await import('../lib/scheduling/alarm-manager.js');
+        await handleAlarm(alarm);
+      } catch (error) {
+        console.error('Failed to handle alarm:', error);
+      }
+    })();
     return;
   }
 
@@ -784,11 +790,13 @@ chrome.runtime.onInstalled.addListener(() => {
   initializeAuth();
 
   // Initialize backup alarms
-  initializeBackupAlarms()
-    .then(() => {
+  (async () => {
+    try {
+      const { initializeBackupAlarms } = await import('../lib/scheduling/alarm-manager.js');
+      await initializeBackupAlarms();
       console.log('Backup alarms initialized');
-    })
-    .catch((error) => {
+    } catch (error) {
       console.error('Failed to initialize backup alarms:', error);
-    });
+    }
+  })();
 });

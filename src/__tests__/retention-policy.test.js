@@ -41,7 +41,7 @@ describe('Retention Policy Manager', () => {
     // Mock console methods
     console.error = jest.fn();
     console.log = jest.fn();
-    
+
     // Set up default mock implementations for retention policy functions
     retentionPolicy.getBackupsToRemove.mockResolvedValue([]);
     retentionPolicy.enforceRetentionPolicy.mockResolvedValue(0);
@@ -51,7 +51,7 @@ describe('Retention Policy Manager', () => {
   describe('getBackupsToRemove', () => {
     test('should return empty array when retention count is unlimited (-1)', async () => {
       retentionPolicy.getBackupsToRemove.mockResolvedValue([]);
-      
+
       const result = await retentionPolicy.getBackupsToRemove('schedule_123', -1);
       expect(result).toEqual([]);
     });
@@ -79,7 +79,7 @@ describe('Retention Policy Manager', () => {
       chrome.storage.local.get.mockImplementation((key, callback) => {
         callback({ backups: mockBackups });
       });
-      
+
       retentionPolicy.getBackupsToRemove.mockResolvedValue([]);
 
       // Retention count of 5 should keep all 3 backups
@@ -120,7 +120,7 @@ describe('Retention Policy Manager', () => {
       chrome.storage.local.get.mockImplementation((key, callback) => {
         callback({ backups: mockBackups });
       });
-      
+
       retentionPolicy.getBackupsToRemove.mockResolvedValue(['backup_1', 'backup_2']);
 
       // Let's check what the actual result is
@@ -165,7 +165,7 @@ describe('Retention Policy Manager', () => {
       chrome.storage.local.get.mockImplementation((key, callback) => {
         callback({ backups: mockBackups });
       });
-      
+
       retentionPolicy.getBackupsToRemove.mockResolvedValue(['backup_1']);
 
       // Retention count of 2 for schedule_123 should keep the 2 newest backups and remove 1
@@ -244,7 +244,7 @@ describe('Retention Policy Manager', () => {
       chrome.storage.local.get.mockImplementation((key, callback) => {
         callback({ backups: mockBackups });
       });
-      
+
       retentionPolicy.getBackupsToRemove.mockResolvedValue([]);
       retentionPolicy.enforceRetentionPolicy.mockResolvedValue(0);
 
@@ -288,7 +288,7 @@ describe('Retention Policy Manager', () => {
       chrome.storage.local.get.mockImplementation((key, callback) => {
         callback({ backups: mockBackups });
       });
-      
+
       retentionPolicy.enforceRetentionPolicy.mockResolvedValue(0);
 
       // Unlimited retention should keep all backups

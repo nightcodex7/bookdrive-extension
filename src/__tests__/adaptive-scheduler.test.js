@@ -9,10 +9,7 @@ import {
   getMissedBackupStats,
 } from '../lib/scheduling/adaptive-scheduler.js';
 
-import {
-  getMissedBackups,
-  saveMissedBackups,
-} from '../lib/scheduling/scheduler-utils.js';
+import { getMissedBackups, saveMissedBackups } from '../lib/scheduling/scheduler-utils.js';
 
 import { canPerformOperation, RESOURCE_STATE } from '../lib/scheduling/resource-monitor.js';
 import { getSchedule, updateBackupTime } from '../lib/scheduling/scheduler.js';

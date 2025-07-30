@@ -31,7 +31,7 @@
     "test:watch": "jest --config jest.config.cjs --watch",
     "test:coverage": "jest --config jest.config.cjs --coverage",
     "validate": "npm run lint:check && npm run format:check && npm run test",
-    "setup:oauth2": "node scripts/setup-oauth2.js",
+    "setup:oauth2": "node scripts/setup-oauth.js",
     "docs:serve": "cd docs && python -m http.server 8080",
     "release": "npm run validate && npm run build:prod && npm run package",
     "precommit": "npm run lint && npm run format",

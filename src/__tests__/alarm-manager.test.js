@@ -9,7 +9,12 @@ import {
 } from '../lib/scheduling/alarm-manager.js';
 
 import { getSchedule, isBackupDue, updateBackupTime } from '../lib/scheduling/scheduler.js';
-import { shouldDeferBackup, deferBackup, processNextMissedBackup, initializeAdaptiveScheduler } from '../lib/scheduling/adaptive-scheduler.js';
+import {
+  shouldDeferBackup,
+  deferBackup,
+  processNextMissedBackup,
+  initializeAdaptiveScheduler,
+} from '../lib/scheduling/adaptive-scheduler.js';
 import { getBackupsDueForRetry } from '../lib/backup/backup-metadata.js';
 
 // Mock the dependencies
@@ -132,7 +137,9 @@ describe('Alarm Manager Module', () => {
 
       expect(isBackupDue).toHaveBeenCalled();
       expect(console.log).toHaveBeenCalledWith('Backup is due now, checking system resources');
-      expect(console.log).toHaveBeenCalledWith('System resources are sufficient, triggering backup');
+      expect(console.log).toHaveBeenCalledWith(
+        'System resources are sufficient, triggering backup',
+      );
 
       // Restore console.log
       console.log = originalConsoleLog;
@@ -188,7 +195,9 @@ describe('Alarm Manager Module', () => {
 
       handleAlarm({ name: 'missedBackup' });
 
-      expect(console.log).toHaveBeenCalledWith('Missed backup alarm fired, checking for missed backups to process');
+      expect(console.log).toHaveBeenCalledWith(
+        'Missed backup alarm fired, checking for missed backups to process',
+      );
 
       // Restore console.log
       console.log = originalConsoleLog;

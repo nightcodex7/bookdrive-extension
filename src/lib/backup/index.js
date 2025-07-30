@@ -14,7 +14,7 @@ export async function createBackup(description = 'Manual backup') {
     // Import bookmarks state
     const { exportBookmarksState } = await import('../bookmarks.js');
     const bookmarksState = await exportBookmarksState();
-    
+
     // Create backup metadata
     const backup = {
       id: `backup_${Date.now()}`,
@@ -24,16 +24,16 @@ export async function createBackup(description = 'Manual backup') {
       description,
       bookmarksCount: bookmarksState.bookmarks.length,
       foldersCount: bookmarksState.folders.length,
-      data: bookmarksState
+      data: bookmarksState,
     };
-    
+
     // Save to storage
     const backups = await getAllBackups();
     backups.push(backup);
     await new Promise((resolve) => {
       chrome.storage.local.set({ backups }, resolve);
     });
-    
+
     return backup;
   } catch (error) {
     console.error('Failed to create backup:', error);
@@ -57,13 +57,13 @@ export async function initializeBackupModuleAlarms() {
   try {
     // Clear existing backup alarms
     await chrome.alarms.clearAll();
-    
+
     // Create daily backup alarm at 3 AM
     await chrome.alarms.create('daily-backup', {
       when: getNextBackupTime(),
-      periodInMinutes: 24 * 60 // 24 hours
+      periodInMinutes: 24 * 60, // 24 hours
     });
-    
+
     console.log('Backup module alarms initialized');
   } catch (error) {
     console.error('Failed to initialize backup module alarms:', error);
@@ -94,11 +94,11 @@ function getNextBackupTime() {
   const now = new Date();
   const nextBackup = new Date(now);
   nextBackup.setHours(3, 0, 0, 0);
-  
+
   // If it's already past 3 AM today, schedule for tomorrow
   if (now.getHours() >= 3) {
     nextBackup.setDate(nextBackup.getDate() + 1);
   }
-  
+
   return nextBackup.getTime();
 }

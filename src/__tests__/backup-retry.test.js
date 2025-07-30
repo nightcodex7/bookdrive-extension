@@ -246,7 +246,7 @@ describe('Backup Retry Mechanism', () => {
 
       chrome.storage.local.get.mockImplementation((key, callback) => {
         // Make sure the backup_due is actually returned as due
-        const dueBackup = mockBackups.find(b => b.id === 'backup_due');
+        const dueBackup = mockBackups.find((b) => b.id === 'backup_due');
         if (dueBackup) {
           dueBackup.nextRetryTime = '2025-07-17T12:05:00.000Z'; // Ensure it's in the past
         }
@@ -279,7 +279,7 @@ describe('Backup Retry Mechanism', () => {
       // Should log an error
       expect(console.error).toHaveBeenCalledWith(
         'Failed to get backups due for retry:',
-        expect.any(Error)
+        expect.any(Error),
       );
     });
   });

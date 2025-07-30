@@ -13,11 +13,11 @@ export async function generateSyncPreview(localTree, remoteTree) {
   // Use both the original diffBookmarks and our new calculateDelta for compatibility
   const diff = diffBookmarks(localTree, remoteTree);
   const delta = calculateDelta(localTree, remoteTree);
-  
+
   // Convert delta format to match the expected preview format
   const deltaAdded = delta.added;
   const deltaRemoved = delta.deleted;
-  const deltaModified = delta.modified.map(item => ({
+  const deltaModified = delta.modified.map((item) => ({
     local: item.source,
     remote: item.target,
     changes: item.changes,
@@ -62,12 +62,12 @@ export function formatSyncPreview(preview) {
   lines.push(`  • ${preview.summary.addedCount} bookmarks to be added`);
   lines.push(`  • ${preview.summary.removedCount} bookmarks to be removed`);
   lines.push(`  • ${preview.summary.modifiedCount} bookmarks to be modified`);
-  
+
   // Add additional statistics if available from delta calculation
   if (preview.summary.unchangedCount !== undefined) {
     lines.push(`  • ${preview.summary.unchangedCount} bookmarks unchanged`);
   }
-  
+
   if (preview.summary.totalBookmarks !== undefined) {
     lines.push(`\nTotal bookmarks: ${preview.summary.totalBookmarks}`);
     lines.push(`Change percentage: ${preview.summary.changePercentage}%`);
@@ -102,15 +102,15 @@ export function formatSyncPreview(preview) {
 
   // Add optimization recommendations based on the sync preview
   lines.push('\nSync Optimization Recommendations:');
-  
+
   if (preview.summary.totalChanges > 100) {
     lines.push('  • Large sync detected - Consider using incremental sync');
   }
-  
+
   if (preview.summary.changePercentage < 10) {
     lines.push('  • Small change percentage - Delta sync recommended');
   }
-  
+
   if (preview.summary.addedCount > preview.summary.removedCount + preview.summary.modifiedCount) {
     lines.push('  • Mostly additions - Consider batch processing');
   }

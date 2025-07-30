@@ -1,6 +1,6 @@
 /**
  * storage.js - Storage utilities for BookDrive
- * 
+ *
  * This module provides a unified interface for accessing Chrome storage
  * with additional utilities for managing settings and other data.
  */
@@ -77,7 +77,7 @@ export async function clearStorage(includeSync = false) {
         chrome.storage.sync.clear(() => {
           resolve();
         });
-      })
+      }),
     );
   }
 
