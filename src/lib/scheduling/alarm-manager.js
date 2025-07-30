@@ -16,6 +16,7 @@ import {
 } from './adaptive-scheduler.js';
 import { BACKUP_RESOURCE_CHECK_OPTIONS, RETRY_RESOURCE_CHECK_OPTIONS } from './scheduler-utils.js';
 import { initializeResourceProcessor, processBatch, runWhenIdle } from './resource-processor.js';
+import { getSettings } from '../storage/storage.js';
 
 // Constants
 const BACKUP_ALARM_NAME = 'scheduledBackup';
