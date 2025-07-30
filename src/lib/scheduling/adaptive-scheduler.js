@@ -1,12 +1,12 @@
 // adaptive-scheduler.js - Adaptive scheduling for resource-aware backup processing
 
-import { canPerformOperation, RESOURCE_STATE } from './resource-monitor.js';
-import { getSchedule, updateBackupTime } from './scheduler.js';
-import { getBackupsDueForRetry } from '../backup/backup-metadata.js';
+import { canPerformOperation } from './resource-monitor.js';
+// import { getSchedule, updateBackupTime } from './scheduler.js'; // Removed unused imports
+// import { getBackupsDueForRetry } from '../backup/backup-metadata.js'; // Removed unused import
 import {
-  MISSED_BACKUPS_STORAGE_KEY,
+  // MISSED_BACKUPS_STORAGE_KEY, // Removed unused constant
   MAX_MISSED_BACKUPS,
-  BACKUP_RESOURCE_CHECK_OPTIONS,
+  // BACKUP_RESOURCE_CHECK_OPTIONS, // Removed unused constant
   getMissedBackups,
   saveMissedBackups,
   calculatePriority,

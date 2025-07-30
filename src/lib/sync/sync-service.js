@@ -10,11 +10,11 @@ import {
   uploadFile,
   downloadFile,
   listFiles,
-  deleteFile,
+  // deleteFile, // Removed unused import
   uploadBookmarksFile,
   downloadBookmarksFile,
 } from '../drive.js';
-import { exportBookmarksState, importBookmarksState, getBookmarks } from '../bookmarks.js';
+import { exportBookmarksState, importBookmarksState } from '../bookmarks.js';
 import { recordEvent, ANALYTICS_EVENTS } from '../analytics/sync-analytics.js';
 
 // Sync configuration
@@ -65,7 +65,7 @@ export async function performRealSync(mode = SYNC_MODES.HOST_TO_MANY, options = 
     const localState = await exportBookmarksState();
 
     // Upload local state to Google Drive
-    const syncFileName = `${SYNC_CONFIG.BOOKMARKS_FILE}_${mode}_${Date.now()}.json`;
+    // const syncFileName = `${SYNC_CONFIG.BOOKMARKS_FILE}_${mode}_${Date.now()}.json`; // Removed unused variable
     await uploadBookmarksFile(localState, folderId, token);
     if (progressCallback) progressCallback(40, 'Uploaded to Google Drive...');
 

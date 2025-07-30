@@ -6,11 +6,11 @@
  */
 
 import { getAuthToken, ensureBookDriveFolder } from './auth/drive-auth.js';
-import { uploadFile, downloadFile, listFiles, createPublicLink } from './drive.js';
+import { uploadFile, downloadFile, listFiles } from './drive.js';
 import { encryptData, decryptData } from './encryption.js';
 
 // Storage keys
-const PUBLIC_COLLECTIONS_FILE = 'public_collections.json';
+// const PUBLIC_COLLECTIONS_FILE = 'public_collections.json'; // Removed unused variable
 const COLLECTION_METADATA_PREFIX = 'collection_metadata_';
 
 /**
@@ -701,7 +701,7 @@ async function getCurrentUserEmail() {
  * @param {string} userEmail - User email
  * @returns {Promise<boolean>} Whether user is team member
  */
-async function isTeamMember(userEmail) {
+async function isTeamMember(_userEmail) {
   try {
     // This would check team membership
     // For now, return false

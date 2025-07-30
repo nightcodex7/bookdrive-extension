@@ -9,8 +9,8 @@ import { deriveKey, encryptData, decryptData } from '../encryption.js';
 
 // Compression constants
 const COMPRESSION_LEVEL = 6; // Balance between speed and compression
-const CHUNK_SIZE = 64 * 1024; // 64KB chunks for processing
-const VERSION_PREFIX = 'v';
+// const CHUNK_SIZE = 64 * 1024; // 64KB chunks for processing // Removed unused variable
+// const VERSION_PREFIX = 'v'; // Removed unused variable
 
 /**
  * Compress data using gzip compression
@@ -342,7 +342,7 @@ function getBookmarkChanges(oldBookmark, newBookmark) {
  * @param {number} level - Compression level
  * @returns {Promise<Uint8Array>} Compressed data
  */
-async function compressBytes(data, level) {
+async function compressBytes(data, _level) {
   // Use a simple compression algorithm for browser compatibility
   // In a real implementation, you might use a WebAssembly-based gzip library
 

@@ -317,7 +317,7 @@ export class AdvancedEncryptionManager {
    * @param {Object} config - Configuration
    * @returns {Promise<string>} Encrypted data
    */
-  async performEncryption(data, key, iv, config) {
+  async performEncryption(data, key, iv, _config) {
     const encoder = new TextEncoder();
     const dataString = JSON.stringify(data);
     const dataBytes = encoder.encode(dataString);

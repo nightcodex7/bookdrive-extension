@@ -7,15 +7,15 @@ import {
   updateBackupMetadata,
   saveBackup,
 } from '../backup/backup-metadata.js';
-import { canPerformOperation, RESOURCE_STATE } from './resource-monitor.js';
+import { canPerformOperation } from './resource-monitor.js';
 import {
   shouldDeferBackup,
   deferBackup,
   processNextMissedBackup,
-  initializeAdaptiveScheduler,
+  // initializeAdaptiveScheduler, // Removed unused import
 } from './adaptive-scheduler.js';
-import { BACKUP_RESOURCE_CHECK_OPTIONS, RETRY_RESOURCE_CHECK_OPTIONS } from './scheduler-utils.js';
-import { initializeResourceProcessor, processBatch, runWhenIdle } from './resource-processor.js';
+// import { BACKUP_RESOURCE_CHECK_OPTIONS, RETRY_RESOURCE_CHECK_OPTIONS } from './scheduler-utils.js'; // Removed unused imports
+import { processBatch } from './resource-processor.js';
 import { getSettings } from '../storage/storage.js';
 
 // Constants

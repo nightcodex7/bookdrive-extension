@@ -13,7 +13,7 @@ import { getSharedFolders } from './shared-folders.js';
 // Storage keys
 const TEAM_ANALYTICS_FILE = 'team_analytics.json';
 const TEAM_ACTIVITY_LOG_FILE = 'team_activity_log.json';
-const TEAM_PERFORMANCE_FILE = 'team_performance.json';
+// const TEAM_PERFORMANCE_FILE = 'team_performance.json'; // Removed unused variable
 
 /**
  * Analytics time periods
@@ -627,7 +627,7 @@ function calculateActivityTrends(activities, period) {
  * @param {Date} endDate - End date
  * @returns {Object} Performance trends
  */
-function calculatePerformanceTrends(activities, startDate, endDate) {
+function calculatePerformanceTrends(_activities, _startDate, _endDate) {
   // This would calculate trends over time
   // For now, return placeholder data
   return {
@@ -684,7 +684,7 @@ function calculateTotalBackupSize(backupActivities) {
  * @param {Array} teamMembers - Team members
  * @returns {Object} Collaboration patterns
  */
-function analyzeCollaborationPatterns(activities, teamMembers) {
+function analyzeCollaborationPatterns(_activities, _teamMembers) {
   // This would analyze patterns like:
   // - Who works together most
   // - Time-based collaboration patterns
@@ -730,7 +730,7 @@ function calculateEngagementMetrics(activities, teamMembers) {
  * @param {Date} endDate - End date
  * @returns {Promise<Array>} Popular folders
  */
-async function getPopularFolders(sharedFolders, startDate, endDate) {
+async function getPopularFolders(_sharedFolders, _startDate, _endDate) {
   // This would analyze folder popularity based on activity
   return sharedFolders.slice(0, 10).map((folder) => ({
     id: folder.id,
@@ -746,7 +746,7 @@ async function getPopularFolders(sharedFolders, startDate, endDate) {
  * @param {Date} endDate - End date
  * @returns {Promise<Object>} Folder activity
  */
-async function getFolderActivity(sharedFolders, startDate, endDate) {
+async function getFolderActivity(_sharedFolders, _startDate, _endDate) {
   // This would get activity data for each folder
   return {};
 }
@@ -908,7 +908,7 @@ async function saveTeamReport(report) {
  * @param {Object} data - Data to convert
  * @returns {string} CSV string
  */
-function convertToCSV(data) {
+function convertToCSV(_data) {
   // This would convert the analytics data to CSV format
   // For now, return a placeholder
   return 'data,value\nplaceholder,0';

@@ -8,7 +8,7 @@ import {
   getSavedPages,
   updateSavedPageStatus,
   deleteSavedPage,
-  addTagsToSavedPage,
+  // addTagsToSavedPage, // Removed unused import
   getReadingStats,
 } from '../lib/bookmarks.js';
 

@@ -21,7 +21,8 @@ import {
   deferBackup,
   processNextMissedBackup,
 } from '../lib/scheduling/adaptive-scheduler.js';
-import { getBackupsDueForRetry } from '../lib/backup/backup-metadata.js';
+// Commented out unused variables to resolve lint errors
+// const getBackupsDueForRetry = ...
 
 const mockStorage = { missedBackups: [] };
 

@@ -84,7 +84,7 @@ function hashBookmarks(folders, bookmarks) {
  * @param {Array} bookmarks
  * @returns {Array}
  */
-function dedupeBookmarks(bookmarks) {
+// function dedupeBookmarks(bookmarks) {
   const seen = new Set();
   return bookmarks.filter((b) => {
     if (!b.url) return true; // If no URL, don't dedupe on it

@@ -9,11 +9,11 @@ import { getAuthToken, ensureBookDriveFolder } from '../auth/drive-auth.js';
 import { uploadFile, downloadFile, listFiles } from '../drive.js';
 import {
   getTeamMembers,
-  addTeamMember,
-  removeTeamMember,
-  updateMemberRole,
+  // addTeamMember, // Removed unused import
+  // removeTeamMember, // Removed unused import
+  // updateMemberRole, // Removed unused import
 } from './team-manager.js';
-import { recordTeamActivity } from './team-analytics.js';
+// import { recordTeamActivity } from './team-analytics.js'; // Removed unused import
 
 // Storage keys
 const ENHANCED_TEAM_FILE = 'enhanced_team.json';
@@ -810,7 +810,7 @@ async function canRemovePermission(permission) {
  * @param {string} resourceId - Resource ID
  * @returns {Promise<Array>} Inherited permissions
  */
-async function getInheritedPermissions(userId, resourceType, resourceId) {
+async function getInheritedPermissions(_userId, _resourceType, _resourceId) {
   // This would implement permission inheritance logic
   // For now, return empty array
   return [];

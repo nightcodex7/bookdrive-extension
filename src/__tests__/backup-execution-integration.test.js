@@ -3,7 +3,7 @@
 import {
   handleAlarm,
   checkAndTriggerBackup,
-  triggerBackup,
+  // triggerBackup,
   checkAndTriggerRetries,
   triggerBackupRetry,
 } from '../lib/scheduling/alarm-manager.js';
@@ -12,8 +12,8 @@ import {
   getBackupsDueForRetry,
   scheduleBackupRetry,
   enforceRetentionPolicy,
-  BACKUP_TYPES,
-  BACKUP_STATUS,
+  // BACKUP_TYPES,
+  // BACKUP_STATUS,
 } from '../lib/backup/backup-metadata.js';
 
 import { getSchedule, isBackupDue, updateBackupTime } from '../lib/scheduling/scheduler.js';

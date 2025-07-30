@@ -1,16 +1,16 @@
 // backup-metadata-extended.test.js - Additional tests for the backup metadata module
 
+// Commented out unused variables to resolve lint errors
+// const createBackupMetadata = ...
+// const updateBackupMetadata = ...
+// const getAllBackups = ...
+// const getBackupsBySchedule = ...
+// const deleteBackups = ...
+// const getBackupsToRemove = ...
+// const enforceRetentionPolicy = ...
 import {
-  createBackupMetadata,
-  updateBackupMetadata,
-  getAllBackups,
-  getBackupsByType,
-  getBackupsBySchedule,
   saveBackup,
   deleteBackup,
-  deleteBackups,
-  getBackupsToRemove,
-  enforceRetentionPolicy,
   calculateNextRetryTime,
   scheduleBackupRetry,
   getBackupsDueForRetry,

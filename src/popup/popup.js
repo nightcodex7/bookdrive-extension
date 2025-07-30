@@ -7,14 +7,14 @@
 import {
   signIn,
   signOut,
-  isAuthenticated,
+  // isAuthenticated, // Removed unused import
   getStoredUserInfo,
   ensureBookDriveFolder,
   getBrowserCompatibility,
 } from '../lib/auth/drive-auth.js';
 
 // Import real sync service
-import { performRealSync, createRealBackup, SYNC_MODES } from '../lib/sync/sync-service.js';
+// import { performRealSync, createRealBackup, SYNC_MODES } from '../lib/sync/sync-service.js'; // Removed unused imports
 // Import feature management
 import { featureManager, isFeatureEnabled } from '../config/features.js';
 
@@ -77,25 +77,7 @@ async function applyInitialTheme() {
   }
 }
 
-/**
- * Refresh counts from storage
- */
-async function refreshCounts() {
-  try {
-    const result = await chrome.storage.local.get([
-      STORAGE_KEYS.SYNC_COUNT,
-      STORAGE_KEYS.BACKUP_COUNT,
-    ]);
-
-    const syncCount = result[STORAGE_KEYS.SYNC_COUNT] || 0;
-    const backupCount = result[STORAGE_KEYS.BACKUP_COUNT] || 0;
-
-    updateSyncCount(syncCount);
-    updateBackupCount(backupCount);
-  } catch (error) {
-    console.error('Failed to refresh counts:', error);
-  }
-}
+// Removed unused function refreshCounts
 
 /**
  * Show onboarding screen
@@ -436,40 +418,12 @@ function switchTab(tabName) {
 /**
  * Load user data
  */
-async function loadUserData() {
-  try {
-    currentUser = await getStoredUserInfo();
-    if (currentUser) {
-      updateUserDisplay();
-    }
-  } catch (error) {
-    console.error('Failed to load user data:', error);
-  }
-}
+// Removed unused function loadUserData
 
 /**
  * Load settings
  */
-async function loadSettings() {
-  try {
-    const result = await chrome.storage.local.get([
-      STORAGE_KEYS.SYNC_MODE,
-      STORAGE_KEYS.AUTO_SYNC,
-      STORAGE_KEYS.THEME,
-      STORAGE_KEYS.NOTIFICATIONS,
-    ]);
-
-    syncMode = result[STORAGE_KEYS.SYNC_MODE] || 'host-to-many';
-    autoSync = result[STORAGE_KEYS.AUTO_SYNC] || false;
-    theme = result[STORAGE_KEYS.THEME] || 'auto';
-    notifications = result[STORAGE_KEYS.NOTIFICATIONS] !== false;
-
-    updateSettingsDisplay();
-    applyTheme(theme);
-  } catch (error) {
-    console.error('Failed to load settings:', error);
-  }
-}
+// Removed unused function loadSettings
 
 /**
  * Update user display
@@ -744,34 +698,14 @@ function handleOpenOptions() {
 /**
  * Handle view backup history functionality
  */
-function handleViewBackupHistory() {
-  if (!isFeatureEnabled('scheduled_backups')) {
-    showToast('Backup history feature is disabled', 'warning');
-    return;
-  }
+// Removed unused function handleViewBackupHistory
 
-  chrome.tabs.create({ url: chrome.runtime.getURL('backup-history/backup-history.html') });
-}
-
-function handleResolveConflicts() {
-  if (!isFeatureEnabled('conflict_resolution')) {
-    showToast('Conflict resolution feature is disabled', 'warning');
-    return;
-  }
-
-  chrome.tabs.create({
-    url: chrome.runtime.getURL('conflict-resolution/conflict-resolution.html'),
-  });
-}
+// Removed unused function handleResolveConflicts
 
 /**
  * Handle shared folders
  */
-function handleSharedFolders() {
-  chrome.tabs.create({
-    url: chrome.runtime.getURL('src/shared-folders/shared-folders.html'),
-  });
-}
+// Removed unused function handleSharedFolders
 
 /**
  * Organize tab handlers
@@ -1089,17 +1023,7 @@ async function handleThemeChange(event) {
 /**
  * Handle notifications toggle
  */
-async function handleNotificationsChange(event) {
-  const enabled = event.target.checked;
-
-  try {
-    await chrome.storage.local.set({ [STORAGE_KEYS.NOTIFICATIONS]: enabled });
-    showToast(`Notifications ${enabled ? 'enabled' : 'disabled'}`, 'success');
-  } catch (error) {
-    console.error('Failed to update notifications:', error);
-    showToast('Failed to update notifications', 'error');
-  }
-}
+// Removed unused function handleNotificationsChange
 
 /**
  * Handle auto sync toggle
@@ -1158,57 +1082,12 @@ function updateThemeToggleButton(themeName) {
   }
 }
 
-/**
- * Update sync status display
- */
-function updateSyncStatus(status) {
-  const statusIndicator = document.getElementById('sync-status-indicator');
-  const statusText = document.getElementById('sync-status');
-
-  if (statusIndicator) {
-    const statusDot = statusIndicator.querySelector('.status-dot');
-    const statusTextEl = statusIndicator.querySelector('.status-text');
-
-    if (statusDot) {
-      statusDot.className = 'status-dot';
-      if (status === 'syncing') {
-        statusDot.classList.add('syncing');
-      } else if (status === 'completed') {
-        statusDot.classList.add('completed');
-      } else if (status === 'failed') {
-        statusDot.classList.add('failed');
-      }
-    }
-
-    if (statusTextEl) {
-      const statusMessages = {
-        ready: 'Ready to sync',
-        syncing: 'Syncing...',
-        completed: 'Sync completed',
-        failed: 'Sync failed',
-      };
-      statusTextEl.textContent = statusMessages[status] || 'Ready to sync';
-    }
-  }
-
-  if (statusText) {
-    const statusMessages = {
-      ready: 'Ready',
-      syncing: 'Syncing...',
-      completed: 'Completed',
-      failed: 'Failed',
-    };
-    statusText.textContent = statusMessages[status] || 'Ready';
-  }
-}
+// Removed unused function updateSyncStatus
 
 /**
  * Show header menu
  */
-function showHeaderMenu() {
-  // This function is now replaced by toggleDropdownMenu
-  // Functionality moved to dropdown menu
-}
+// Removed unused function showHeaderMenu
 
 function toggleDropdownMenu() {
   const dropdownMenu = document.getElementById('dropdown-menu');

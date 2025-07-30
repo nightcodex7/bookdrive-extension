@@ -111,7 +111,7 @@ export async function applyDelta(currentTree, delta, applyFn) {
  * @returns {Object} - Compressed data with dictionary
  */
 export function compressBookmarkData(data) {
-  const dictionary = new Set();
+  // const dictionary = new Set(); // Removed unused variable
   const commonStrings = [];
 
   // Extract common strings
@@ -404,9 +404,9 @@ export async function processOfflineQueue() {
       );
 
       // Remove processed operations from queue
-      const successfulOperations = batchResults
-        .filter((result) => result.status === 'fulfilled' && result.value.success)
-        .map((result) => result.value.operationId);
+      // const successfulOperations = batchResults
+      //   .filter((result) => result.status === 'fulfilled' && result.value.success)
+      //   .map((result) => result.value.operationId); // Removed unused variable
 
       queue.splice(i, batch.length);
       i -= batch.length; // Adjust index since we removed items
